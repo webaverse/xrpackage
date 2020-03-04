@@ -1,0 +1,25 @@
+{
+  "name": "polys-tokens-lambda",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rm -f function.zip && zip -r function.zip * && aws lambda update-function-code --function-name tokens --zip-file fileb://function.zip"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/modulesio/exokit-lambda-token.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/modulesio/exokit-lambda-token/issues"
+  },
+  "homepage": "https://github.com/modulesio/exokit-lambda-token#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "node-fetch": "^2.6.0",
+    "web3": "^1.2.1"
+  }
+}
