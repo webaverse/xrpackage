@@ -8,6 +8,7 @@ const realityScriptAbi = require('./reality-script-abi.js');
 const {
   infuraProjectId,
   account,
+  privateKey,
 } = require('./config.js');
 
 function jsonParse(s) {
@@ -28,7 +29,7 @@ const loadPromise = Promise.all([
   fetch(`https://raw.githack.com/exokitxr/polys/contract/address.js`).then(res => res.text()).then(s => s.replace(/^export default `(.+?)`[\s\S]*$/, '$1')),
   fetch(`https://raw.githack.com/exokitxr/polys/contract/abi.js`).then(res => res.text()).then(s => JSON.parse(s.replace(/^export default /, ''))),
 ]).then(([address, abi]) => {
-  // console.log('got address + abi', {address, abi});
+  console.log('got address', address);
   return new web3.eth.Contract(abi, address);
 });
 
@@ -57,7 +58,7 @@ wss.on('connection', async (s, req) => {
           case 'initState': {
             const {id, address, transform} = args;
             const contractAddress = await contract.methods.getContract(id).call();
-            // console.log('got contract address', contractAddress, typeof contractAddress, realityScriptAbi);
+            console.log('got contract address', contractAddress);
             const objectContract = new web3.eth.Contract(realityScriptAbi, contractAddress);
             const state = await objectContract.methods.initState(address, transform).call();
             const oid = getRandomId();
@@ -95,12 +96,26 @@ wss.on('connection', async (s, req) => {
                 const contractBalance = await web3.eth.getBalance(object.contract.options.address);
                 console.log('apply 3', contractBalance);
                 if (contractBalance >= estimatedGas) {
-                  const applyResult = await object.contract.methods.applyState(object.state).call({
-                    from: account,
+                  const encoded = object.contract.methods.applyState(object.state).encodeABI();
+                  const nonce = await web3.eth.getTransactionCount(account);
+                  const tx = {
+                    to: object.contract.options.address,
+                    data: encoded,
                     gasPrice,
                     gas: estimatedGas,
+                    nonce,
+                  };
+                  const signed = await web3.eth.accounts.signTransaction(tx, privateKey);/* .then(signed => {
+                    web3.eth.sendSignedTransaction(signed.rawTransaction).on('receipt', console.log)
+                  }); */
+                  console.log('apply 4', signed);
+                  web3.eth.sendSignedTransaction(signed.rawTransaction).on('receipt', e => {
+                    console.log('apply 6', e);
                   });
-                  console.log('apply 4', applyResult);
+                  /* const applyResult = await object.contract.methods.applyState(object.state).send({
+                    from: account,
+                  }); */
+                  console.log('apply 5');
                   s.send(JSON.stringify({
                     result: {
                       state: object.state,
