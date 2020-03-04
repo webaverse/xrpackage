@@ -57,7 +57,7 @@ wss.on('connection', async (s, req) => {
           case 'initState': {
             const {id, address, transform} = args;
             const contractAddress = await contract.methods.getContract(id).call();
-            console.log('got contract address', contractAddress, typeof contractAddress, realityScriptAbi);
+            // console.log('got contract address', contractAddress, typeof contractAddress, realityScriptAbi);
             const objectContract = new web3.eth.Contract(realityScriptAbi, contractAddress);
             const state = await objectContract.methods.initState(address, transform).call();
             const oid = getRandomId();
@@ -78,7 +78,10 @@ wss.on('connection', async (s, req) => {
             const {oid, transform} = args;
             const object = globalObjects[oid];
             if (object) {
-              const [apply, state] = await object.contract.methods.update(transform, [], object.state).call();
+              const o = await object.contract.methods.update(transform, [['0x0', ['0x0', '0x0', '0x0']]], object.state).call();
+              const apply = o[0];
+              const state = o[1];
+              console.log('got result', o);
               object.state = state;
               if (apply) {
                 console.log('apply 0', object.state);
@@ -88,8 +91,8 @@ wss.on('connection', async (s, req) => {
                   from: account,
                   gasPrice,
                 });
-                console.log('apply 2', estimatedGas);
-                const contractBalance = await web3.eth.getBalance(contract.address);
+                console.log('apply 2', estimatedGas, contract.options.address);
+                const contractBalance = await web3.eth.getBalance(contract.options.address);
                 console.log('apply 3', contractBalance);
                 if (contractBalance >= estimatedGas) {
                   const applyResult = await object.contract.methods.applyState(object.state).call({
