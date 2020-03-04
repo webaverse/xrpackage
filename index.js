@@ -41,26 +41,28 @@ app.get('*', (req, res, next) => {
 });
 const server = http.createServer(app);
 const globalObjects = [];
-const presenceWss = new ws.Server({
+const wss = new ws.Server({
   noServer: true,
 });
-presenceWss.on('connection', async (s, req) => {
+wss.on('connection', async (s, req) => {
   // const o = url.parse(req.url, true);
-  const localObjects = [];
   s.on('message', async m => {
+    const contract = await loadPromise;
+
     if (typeof m === 'string') {
       const data = jsonParse(m);
       if (data) {
-        const {method, args} = data;
+        const {method = '', args = {}} = data;
         switch (method) {
           case 'initState': {
             const {id, address, transform} = args;
             const contractAddress = await contract.methods.getContract(id).call();
-            const contract = new web3.eth.Contract(realityScriptAbi, contractAddress);
-            const state = await contract.methods.initState(address, transform).call();
+            console.log('got contract address', contractAddress, typeof contractAddress, realityScriptAbi);
+            const objectContract = new web3.eth.Contract(realityScriptAbi, contractAddress);
+            const state = await objectContract.methods.initState(address, transform).call();
             const oid = getRandomId();
             globalObjects[oid] = {
-              contract,
+              contract: objectContract,
               state,
             };
             s.send(JSON.stringify({
@@ -135,6 +137,9 @@ presenceWss.on('connection', async (s, req) => {
       console.warn('cannot handle message', m);
     }
   });
+});
+wss.on('error', err => {
+  console.warn(err.stack);
 });
 const _ws = (req, socket, head) => {
   wss.handleUpgrade(req, socket, head, s => {
