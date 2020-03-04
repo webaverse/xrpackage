@@ -4,7 +4,7 @@ const ws = require('ws');
 const fetch = require('node-fetch');
 // const Web3 = require('./web3.min.js');
 const Web3 = require('web3');
-const realityScriptAbi = require('./reality-script-abi.js');
+const realityScriptAbi = require('./reality-script-abi.json');
 const {
   infuraProjectId,
   account,
