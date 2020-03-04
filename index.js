@@ -25,8 +25,8 @@ const web3 = new Web3(
 );
 
 const loadPromise = Promise.all([
-  fetch(`https://raw.githubusercontent.com/exokitxr/polys/contract/address.js`).then(res => res.text()).then(s => s.replace(/^export default `(.+?)`[\s\S]*$/, '$1')),
-  fetch(`https://raw.githubusercontent.com/exokitxr/polys/contract/abi.js`).then(res => res.text()).then(s => JSON.parse(s.replace(/^export default /, ''))),
+  fetch(`https://raw.githack.com/exokitxr/polys/contract/address.js`).then(res => res.text()).then(s => s.replace(/^export default `(.+?)`[\s\S]*$/, '$1')),
+  fetch(`https://raw.githack.com/exokitxr/polys/contract/abi.js`).then(res => res.text()).then(s => JSON.parse(s.replace(/^export default /, ''))),
 ]).then(([address, abi]) => {
   // console.log('got address + abi', {address, abi});
   return new web3.eth.Contract(abi, address);
