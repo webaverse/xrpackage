@@ -1,3 +1,4 @@
+const http = require('http');
 const express = require('express');
 const ws = require('ws');
 const fetch = require('node-fetch');
@@ -78,19 +79,44 @@ presenceWss.on('connection', async (s, req) => {
               const [apply, state] = await object.contract.methods.update(transform, [], object.state).call();
               object.state = state;
               if (apply) {
+                console.log('apply 0', object.state);
                 const gasPrice = await web3.eth.getGasPrice();
+                console.log('apply 1', gasPrice);
                 const estimatedGas = await object.contract.methods.applyState(object.state).estimateGas({
                   from: account,
                   gasPrice,
                 });
-                console.log('do apply', object.state, estimatedGas); // XXX
+                console.log('apply 2', estimatedGas);
+                const contractBalance = await web3.eth.getBalance(contract.address);
+                console.log('apply 3', contractBalance);
+                if (contractBalance >= estimatedGas) {
+                  const applyResult = await object.contract.methods.applyState(object.state).call({
+                    from: account,
+                    gasPrice,
+                    gas: estimatedGas,
+                  });
+                  console.log('apply 4', applyResult);
+                  s.send(JSON.stringify({
+                    result: {
+                      state: object.state,
+                    },
+                    error: null,
+                  }));
+                } else {
+                  s.send(JSON.stringify({
+                    result: null,
+                    error: 'contract has insufficient gas to update',
+                  }));
+                  return;
+                }
+              } else {
+                s.send(JSON.stringify({
+                  result: {
+                    state: object.state,
+                  },
+                  error: null,
+                }));
               }
-              s.send(JSON.stringify({
-                result: {
-                  state,
-                },
-                error: null,
-              }));
             } else {
               s.send(JSON.stringify({
                 result: null,
