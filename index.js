@@ -53,18 +53,18 @@ presenceWss.on('connection', async (s, req) => {
         const {method, args} = data;
         switch (method) {
           case 'initState': {
-            const {address, transform} = args;
+            const {id, address, transform} = args;
             const contractAddress = await contract.methods.getContract(id).call();
             const contract = new web3.eth.Contract(realityScriptAbi, contractAddress);
             const state = await contract.methods.initState(address, transform).call();
-            const id = getRandomId();
-            globalObjects[id] = {
+            const oid = getRandomId();
+            globalObjects[oid] = {
               contract,
               state,
             };
             s.send(JSON.stringify({
               result: {
-                id,
+                oid,
                 state,
               },
               error: null,
@@ -72,14 +72,14 @@ presenceWss.on('connection', async (s, req) => {
             break;
           }
           case 'update': {
-            const {id, transform} = args;
-            const object = globalObjects[id];
+            const {oid, transform} = args;
+            const object = globalObjects[oid];
             if (object) {
-              const [apply, state] = await contract.methods.update(transform, [], object.state).call();
+              const [apply, state] = await object.contract.methods.update(transform, [], object.state).call();
               object.state = state;
               if (apply) {
                 const gasPrice = await web3.eth.getGasPrice();
-                const estimatedGas = await contract.methods.applyState(object.state).estimateGas({
+                const estimatedGas = await object.contract.methods.applyState(object.state).estimateGas({
                   from: account,
                   gasPrice,
                 });
