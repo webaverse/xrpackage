@@ -91,8 +91,8 @@ wss.on('connection', async (s, req) => {
                   from: account,
                   gasPrice,
                 });
-                console.log('apply 2', estimatedGas, contract.options.address);
-                const contractBalance = await web3.eth.getBalance(contract.options.address);
+                console.log('apply 2', estimatedGas, object.contract.options.address);
+                const contractBalance = await web3.eth.getBalance(object.contract.options.address);
                 console.log('apply 3', contractBalance);
                 if (contractBalance >= estimatedGas) {
                   const applyResult = await object.contract.methods.applyState(object.state).call({
