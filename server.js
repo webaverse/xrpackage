@@ -4,33 +4,21 @@ const ws = require('ws');
 const fetch = require('node-fetch');
 // const Web3 = require('./web3.min.js');
 const Web3 = require('web3');
+const RealityScriptEngine = require('./engine.js');
 const realityScriptAbi = require('./reality-script-abi.json');
 const {
   infuraProjectId,
-  account,
-  privateKey,
 } = require('./config.js');
 
-function jsonParse(s) {
-  try {
-    return JSON.parse(s);
-  } catch(err) {
-    return null;
-  }
-}
-const getRandomId = () => Math.random().toString(36).substring(7);
-
-const web3 = new Web3(
-  // Replace YOUR-PROJECT-ID with a Project ID from your Infura Dashboard
-  new Web3.providers.HttpProvider(`https://rinkeby.infura.io/v3/${infuraProjectId}`)
-);
+const web3 = new Web3(new Web3.providers.HttpProvider(`https://rinkeby.infura.io/v3/${infuraProjectId}`));
 
 const loadPromise = Promise.all([
   fetch(`https://cryptopolys.com/address.js`).then(res => res.text()).then(s => s.replace(/^export default `(.+?)`[\s\S]*$/, '$1')),
   fetch(`https://cryptopolys.com/abi.js`).then(res => res.text()).then(s => JSON.parse(s.replace(/^export default /, ''))),
 ]).then(([address, abi]) => {
   console.log('got address', address);
-  return new web3.eth.Contract(abi, address);
+  const contract = new web3.eth.Contract(abi, address);
+  return new RealityScriptEngine({web3, contract});
 });
 
 const app = express();
@@ -48,7 +36,7 @@ const wss = new ws.Server({
 wss.on('connection', async (s, req) => {
   // const o = url.parse(req.url, true);
   s.on('message', async m => {
-    const contract = await loadPromise;
+    const engine = await loadPromise;
 
     if (typeof m === 'string') {
       const data = jsonParse(m);
@@ -57,90 +45,28 @@ wss.on('connection', async (s, req) => {
         switch (method) {
           case 'initState': {
             const {id, address, transform} = args;
-            const contractAddress = await contract.methods.getContract(id).call();
-            console.log('got contract address', contractAddress);
-            const objectContract = new web3.eth.Contract(realityScriptAbi, contractAddress);
-            const state = await objectContract.methods.initState(address, transform).call();
-            const oid = getRandomId();
-            globalObjects[oid] = {
-              contract: objectContract,
-              state,
-            };
-            s.send(JSON.stringify({
-              result: {
-                oid,
-                state,
-              },
-              error: null,
-            }));
+            try {
+              const result = await engine.initState(it, address, transform);
+              s.send(JSON.stringify({
+                result,
+              }));
+            } catch (err) {
+              s.send(JSON.stringify({
+                error: err.stack,
+              }));
+            }
             break;
           }
           case 'update': {
             const {oid, transform} = args;
-            const object = globalObjects[oid];
-            if (object) {
-              const o = await object.contract.methods.update(transform, [['0x0', ['0x0', '0x0', '0x0']]], object.state).call();
-              const apply = o[0];
-              const state = o[1];
-              console.log('got result', o);
-              object.state = state;
-              if (apply) {
-                console.log('apply 0', object.state);
-                const gasPrice = await web3.eth.getGasPrice();
-                console.log('apply 1', gasPrice);
-                const estimatedGas = await object.contract.methods.applyState(object.state).estimateGas({
-                  from: account,
-                  gasPrice,
-                });
-                console.log('apply 2', estimatedGas, object.contract.options.address);
-                const contractBalance = await web3.eth.getBalance(object.contract.options.address);
-                console.log('apply 3', contractBalance);
-                if (contractBalance >= estimatedGas) {
-                  const encoded = object.contract.methods.applyState(object.state).encodeABI();
-                  const nonce = await web3.eth.getTransactionCount(account);
-                  const tx = {
-                    to: object.contract.options.address,
-                    data: encoded,
-                    gasPrice,
-                    gas: estimatedGas,
-                    nonce,
-                  };
-                  const signed = await web3.eth.accounts.signTransaction(tx, privateKey);/* .then(signed => {
-                    web3.eth.sendSignedTransaction(signed.rawTransaction).on('receipt', console.log)
-                  }); */
-                  console.log('apply 4', signed);
-                  web3.eth.sendSignedTransaction(signed.rawTransaction).on('receipt', e => {
-                    console.log('apply 6', e);
-                  });
-                  /* const applyResult = await object.contract.methods.applyState(object.state).send({
-                    from: account,
-                  }); */
-                  console.log('apply 5');
-                  s.send(JSON.stringify({
-                    result: {
-                      state: object.state,
-                    },
-                    error: null,
-                  }));
-                } else {
-                  s.send(JSON.stringify({
-                    result: null,
-                    error: 'contract has insufficient gas to update',
-                  }));
-                  return;
-                }
-              } else {
-                s.send(JSON.stringify({
-                  result: {
-                    state: object.state,
-                  },
-                  error: null,
-                }));
-              }
-            } else {
+            try {
+              const result = await engine.update(oid, transform);
               s.send(JSON.stringify({
-                result: null,
-                error: 'object not found',
+                result,
+              }));
+            } catch (err) {
+              s.send(JSON.stringify({
+                error: err.stack,
               }));
             }
             break;
