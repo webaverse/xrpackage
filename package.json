@@ -1,8 +1,8 @@
 {
-  "name": "polys-tokens-lambda",
+  "name": "realityscript",
   "version": "0.0.1",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rm -f function.zip && zip -r function.zip * && aws lambda update-function-code --function-name tokens --zip-file fileb://function.zip"
