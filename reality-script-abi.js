@@ -1,22 +1,5 @@
 module.exports = [
   {
-    "inputs": [
-      {
-        "internalType": "contract IRealityScriptEngine",
-        "name": "_parent",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_id",
-        "type": "uint256"
-      }
-    ],
-    "payable": true,
-    "stateMutability": "payable",
-    "type": "constructor"
-  },
-  {
     "constant": false,
     "inputs": [
       {
@@ -64,6 +47,23 @@ module.exports = [
     "payable": false,
     "stateMutability": "nonpayable",
     "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "contract IRealityScriptEngine",
+        "name": "_parent",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_id",
+        "type": "uint256"
+      }
+    ],
+    "payable": true,
+    "stateMutability": "payable",
+    "type": "constructor"
   },
   {
     "constant": true,
