@@ -142,7 +142,7 @@ const _ws = (req, socket, head) => {
   });
 };
 server.on('upgrade', _ws);
-server.listen(30001);
+server.listen(3001);
 
 /* const _warn = err => {
   console.warn('uncaught: ' + err.stack);
