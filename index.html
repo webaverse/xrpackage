@@ -106,8 +106,8 @@ function animate(timestamp, frame) {
   cubeMesh.rotation.z = f;
 
   if (!currentSession) {
-    renderer.setFramebuffer(renderer.getFramebuffer());
-    // rse.context.bindFramebuffer(rse.context.FRAMEBUFFER, null);
+    const gl = renderer.getContext();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     const viewport = renderer.getCurrentViewport(new THREE.Vector4());
     rse.context.viewport(viewport.x, viewport.y, viewport.z, viewport.w);
   }

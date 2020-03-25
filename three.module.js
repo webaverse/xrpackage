@@ -25869,7 +25869,6 @@ function WebGLRenderer( parameters ) {
 	}
 
 	//
-	this.getFramebuffer = function () { return _framebuffer; };
 	this.setFramebuffer = function ( value ) {
 
 		if ( _framebuffer !== value && _currentRenderTarget === null ) _gl.bindFramebuffer( 36160, value );
