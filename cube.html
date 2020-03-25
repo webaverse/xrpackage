@@ -25,10 +25,7 @@ window.rs.init().then(({canvas, context}) => {
 const renderer = new THREE.WebGLRenderer({
   canvas,
   context,
-  // antialias: true,
 });
-// renderer.setSize(window.innerWidth, window.innerHeight);
-// renderer.setPixelRatio(window.devicePixelRatio);
 renderer.autoClear = false;
 renderer.sortObjects = false;
 renderer.physicallyCorrectLights = true;
