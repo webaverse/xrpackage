@@ -1,5 +1,5 @@
+import * as THREE from 'https://raw.githack.com/mrdoob/three.js/dev/build/three.module.js';
 import GlobalContext from './GlobalContext.js';
-import THREE from '../lib/three-min.js';
 import symbols from './symbols.js';
 import utils from './utils.js';
 const {_elementGetter, _elementSetter} = utils;
@@ -304,7 +304,7 @@ class XRWebGLLayer {
     this.stencil = stencil;
     this.alpha = alpha;
 
-    this.session.onmakeswapchain(context);
+    // this.session.onmakeswapchain(context);
     /* const {fbo} = this.session.onmakeswapchain(context);
     
     this.framebuffer = {
@@ -389,7 +389,7 @@ class XRView {
     this._localViewMatrix = Float32Array.from([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
     this.transform.inverse.matrix = this._localViewMatrix;
 
-    this.viewMatrix = this.transform.inverse.matrix; // non-standard
+    // this.viewMatrix = this.transform.inverse.matrix; // non-standard
   }
 }
 

@@ -3,6 +3,7 @@
 <body>
 <script type=module>
 import * as XR from './XR.js';
+import GlobalContext from './GlobalContext.js';
 
 console.log('iframe script');
 (() => {
@@ -18,7 +19,7 @@ function makePromise() {
 };
 window.rs = {
   loadPromise: makePromise(),
-  async iframeInit({engine, indexHtml, canvas}) {
+  async iframeInit({engine, indexHtml, canvas, context, xrState}) {
     document.open();
     document.write(indexHtml);
     document.close();
@@ -48,15 +49,18 @@ window.rs = {
 
     delete Navigator.prototype.xr;
     window.navigator.xr = new XR.XR(window);
+    
+    GlobalContext.xrState = xrState;
 
-    this.loadPromise.resolve({canvas});
+    this.loadPromise.resolve({canvas, context});
   },
   async init() {
     console.log('await load promise 1');
-    const {canvas} = await this.loadPromise;
+    const {canvas, context} = await this.loadPromise;
     console.log('await load promise 2');
     return {
       canvas,
+      context,
     };
   }
 };

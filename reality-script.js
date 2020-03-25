@@ -1,12 +1,130 @@
 import * as THREE from 'https://raw.githack.com/mrdoob/three.js/dev/build/three.module.js';
+import GlobalContext from './GlobalContext.js';
 
 const rafSymbol = Symbol();
+
+const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+const localMatrix = new THREE.Matrix4();
+const localMatrix2 = new THREE.Matrix4();
+
+const xrState = (() => {
+  const _makeSab = size => {
+    const sab = new ArrayBuffer(size);
+    let index = 0;
+    return (c, n) => {
+      const result = new c(sab, index, n);
+      index += result.byteLength;
+      return result;
+    };
+  };
+  const _makeTypedArray = _makeSab(32*1024);
+
+  const result = {};
+  result.isPresenting = _makeTypedArray(Uint32Array, 1);
+  result.isPresentingReal = _makeTypedArray(Uint32Array, 1);
+  result.renderWidth = _makeTypedArray(Float32Array, 1);
+  result.renderWidth[0] = window.innerWidth / 2 * window.devicePixelRatio;
+  result.renderHeight = _makeTypedArray(Float32Array, 1);
+  result.renderHeight[0] = window.innerHeight * window.devicePixelRatio;
+  result.metrics = _makeTypedArray(Uint32Array, 2);
+  result.metrics[0] = window.innerWidth;
+  result.metrics[1] = window.innerHeight;
+  result.devicePixelRatio = _makeTypedArray(Float32Array, 1);
+  result.devicePixelRatio[0] = window.devicePixelRatio;
+  result.stereo = _makeTypedArray(Uint32Array, 1);
+  // result.stereo[0] = 1;
+  result.canvasViewport = _makeTypedArray(Float32Array, 4);
+  result.canvasViewport.set(Float32Array.from([0, 0, window.innerWidth, window.innerHeight]));
+  result.depthNear = _makeTypedArray(Float32Array, 1);
+  result.depthNear[0] = 0.1;
+  result.depthFar = _makeTypedArray(Float32Array, 1);
+  result.depthFar[0] = 2000.0;
+  result.position = _makeTypedArray(Float32Array, 3);
+  result.orientation = _makeTypedArray(Float32Array, 4);
+  result.orientation[3] = 1;
+  result.leftViewMatrix = _makeTypedArray(Float32Array, 16);
+  result.leftViewMatrix.set(Float32Array.from([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]));
+  result.rightViewMatrix = _makeTypedArray(Float32Array, 16);
+  result.rightViewMatrix.set(result.leftViewMatrix);
+  // new THREE.PerspectiveCamera(110, 2, 0.1, 2000).projectionMatrix.toArray()
+  result.leftProjectionMatrix = _makeTypedArray(Float32Array, 16);
+  result.leftProjectionMatrix.set(Float32Array.from([0.3501037691048549, 0, 0, 0, 0, 0.7002075382097098, 0, 0, 0, 0, -1.00010000500025, -1, 0, 0, -0.200010000500025, 0]));
+  result.rightProjectionMatrix = _makeTypedArray(Float32Array, 16);
+  result.rightProjectionMatrix.set(result.leftProjectionMatrix);
+  result.leftOffset = _makeTypedArray(Float32Array, 3);
+  result.leftOffset.set(Float32Array.from([-0.625/2, 0, 0]));
+  result.rightOffset = _makeTypedArray(Float32Array, 3);
+  result.leftOffset.set(Float32Array.from([0.625/2, 0, 0]));
+  result.leftFov = _makeTypedArray(Float32Array, 4);
+  result.leftFov.set(Float32Array.from([45, 45, 45, 45]));
+  result.rightFov = _makeTypedArray(Float32Array, 4);
+  result.rightFov.set(result.leftFov);
+  result.offsetEpoch = _makeTypedArray(Uint32Array, 1);
+  const _makeGamepad = () => ({
+    connected: _makeTypedArray(Uint32Array, 1),
+    position: _makeTypedArray(Float32Array, 3),
+    orientation: (() => {
+      const result = _makeTypedArray(Float32Array, 4);
+      result[3] = 1;
+      return result;
+    })(),
+    direction: (() => { // derived
+      const result = _makeTypedArray(Float32Array, 4);
+      result[2] = -1;
+      return result;
+    })(),
+    transformMatrix: (() => { // derived
+      const result = _makeTypedArray(Float32Array, 16);
+      result.set(Float32Array.from([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]));
+      return result;
+    })(),
+    buttons: (() => {
+      const result = Array(10);
+      for (let i = 0; i < result.length; i++) {
+        result[i] = {
+          pressed: _makeTypedArray(Uint32Array, 1),
+          touched: _makeTypedArray(Uint32Array, 1),
+          value: _makeTypedArray(Float32Array, 1),
+        };
+      }
+      return result;
+    })(),
+    axes: _makeTypedArray(Float32Array, 10),
+  });
+  result.gamepads = (() => {
+    const result = Array(2);
+    for (let i = 0; i < result.length; i++) {
+      result[i] = _makeGamepad();
+    }
+    return result;
+  })();
+  result.id = _makeTypedArray(Uint32Array, 1);
+  result.hmdType = _makeTypedArray(Uint32Array, 1);
+  result.tex = _makeTypedArray(Uint32Array, 1);
+  result.depthTex = _makeTypedArray(Uint32Array, 1);
+  result.msTex = _makeTypedArray(Uint32Array, 1);
+  result.msDepthTex = _makeTypedArray(Uint32Array, 1);
+  result.aaEnabled = _makeTypedArray(Uint32Array, 1);
+  result.fakeVrDisplayEnabled = _makeTypedArray(Uint32Array, 1);
+  result.blobId = _makeTypedArray(Uint32Array, 1);
+
+  return result;
+})();
+GlobalContext.xrState = xrState;
 
 export class RealityScriptEngine {
   constructor() {
     const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('webgl', {
+      antialias: true,
+      alpha: true,
+      preserveDrawingBuffer: false,
+      xrCompatible: true,
+    });
 
-    const renderer = new THREE.WebGLRenderer({
+    /* const renderer = new THREE.WebGLRenderer({
       canvas,
       antialias: true,
       // preserveDrawingBuffer: true,
@@ -45,41 +163,16 @@ export class RealityScriptEngine {
     cubeMesh.position.set(0, 1.5, 0);
     cubeMesh.rotation.order = 'YXZ';
     scene.add(cubeMesh);
-    this.cubeMesh = cubeMesh;
-
-    let currentSession = null;
-    function onSessionStarted(session) {
-      session.addEventListener('end', onSessionEnded);
-
-      renderer.xr.setSession(session);
-
-      currentSession = session;
-    }
-    function onSessionEnded() {
-      currentSession.removeEventListener('end', onSessionEnded);
-
-      currentSession = null;
-    }
-
-    document.getElementById('enter-vr-button').addEventListener('click', e => {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      if (currentSession === null) {
-        navigator.xr.requestSession('immersive-vr', {
-          optionalFeatures: [
-            'local-floor',
-            'bounded-floor',
-          ],
-        }).then(onSessionStarted);
-      } else {
-        currentSession.end();
-      }
-    });
+    this.cubeMesh = cubeMesh; */
 
     this.domElement = canvas;
+    this.context = ctx;
+    this.iframes = [];
     this.ids = 0;
     this.rafs = [];
+    this.session = null;
+    this.referenceSpace = null;
+    this.loadReferenceSpaceInterval = null;
   }
   async add(rs) {
     const queue = [];
@@ -90,7 +183,7 @@ export class RealityScriptEngine {
     iframe.style.left = '-10000px';
     iframe.style.visibility = 'hidden';
     document.body.appendChild(iframe);
-    this.iframe = iframe;
+    this.iframes.push(iframe);
     
     await new Promise((accept, reject) => {
       iframe.addEventListener('load', accept);
@@ -99,30 +192,211 @@ export class RealityScriptEngine {
 
     const {files} = rs;
     const indexFile = files.find(file => new URL(file.url).pathname === '/');
-    console.log('got index file', indexFile);
+    // console.log('got index file', indexFile);
     const indexHtml = indexFile.response.body.toString('utf-8');
     await iframe.contentWindow.rs.iframeInit({
       engine: this,
       indexHtml,
       canvas: this.domElement,
+      context: this.context,
+      xrState,
     });
-    console.log('iframe init post');
+    // console.log('iframe init post');
   }
-  tick() {
-    this.renderer.state.reset();
-      
-    const f = (Date.now()%2000)/2000 * Math.PI*2;
-    this.cubeMesh.rotation.x = f;
-    this.cubeMesh.rotation.y = f;
-    this.cubeMesh.rotation.z = f;
-
-    this.renderer.render(this.scene, this.camera);
-
-    const rafs = this.rafs.slice();
-    this.rafs.length = 0;
-    for (let i = 0; i < rafs.length; i++) {
-      rafs[i]();
+  async setSession(session) {
+    if (this.loadReferenceSpaceInterval) {
+      clearInterval(this.loadReferenceSpaceInterval);
     }
+    if (session) {
+      let referenceSpaceType = '';
+      const _loadReferenceSpace = async () => {
+        const lastReferenceSpaceType = referenceSpaceType;
+        let referenceSpace;
+        try {
+          referenceSpace = await session.requestReferenceSpace('local-floor');
+          referenceSpaceType = 'local-floor';
+        } catch (err) {
+          referenceSpace = await session.requestReferenceSpace('local');
+          referenceSpaceType = 'local';
+        }
+
+        if (referenceSpaceType !== lastReferenceSpaceType) {
+          console.log(`referenceSpace changed to ${referenceSpaceType}`);
+          this.referenceSpace = referenceSpace;
+        }
+      };
+      await _loadReferenceSpace();
+      this.loadReferenceSpaceInterval = setInterval(_loadReferenceSpace, 1000);
+
+      const baseLayer = new XRWebGLLayer(session, this.context);
+      session.updateRenderState({baseLayer});
+
+      await new Promise((accept, reject) => {
+        session.requestAnimationFrame((timestamp, frame) => {
+          const pose = frame.getViewerPose(this.referenceSpace);
+          const viewport = baseLayer.getViewport(pose.views[0]);
+          const width = viewport.width;
+          const height = viewport.height;
+          const fullWidth = (() => {
+            let result = 0;
+            for (let i = 0; i < pose.views.length; i++) {
+              result += baseLayer.getViewport(pose.views[i]).width;
+            }
+            return result;
+          })();
+
+          GlobalContext.xrState.isPresentingReal[0] = 1;
+          GlobalContext.xrState.stereo[0] = 1;
+          GlobalContext.xrState.renderWidth[0] = width;
+          GlobalContext.xrState.renderHeight[0] = height;
+
+          /* win.canvas.width = fullWidth;
+          win.canvas.height = height;
+
+          await win.runAsync({
+            method: 'enterXr',
+          }); */
+
+          accept();
+
+          console.log('XR setup complete');
+        });
+        // core.setSession(session);
+        // core.setReferenceSpace(referenceSpace);
+      });
+    }
+    this.session = session;
+  }
+  tick(timestamp, frame) {
+    // local render
+    /* const _localRender = () => {
+      this.renderer.state.reset();
+        
+      const f = (Date.now()%2000)/2000 * Math.PI*2;
+      this.cubeMesh.rotation.x = f;
+      this.cubeMesh.rotation.y = f;
+      this.cubeMesh.rotation.z = f;
+
+      this.renderer.render(this.scene, this.camera);
+    };
+    _localRender(); */
+
+    // update pose
+    const {session} = this;
+    if (session) {
+      // console.log('animate session', session, frame, referenceSpace);
+      // debugger;
+      const pose = frame.getViewerPose(this.referenceSpace);
+      if (pose) {
+        const inputSources = Array.from(session.inputSources);
+        const gamepads = navigator.getGamepads();
+
+        const _loadHmd = () => {
+          const {views} = pose;
+
+          xrState.leftViewMatrix.set(views[0].transform.inverse.matrix);
+          xrState.leftProjectionMatrix.set(views[0].projectionMatrix);
+
+          xrState.rightViewMatrix.set(views[1].transform.inverse.matrix);
+          xrState.rightProjectionMatrix.set(views[1].projectionMatrix);
+
+          localMatrix
+            .fromArray(xrState.leftViewMatrix)
+            .getInverse(localMatrix)
+            .decompose(localVector, localQuaternion, localVector2)
+          localVector.toArray(xrState.position);
+          localQuaternion.toArray(xrState.orientation);
+        };
+        _loadHmd();
+
+        // console.log('got gamepads', gamepads);
+        // debugger;
+        const _loadGamepad = i => {
+          const inputSource = inputSources[i];
+          const xrGamepad = xrState.gamepads[i];
+
+          let pose, gamepad;
+          if (inputSource && (pose = frame.getPose(inputSource.targetRaySpace, referenceSpace)) && (gamepad = inputSource.gamepad || gamepads[i])) {
+            const {transform} = pose;
+            const {position, orientation, matrix} = transform;
+            if (position) { // new WebXR api
+              xrGamepad.position[0] = position.x;
+              xrGamepad.position[1] = position.y;
+              xrGamepad.position[2] = position.z;
+
+              xrGamepad.orientation[0] = orientation.x;
+              xrGamepad.orientation[1] = orientation.y;
+              xrGamepad.orientation[2] = orientation.z;
+              xrGamepad.orientation[3] = orientation.w;
+            } else if (matrix) { // old WebXR api
+              localMatrix
+                .fromArray(transform.matrix)
+                .decompose(localVector, localQuaternion, localVector2);
+
+              xrGamepad.position[0] = localVector.x;
+              xrGamepad.position[1] = localVector.y;
+              xrGamepad.position[2] = localVector.z;
+
+              xrGamepad.orientation[0] = localQuaternion.x;
+              xrGamepad.orientation[1] = localQuaternion.y;
+              xrGamepad.orientation[2] = localQuaternion.z;
+              xrGamepad.orientation[3] = localQuaternion.w;
+            }
+            
+            for (let j = 0; j < gamepad.buttons.length; j++) {
+              const button = gamepad.buttons[j];
+              const xrButton = xrGamepad.buttons[j];
+              xrButton.pressed[0] = button.pressed;
+              xrButton.touched[0] = button.touched;
+              xrButton.value[0] = button.value;
+            }
+            
+            for (let j = 0; j < gamepad.axes.length; j++) {
+              xrGamepad.axes[j] = gamepad.axes[j];
+            }
+            
+            xrGamepad.connected[0] = 1;
+          } else {
+            xrGamepad.connected[0] = 0;
+          }
+        };
+        _loadGamepad(0);
+        _loadGamepad(1);
+      }
+
+      /* const win = windows[0];
+      const {canvas, ctx} = win;
+      ctx.xrFramebuffer = session.renderState.baseLayer.framebuffer; */
+    }
+    
+    const _computeDerivedGamepadsData = () => {
+      const _deriveGamepadData = gamepad => {
+        localQuaternion.fromArray(gamepad.orientation);
+        localVector
+          .set(0, 0, -1)
+          .applyQuaternion(localQuaternion)
+          .toArray(gamepad.direction);
+        localVector.fromArray(gamepad.position);
+        localVector2.set(1, 1, 1);
+        localMatrix
+          .compose(localVector, localQuaternion, localVector2)
+          .toArray(gamepad.transformMatrix);
+      };
+      for (let i = 0; i < xrState.gamepads.length; i++) {
+        _deriveGamepadData(xrState.gamepads[i]);
+      }
+    };
+    _computeDerivedGamepadsData();
+
+    // tick rafs
+    const _tickRafs = () => {
+      const rafs = this.rafs.slice();
+      this.rafs.length = 0;
+      for (let i = 0; i < rafs.length; i++) {
+        rafs[i]();
+      }
+    };
+    _tickRafs();
   }
   requestAnimationFrame(fn) {
     this.rafs.push(fn);

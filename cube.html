@@ -20,11 +20,12 @@ body {
 <script type=module>
 import * as THREE from 'https://raw.githack.com/mrdoob/three.js/dev/build/three.module.js';
 
-window.rs.init().then(({canvas}) => {
+window.rs.init().then(({canvas, context}) => {
 
 const renderer = new THREE.WebGLRenderer({
   canvas,
-  antialias: true,
+  context,
+  // antialias: true,
 });
 // renderer.setSize(window.innerWidth, window.innerHeight);
 // renderer.setPixelRatio(window.devicePixelRatio);
