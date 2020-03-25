@@ -321,8 +321,8 @@ class XRWebGLLayer {
     return GlobalContext.xrFramebuffer;
   }
   set framebuffer(framebuffer) {}
-  
-  get framebufferWidth() {
+
+  /* get framebufferWidth() {
     return xrState.renderWidth[0]*2;
   }
   set framebufferWidth(framebufferWidth) {}
@@ -330,7 +330,7 @@ class XRWebGLLayer {
   get framebufferHeight() {
     return xrState.renderHeight[0];
   }
-  set framebufferHeight(framebufferHeight) {}
+  set framebufferHeight(framebufferHeight) {} */
 }
 
 const _applyXrOffsetToPose = (pose, xrOffsetMatrix, inverse, premultiply) => {
@@ -448,7 +448,7 @@ class XRViewerPose extends XRPose {
       new XRView('right'),
     ];
 
-    this.poseModelMatrix = Float32Array.from([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]); // non-standard
+    // this.poseModelMatrix = Float32Array.from([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]); // non-standard
   }
   get views() {
     return this._views;
