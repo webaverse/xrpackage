@@ -5,7 +5,7 @@
 import * as XR from './XR.js';
 import GlobalContext from './GlobalContext.js';
 
-import * as THREE from 'https://raw.githack.com/mrdoob/three.js/dev/build/three.module.js';
+import * as THREE from './three.module.js';
 const xrOffsetMatrix = new THREE.Matrix4();
 GlobalContext.getXrOffsetMatrix = () => xrOffsetMatrix;
 GlobalContext.xrFramebuffer = null;
@@ -30,25 +30,14 @@ window.rs = {
     document.write(indexHtml);
     document.close();
 
-    /* if (document.readyState !== 'complete') {
-      await new Promise((accept, reject) => {
-        document.addEventListener('readystatechange', () => {
-          if (document.readyState === 'complete') {
-            accept();
-          }
-        });
-      });
-    } */
-    // console.log('ready state', document.readyState);
-    /* await new Promise((accept, reject) => {
-      const script = document.createElement('script');
-      script.onload = accept;
-      script.onerror = reject;
-      script.src = `data:application/javascript,1`;
-      document.body.appendChild(script);
-    }); */
-
     GlobalContext.xrState = xrState;
+    /* GlobalContext.xrFramebuffer = context.createFramebuffer();
+    const fboTex = context.createTexture();
+    context.bindTexture(context.TEXTURE_2D, fboTex);
+    const size = 256;
+    context.texImage2D(context.TEXTURE_2D, 0, context.RGBA, size, size, 0, context.RGBA, context.UNSIGNED_BYTE, null);
+    context.bindFramebuffer(context.FRAMEBUFFER, GlobalContext.xrFramebuffer);
+    context.framebufferTexture2D(context.FRAMEBUFFER, context.COLOR_ATTACHMENT0, context.TEXTURE_2D, fboTex, 0); */
     
     window.requestAnimationFrame = engine.requestAnimationFrame.bind(engine);
     window.cancelAnimationFrame = engine.cancelAnimationFrame.bind(engine);
@@ -82,6 +71,13 @@ window.rs = {
 
     this.loadPromise.resolve({canvas, context});
   },
+  setSession(session) {
+    if (session) {
+      GlobalContext.xrFramebuffer = session.renderState.baseLayer.framebuffer;
+    } else {
+      GlobalContext.xrFramebuffer = null;
+    }
+  },
   async init() {
     // console.log('await load promise 1');
     const {canvas, context} = await this.loadPromise;
@@ -92,10 +88,6 @@ window.rs = {
     };
   }
 };
-/* window.addEventListener('xr-load', e => {
-  const {canvas} = e.data;
-  console.log('got xr load', e.data);
-}); */
 })();
 </script>
 </body>

@@ -26,7 +26,7 @@ canvas {
   <input type=button id=enter-vr-button value="Enter XR">
 </div>
 <script type=module>
-import * as THREE from 'https://raw.githack.com/mrdoob/three.js/dev/build/three.module.js';
+import * as THREE from './three.module.js';
 import 'https://rawcdn.githack.com/exokitxr/webpackage/655f2378d91a0496b09b1ce1a820d3fc6243cdc2/dist/wbn.js';
 import {RealityScriptEngine, RealityScript} from './reality-script.js';
 
@@ -105,8 +105,14 @@ function animate(timestamp, frame) {
   cubeMesh.rotation.y = f;
   cubeMesh.rotation.z = f;
 
+  if (!currentSession) {
+    renderer.setFramebuffer(renderer.getFramebuffer());
+    // rse.context.bindFramebuffer(rse.context.FRAMEBUFFER, null);
+    const viewport = renderer.getCurrentViewport(new THREE.Vector4());
+    rse.context.viewport(viewport.x, viewport.y, viewport.z, viewport.w);
+  }
   renderer.render(scene, camera);
-  
+
   rse.tick(timestamp, frame);
 }
 renderer.setAnimationLoop(animate);
@@ -114,6 +120,8 @@ renderer.setAnimationLoop(animate);
 let currentSession = null;
 function onSessionStarted(session) {
   session.addEventListener('end', onSessionEnded);
+  
+  currentSession = session;
 
   renderer.xr.setSession(session);
   rse.setSession(session);

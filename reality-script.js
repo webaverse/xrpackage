@@ -1,4 +1,4 @@
-import * as THREE from 'https://raw.githack.com/mrdoob/three.js/dev/build/three.module.js';
+import * as THREE from './three.module.js';
 import GlobalContext from './GlobalContext.js';
 
 const rafSymbol = Symbol();
@@ -172,7 +172,7 @@ export class RealityScriptEngine {
     this.rafs = [];
     this.session = null;
     this.referenceSpace = null;
-    this.loadReferenceSpaceInterval = null;
+    this.loadReferenceSpaceInterval = 0;
   }
   async add(rs) {
     const queue = [];
@@ -204,8 +204,9 @@ export class RealityScriptEngine {
     // console.log('iframe init post');
   }
   async setSession(session) {
-    if (this.loadReferenceSpaceInterval) {
+    if (this.loadReferenceSpaceInterval !== 0) {
       clearInterval(this.loadReferenceSpaceInterval);
+      this.loadReferenceSpaceInterval = 0;
     }
     if (session) {
       let referenceSpaceType = '';
@@ -266,6 +267,10 @@ export class RealityScriptEngine {
       });
     }
     this.session = session;
+    
+    this.iframes.forEach(iframe => {
+      iframe.contentWindow.rs.setSession(session);
+    });
   }
   tick(timestamp, frame) {
     // local render

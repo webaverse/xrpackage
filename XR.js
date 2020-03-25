@@ -1,4 +1,4 @@
-import * as THREE from 'https://raw.githack.com/mrdoob/three.js/dev/build/three.module.js';
+import * as THREE from './three.module.js';
 import GlobalContext from './GlobalContext.js';
 import symbols from './symbols.js';
 import utils from './utils.js';
@@ -35,7 +35,7 @@ class XR extends EventTarget {
       const {session} = window.rs;
       
       session.addEventListener('end', () => {
-        session.isPresenting = false;
+        // session.isPresenting = false;
         this.session = null;
       }, {
         once: true,
@@ -75,7 +75,7 @@ class XRSession extends EventTarget {
     this.environmentBlendMode = 'opaque';
     this.renderState = new XRRenderState();
     this.viewerSpace = new XRSpace();
-    this.isPresenting = false; // non-standard
+    // this.isPresenting = false; // non-standard
 
     this._frame = new XRFrame(this);
     this._referenceSpace = new XRReferenceSpace();
@@ -125,7 +125,7 @@ class XRSession extends EventTarget {
       return result;
     }
   }
-  requestHitTest(origin, direction, coordinateSystem) {
+  /* requestHitTest(origin, direction, coordinateSystem) {
     return new Promise((accept, reject) => {
       if (this.onrequesthittest)  {
         this.onrequesthittest(origin, direction, coordinateSystem)
@@ -135,7 +135,7 @@ class XRSession extends EventTarget {
         reject(new Error('api not supported'));
       }
     });
-  }
+  } */
   updateRenderState(newState) {
     this.renderState.update(newState);
   }
@@ -180,7 +180,7 @@ class XRSession extends EventTarget {
     }
   }
 
-  get layers() {
+  /* get layers() {
     return this._layers;
   }
   set layers(layers) {
@@ -195,7 +195,7 @@ class XRSession extends EventTarget {
       id: GlobalContext.xrState.tex[0],
     };
   }
-  set texture(texture) {}
+  set texture(texture) {} */
 
   get onblur() {
     return _elementGetter(this, 'blur');
@@ -272,13 +272,13 @@ class XRRenderState {
   set baseLayer(baseLayer) {
     this._baseLayer = baseLayer;
   }
-  get outputContext() {
+  /* get outputContext() {
     return this._outputContext;
   }
   set outputContext(outputContext) {
     this._outputContext = outputContext;
-  }
-  
+  } */
+
   update(newState) {
     for (const k in newState) {
       this[k] = newState[k];
@@ -318,7 +318,6 @@ class XRWebGLLayer {
   }
   
   get framebuffer() {
-    // return null;
     return GlobalContext.xrFramebuffer;
   }
   set framebuffer(framebuffer) {}
