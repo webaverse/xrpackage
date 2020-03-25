@@ -342,6 +342,7 @@ const _applyXrOffsetToPose = (pose, xrOffsetMatrix, inverse, premultiply) => {
     localMatrix.multiply(inverseXrOffsetMatrix);
   }
   localMatrix.toArray(pose._localViewMatrix);
+  localMatrix.getInverse(localMatrix).toArray(pose.transform.matrix);
 };
 
 class XRFrame {
