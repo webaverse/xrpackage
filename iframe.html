@@ -2,6 +2,8 @@
 <html>
 <body>
 <script type=module>
+import * as XR from './XR.js';
+
 console.log('iframe script');
 (() => {
 function makePromise() {
@@ -43,7 +45,10 @@ window.rs = {
     window.cancelAnimationFrame = engine.cancelAnimationFrame.bind(engine);
     // window.innerWidth = canvas.width;
     // window.innerHeight = canvas.height;
-    
+
+    delete Navigator.prototype.xr;
+    window.navigator.xr = new XR.XR(window);
+
     this.loadPromise.resolve({canvas});
   },
   async init() {
