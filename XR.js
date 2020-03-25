@@ -23,14 +23,17 @@ class XR extends EventTarget {
   supportsSessionMode(mode) { // non-standard
     return this.supportsSession(mode);
   }
-  async requestSession({exclusive = false, outputContext = null, extensions = {}} = {}) {
+  async requestSession(mode, options) {
     if (!this.session) {
-      const session = this._window[symbols.mrDisplaysSymbol].xrSession;
+      /* const session = this._window[symbols.mrDisplaysSymbol].xrSession;
       session.exclusive = exclusive;
       session.outputContext = outputContext;
 
       await session.onrequestpresent();
-      session.isPresenting = true;
+      session.isPresenting = true; */
+      
+      const {session} = window.rs;
+      
       session.addEventListener('end', () => {
         session.isPresenting = false;
         this.session = null;
@@ -66,12 +69,8 @@ class XR extends EventTarget {
 } */
 
 class XRSession extends EventTarget {
-  constructor({exclusive = false, outputContext = null} = {}, window) {
+  constructor() {
     super();
-
-    this.exclusive = exclusive;
-    this.outputContext = outputContext;
-    this.window = window;
 
     this.environmentBlendMode = 'opaque';
     this.renderState = new XRRenderState();
@@ -89,12 +88,12 @@ class XRSession extends EventTarget {
     this._rafs = [];
     this._layers = [];
 
-    this.onrequestpresent = null;
+    /* this.onrequestpresent = null;
     this.onmakeswapchain = null;
-    this.onexitpresent = null;
+    this.onexitpresent = null; */
     this.onrequestanimationframe = null;
     this.oncancelanimationframe = null;
-    this.onlayers = null;
+    // this.onlayers = null;
   }
   requestReferenceSpace(type, options = {}) {
     // const {disableStageEmulation = false, stageEmulationHeight  = 0} = options;
@@ -319,7 +318,8 @@ class XRWebGLLayer {
   }
   
   get framebuffer() {
-    return GlobalContext.proxyContext.xrFramebuffer;
+    // return null;
+    return GlobalContext.xrFramebuffer;
   }
   set framebuffer(framebuffer) {}
   
@@ -455,14 +455,14 @@ class XRViewerPose extends XRPose {
     return this._views;
   }
   set views(views) {}
-  getViewMatrix(view) { // non-standard
+  /* getViewMatrix(view) { // non-standard
     return localMatrix
       .fromArray(view._realViewMatrix)
       .multiply(
         GlobalContext.getXrOffsetMatrix()
       )
       .toArray(view._localViewMatrix);
-  }
+  } */
 }
 
 class XRInputSource {

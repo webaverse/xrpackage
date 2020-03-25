@@ -5,6 +5,11 @@
 import * as XR from './XR.js';
 import GlobalContext from './GlobalContext.js';
 
+import * as THREE from 'https://raw.githack.com/mrdoob/three.js/dev/build/three.module.js';
+const xrOffsetMatrix = new THREE.Matrix4();
+GlobalContext.getXrOffsetMatrix = () => xrOffsetMatrix;
+GlobalContext.xrFramebuffer = null;
+
 console.log('iframe script');
 (() => {
 function makePromise() {
@@ -19,6 +24,7 @@ function makePromise() {
 };
 window.rs = {
   loadPromise: makePromise(),
+  session: null,
   async iframeInit({engine, indexHtml, canvas, context, xrState}) {
     document.open();
     document.write(indexHtml);
@@ -41,23 +47,45 @@ window.rs = {
       script.src = `data:application/javascript,1`;
       document.body.appendChild(script);
     }); */
+
+    GlobalContext.xrState = xrState;
     
     window.requestAnimationFrame = engine.requestAnimationFrame.bind(engine);
     window.cancelAnimationFrame = engine.cancelAnimationFrame.bind(engine);
     // window.innerWidth = canvas.width;
     // window.innerHeight = canvas.height;
 
+    this.session = new XR.XRSession();
+    this.session.onrequestanimationframe = engine.requestAnimationFrame.bind(engine);
+    this.session.oncancelanimationframe = engine.cancelAnimationFrame.bind(engine);
+
     delete Navigator.prototype.xr;
     window.navigator.xr = new XR.XR(window);
     
-    GlobalContext.xrState = xrState;
+    // window.Gamepad = Gamepad;
+    window.XR = XR.XR;
+    window.XRSession = XR.XRSession;
+    window.XRRenderState = XR.XRRenderState;
+    window.XRWebGLLayer = XR.XRWebGLLayer;
+    window.XRFrame = XR.XRFrame;
+    window.XRView = XR.XRView;
+    window.XRViewport = XR.XRViewport;
+    window.XRPose = XR.XRPose;
+    window.XRViewerPose = XR.XRViewerPose;
+    window.XRInputSource = XR.XRInputSource;
+    window.XRRay = XR.XRRay;
+    window.XRInputPose = XR.XRInputPose;
+    window.XRInputSourceEvent = XR.XRInputSourceEvent;
+    window.XRSpace = XR.XRSpace;
+    window.XRReferenceSpace = XR.XRReferenceSpace;
+    window.XRBoundedReferenceSpace = XR.XRBoundedReferenceSpace;
 
     this.loadPromise.resolve({canvas, context});
   },
   async init() {
-    console.log('await load promise 1');
+    // console.log('await load promise 1');
     const {canvas, context} = await this.loadPromise;
-    console.log('await load promise 2');
+    // console.log('await load promise 2');
     return {
       canvas,
       context,

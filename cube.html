@@ -18,7 +18,7 @@ body {
   <input type=button id=enter-vr-button value="Enter XR">
 </div>
 <script type=module>
-import * as THREE from 'https://raw.githack.com/mrdoob/three.js/dev/build/three.module.js';
+import * as THREE from './three.module.js';
 
 window.rs.init().then(({canvas, context}) => {
 
@@ -56,7 +56,7 @@ const cubeMesh = (() => {
   mesh.frustumCulled = false;
   return mesh;
 })();
-cubeMesh.position.set(0, 1, 0);
+// cubeMesh.position.set(0, 1, 0);
 cubeMesh.rotation.order = 'YXZ';
 scene.add(cubeMesh);
 
@@ -74,6 +74,8 @@ renderer.setAnimationLoop(animate);
 
 let currentSession = null;
 function onSessionStarted(session) {
+  console.log('session started', session);
+
   session.addEventListener('end', onSessionEnded);
 
   renderer.xr.setSession(session);
@@ -81,14 +83,16 @@ function onSessionStarted(session) {
   currentSession = session;
 }
 function onSessionEnded() {
+  console.log('session ended');
+
   currentSession.removeEventListener('end', onSessionEnded);
 
   currentSession = null;
 }
 
-document.getElementById('enter-vr-button').addEventListener('click', e => {
+/* document.getElementById('enter-vr-button').addEventListener('click', e => {
   e.preventDefault();
-  e.stopPropagation();
+  e.stopPropagation(); */
   
   if (currentSession === null) {
     navigator.xr.requestSession('immersive-vr', {
@@ -100,7 +104,7 @@ document.getElementById('enter-vr-button').addEventListener('click', e => {
   } else {
     currentSession.end();
   }
-});
+// });
 // document.getElementById('enter-vr-button').click();
 
 });
