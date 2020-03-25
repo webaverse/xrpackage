@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+<body>
+<script type=module>
+console.log('iframe script');
+(() => {
+function makePromise() {
+  let resolve, reject;
+  const result = new Promise((a, b) => {
+    resolve = a;
+    reject = b;
+  });
+  result.resolve = resolve;
+  result.reject = reject;
+  return result;
+};
+window.rs = {
+  loadPromise: makePromise(),
+  async iframeInit({engine, indexHtml, canvas}) {
+    document.open();
+    document.write(indexHtml);
+    document.close();
+
+    /* if (document.readyState !== 'complete') {
+      await new Promise((accept, reject) => {
+        document.addEventListener('readystatechange', () => {
+          if (document.readyState === 'complete') {
+            accept();
+          }
+        });
+      });
+    } */
+    // console.log('ready state', document.readyState);
+    /* await new Promise((accept, reject) => {
+      const script = document.createElement('script');
+      script.onload = accept;
+      script.onerror = reject;
+      script.src = `data:application/javascript,1`;
+      document.body.appendChild(script);
+    }); */
+    
+    window.requestAnimationFrame = engine.requestAnimationFrame.bind(engine);
+    window.cancelAnimationFrame = engine.cancelAnimationFrame.bind(engine);
+    // window.innerWidth = canvas.width;
+    // window.innerHeight = canvas.height;
+    
+    this.loadPromise.resolve({canvas});
+  },
+  async init() {
+    console.log('await load promise 1');
+    const {canvas} = await this.loadPromise;
+    console.log('await load promise 2');
+    return {
+      canvas,
+    };
+  }
+};
+/* window.addEventListener('xr-load', e => {
+  const {canvas} = e.data;
+  console.log('got xr load', e.data);
+}); */
+})();
+</script>
+</body>
+</html>

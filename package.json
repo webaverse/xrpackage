@@ -4,6 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rm -f function.zip && zip -r function.zip * && aws lambda update-function-code --function-name tokens --zip-file fileb://function.zip"
   },
