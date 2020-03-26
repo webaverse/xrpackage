@@ -127,6 +127,23 @@ function animate(timestamp, frame) {
 }
 renderer.setAnimationLoop(animate);
 
+document.addEventListener('dragover', e => {
+  e.preventDefault();
+});
+const _handleUpload = async file => {
+  const d = await RealityScript.compileFromFile(file);
+  const rs = new RealityScript(d);
+  rse.add(rs);
+};
+document.addEventListener('drop', e => {
+  e.preventDefault();
+
+  if (e.dataTransfer.files.length > 0){
+    const [file] = e.dataTransfer.files;
+    _handleUpload(file);
+  }
+});
+
 let currentSession = null;
 function onSessionStarted(session) {
   session.addEventListener('end', onSessionEnded);
@@ -144,7 +161,6 @@ function onSessionEnded() {
   renderer.xr.setSession(null);
   rse.setSession(null);
 }
-
 document.getElementById('enter-vr-button').addEventListener('click', e => {
   e.preventDefault();
   e.stopPropagation();

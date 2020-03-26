@@ -146,7 +146,16 @@ const spatialTypeHandlers = {
       },
     });
   },
+  'gltf@0.0.1': async function(rs) {
+    console.log('add gltf', rs);
+    this.contexts.push({
+      /* setSession(session) {
+        iframe.contentWindow.rs.setSession(session);
+      }, */
+    });
+  },
   'vrm@0.0.1': async function(rs) {
+    console.log('add vrm', rs);
     this.contexts.push({
       /* setSession(session) {
         iframe.contentWindow.rs.setSession(session);
@@ -221,7 +230,7 @@ export class RealityScriptEngine {
     if (handler) {
       return await handler.call(this, rs);
     } else {
-      throw new Error(`unknown spatial type: {type}`);
+      throw new Error(`unknown spatial type: ${type}`);
     }
   }
   async setSession(session) {
@@ -471,6 +480,44 @@ export class RealityScript {
       }
     } else {
       throw new Error('no manifest.json in pack');
+    }
+  }
+  static async compileFromFile(file) {
+    const _createFile = async (file, spatialType) => {
+      const fileData = await new Promise((accept, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          accept(new Uint8Array(reader.result));
+        };
+        reader.onerror = reject;
+        reader.readAsArrayBuffer(file);
+      });
+      return this.compile(
+        [
+          {
+            url: '/',
+            type: 'application/octet-stream',
+            data: fileData,
+          },
+          {
+            url: '/manifest.json',
+            type: 'application/json',
+            data: JSON.stringify({
+              spatial_type: spatialType,
+            }, null, 2),
+          }
+        ]
+      );
+    };
+
+    if (/\.gltf$/.test(file.name)) {
+      return await _createFile(file, 'gltf@0.0.1', 'model/gltf+json');
+    } else if (/\.glb$/.test(file.name)) {
+      return await _createFile(file, 'gbl@0.0.1', 'application/octet-stream')
+    } else if (/\.vrm$/.test(file.name)) {
+      return await _createFile(file, 'vrm@0.0.1', 'application/octet-stream');
+    } else {
+      throw new Error(`unknown file type: ${file.type}`);
     }
   }
   static compile(files) {
