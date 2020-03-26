@@ -434,13 +434,15 @@ export class RealityScript {
     }
     this.files = files;
   }
-  static compile(primaryUrl, manifestUrl, files) {
-    const builder = (new wbn.BundleBuilder(primaryUrl))
-      .setManifestURL(manifestUrl);
+  static compile(files) {
+    const primaryUrl = `https://realityscript.org`;
+    // const manifestUrl = primaryUrl + '/manifest.json';
+    const builder = (new wbn.BundleBuilder(primaryUrl + '/'))
+      // .setManifestURL(manifestUrl);
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const {url, type, data} = file;
-      builder.addExchange(url, 200, {
+      builder.addExchange(primaryUrl + url, 200, {
         'Content-Type': type,
       }, data);
     }

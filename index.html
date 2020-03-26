@@ -36,11 +36,9 @@ const res = await fetch('cube.html');
 const cubeHtml = await res.text();
 
 const b = RealityScript.compile(
-  'https://realityscript.com/',
-  'https://realityscript.com/manifest.json',
   [
     {
-      url: 'https://realityscript.com/',
+      url: '/',
       type: 'text/html',
       data: cubeHtml,
     }
