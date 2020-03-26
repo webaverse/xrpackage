@@ -7,6 +7,9 @@
     "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "bin": {
+    "xrpackage": "./cli.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/modulesio/exokit-lambda-token.git"
