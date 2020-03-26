@@ -32,6 +32,8 @@ import {XRPackageEngine, XRPackage} from './xrpackage.js';
 
 (async () => {
 
+let currentSession = null;
+
 const cubeHtml = await (async () => {
   const res = await fetch('cube.html');
   return await res.text();
@@ -41,7 +43,7 @@ const cubeManifest = await (async () => {
   return await res.text();
 })();
 
-const b = XRPackage.compile(
+const d = XRPackage.compile(
   [
     {
       url: '/',
@@ -55,10 +57,10 @@ const b = XRPackage.compile(
     }
   ]
 );
-const rs = new XRPackage(b);
+const p = new XRPackage(d);
 
-const rse = new XRPackageEngine();
-rse.add(rs);
+const pe = new XRPackageEngine();
+pe.add(p);
 
 /* const canvas = document.createElement('canvas');
 const context = canvas.getContext('webgl', {
@@ -67,15 +69,15 @@ const context = canvas.getContext('webgl', {
   preserveDrawingBuffer: false,
 }); */
 const renderer = new THREE.WebGLRenderer({
-  canvas: rse.domElement,
-  context: rse.context,
+  canvas: pe.domElement,
+  context: pe.context,
   antialias: true,
   alpha: true,
   // preserveDrawingBuffer: true,
 });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
-// renderer.autoClear = false;
+renderer.autoClear = false;
 renderer.sortObjects = false;
 renderer.physicallyCorrectLights = true;
 renderer.xr.enabled = true;
@@ -103,7 +105,7 @@ const cubeMesh = (() => {
   mesh.frustumCulled = false;
   return mesh;
 })();
-// cubeMesh.position.set(0, 0.1, 0);
+cubeMesh.position.set(0, 0, -1);
 cubeMesh.rotation.order = 'YXZ';
 scene.add(cubeMesh);
 
@@ -115,25 +117,24 @@ function animate(timestamp, frame) {
   cubeMesh.rotation.y = f;
   cubeMesh.rotation.z = f;
 
-  if (!currentSession) {
+  /* if (!currentSession) {
     const gl = renderer.getContext();
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     const viewport = renderer.getCurrentViewport(new THREE.Vector4());
-    rse.context.viewport(viewport.x, viewport.y, viewport.z, viewport.w);
-  }
+    pe.context.viewport(viewport.x, viewport.y, viewport.z, viewport.w);
+  } */
   renderer.render(scene, camera);
-
-  rse.tick(timestamp, frame);
 }
 renderer.setAnimationLoop(animate);
+renderer.xr.setSession(pe.fakeSession);
 
 document.addEventListener('dragover', e => {
   e.preventDefault();
 });
 const _handleUpload = async file => {
-  const d = await RealityScript.compileFromFile(file);
-  const rs = new RealityScript(d);
-  rse.add(rs);
+  const d = await XRPackage.compileFromFile(file);
+  const p = new XRPackage(d);
+  pe.add(p);
 };
 document.addEventListener('drop', e => {
   e.preventDefault();
@@ -144,22 +145,21 @@ document.addEventListener('drop', e => {
   }
 });
 
-let currentSession = null;
 function onSessionStarted(session) {
   session.addEventListener('end', onSessionEnded);
   
   currentSession = session;
 
-  renderer.xr.setSession(session);
-  rse.setSession(session);
+  // renderer.xr.setSession(session);
+  pe.setSession(session);
 }
 function onSessionEnded() {
   currentSession.removeEventListener('end', onSessionEnded);
 
   currentSession = null;
 
-  renderer.xr.setSession(null);
-  rse.setSession(null);
+  // renderer.xr.setSession(null);
+  pe.setSession(null);
 }
 document.getElementById('enter-vr-button').addEventListener('click', e => {
   e.preventDefault();

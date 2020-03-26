@@ -1,4 +1,5 @@
 import * as THREE from './three.module.js';
+import * as XR from './XR.js';
 import GlobalContext from './GlobalContext.js';
 
 const rafSymbol = Symbol();
@@ -113,9 +114,12 @@ const xrState = (() => {
   return result;
 })();
 GlobalContext.xrState = xrState;
+const xrOffsetMatrix = new THREE.Matrix4();
+GlobalContext.getXrOffsetMatrix = () => xrOffsetMatrix;
+GlobalContext.xrFramebuffer = null;
 
 const spatialTypeHandlers = {
-  'webxr-site@0.0.1': async function(rs) {
+  'webxr-site@0.0.1': async function(p) {
     const iframe = document.createElement('iframe');
     iframe.src = 'iframe.html';
     iframe.style.position = 'absolute';
@@ -123,13 +127,14 @@ const spatialTypeHandlers = {
     iframe.style.left = '-10000px';
     iframe.style.visibility = 'hidden';
     document.body.appendChild(iframe);
-    
+
     await new Promise((accept, reject) => {
       iframe.addEventListener('load', accept);
       iframe.addEventListener('error', reject);
     });
+    p.context.iframe = iframe;
 
-    const {files} = rs;
+    const {files} = p;
     const indexFile = files.find(file => new URL(file.url).pathname === '/');
     const indexHtml = indexFile.response.body.toString('utf-8');
     await iframe.contentWindow.rs.iframeInit({
@@ -139,28 +144,16 @@ const spatialTypeHandlers = {
       context: this.context,
       xrState,
     });
-    
-    this.contexts.push({
-      setSession(session) {
-        iframe.contentWindow.rs.setSession(session);
-      },
-    });
+
+    this.packages.push(p);
   },
-  'gltf@0.0.1': async function(rs) {
-    console.log('add gltf', rs);
-    this.contexts.push({
-      /* setSession(session) {
-        iframe.contentWindow.rs.setSession(session);
-      }, */
-    });
+  'gltf@0.0.1': async function(p) {
+    console.log('add gltf', p);
+    this.packages.push(p);
   },
-  'vrm@0.0.1': async function(rs) {
-    console.log('add vrm', rs);
-    this.contexts.push({
-      /* setSession(session) {
-        iframe.contentWindow.rs.setSession(session);
-      }, */
-    });
+  'vrm@0.0.1': async function(p) {
+    console.log('add vrm', p);
+    this.packages.push(p);
   },
 };
 
@@ -217,12 +210,48 @@ export class XRPackageEngine {
 
     this.domElement = canvas;
     this.context = ctx;
-    this.contexts = [];
+
+    this.fakeSession = new XR.XRSession();
+    this.fakeSession.onrequestanimationframe = this.requestAnimationFrame.bind(this);
+    this.fakeSession.oncancelanimationframe = this.cancelAnimationFrame.bind(this);
+
+    window.OldXR = {
+      XRWebGLLayer,
+    };
+
+    window.XR = XR.XR;
+    window.XRSession = XR.XRSession;
+    window.XRRenderState = XR.XRRenderState;
+    window.XRWebGLLayer = XR.XRWebGLLayer;
+    window.XRFrame = XR.XRFrame;
+    window.XRView = XR.XRView;
+    window.XRViewport = XR.XRViewport;
+    window.XRPose = XR.XRPose;
+    window.XRViewerPose = XR.XRViewerPose;
+    window.XRInputSource = XR.XRInputSource;
+    window.XRRay = XR.XRRay;
+    window.XRInputPose = XR.XRInputPose;
+    window.XRInputSourceEvent = XR.XRInputSourceEvent;
+    window.XRSpace = XR.XRSpace;
+    window.XRReferenceSpace = XR.XRReferenceSpace;
+    window.XRBoundedReferenceSpace = XR.XRBoundedReferenceSpace;
+    
+    this.packages = [];
     this.ids = 0;
     this.rafs = [];
-    this.session = null;
+    this.realSession = null;
     this.referenceSpace = null;
     this.loadReferenceSpaceInterval = 0;
+    this.cancelFrame = null;
+    
+    const animate = timestamp => {
+      const frameId = window.requestAnimationFrame(animate);
+      this.cancelFrame = () => {
+        window.cancelAnimationFrame(frameId);
+      };
+      this.tick(timestamp);
+    };
+    window.requestAnimationFrame(animate);
   }
   async add(rs) {
     const {type} = rs;
@@ -233,21 +262,24 @@ export class XRPackageEngine {
       throw new Error(`unknown spatial type: ${type}`);
     }
   }
-  async setSession(session) {
+  async setSession(realSession) {
     if (this.loadReferenceSpaceInterval !== 0) {
       clearInterval(this.loadReferenceSpaceInterval);
       this.loadReferenceSpaceInterval = 0;
     }
-    if (session) {
+    if (realSession) {
+      this.cancelFrame();
+      this.cancelFrame = null;
+      
       let referenceSpaceType = '';
       const _loadReferenceSpace = async () => {
         const lastReferenceSpaceType = referenceSpaceType;
         let referenceSpace;
         try {
-          referenceSpace = await session.requestReferenceSpace('local-floor');
+          referenceSpace = await realSession.requestReferenceSpace('local-floor');
           referenceSpaceType = 'local-floor';
         } catch (err) {
-          referenceSpace = await session.requestReferenceSpace('local');
+          referenceSpace = await realSession.requestReferenceSpace('local');
           referenceSpaceType = 'local';
         }
 
@@ -259,11 +291,11 @@ export class XRPackageEngine {
       await _loadReferenceSpace();
       this.loadReferenceSpaceInterval = setInterval(_loadReferenceSpace, 1000);
 
-      const baseLayer = new XRWebGLLayer(session, this.context);
-      session.updateRenderState({baseLayer});
+      const baseLayer = new window.OldXR.XRWebGLLayer(realSession, this.context);
+      realSession.updateRenderState({baseLayer});
 
       await new Promise((accept, reject) => {
-        session.requestAnimationFrame((timestamp, frame) => {
+        realSession.requestAnimationFrame((timestamp, frame) => {
           const pose = frame.getViewerPose(this.referenceSpace);
           const viewport = baseLayer.getViewport(pose.views[0]);
           const width = viewport.width;
@@ -280,6 +312,17 @@ export class XRPackageEngine {
           GlobalContext.xrState.stereo[0] = 1;
           GlobalContext.xrState.renderWidth[0] = width;
           GlobalContext.xrState.renderHeight[0] = height;
+          
+          GlobalContext.xrFramebuffer = realSession.renderState.baseLayer.framebuffer;
+
+          const animate = (timestamp, frame) => {
+            const frameId = realSession.requestAnimationFrame(animate);
+            this.cancelFrame = () => {
+              realSession.cancelAnimationFrame(frameId);
+            };
+            this.tick(timestamp, frame);
+          };
+          realSession.requestAnimationFrame(animate);
 
           /* win.canvas.width = fullWidth;
           win.canvas.height = height;
@@ -292,14 +335,14 @@ export class XRPackageEngine {
 
           console.log('XR setup complete');
         });
-        // core.setSession(session);
+        // core.setSession(realSession);
         // core.setReferenceSpace(referenceSpace);
       });
     }
-    this.session = session;
+    this.realSession = realSession;
     
-    this.contexts.forEach(context => {
-      context.setSession(session);
+    this.packages.forEach(p => {
+      p.setSession(realSession);
     });
   }
   tick(timestamp, frame) {
@@ -317,13 +360,13 @@ export class XRPackageEngine {
     _localRender(); */
 
     // update pose
-    const {session} = this;
-    if (session) {
-      // console.log('animate session', session, frame, referenceSpace);
+    const {realSession} = this;
+    if (realSession) {
+      // console.log('animate session', realSession, frame, referenceSpace);
       // debugger;
       const pose = frame.getViewerPose(this.referenceSpace);
       if (pose) {
-        const inputSources = Array.from(session.inputSources);
+        const inputSources = Array.from(realSession.inputSources);
         const gamepads = navigator.getGamepads();
 
         const _loadHmd = () => {
@@ -334,6 +377,8 @@ export class XRPackageEngine {
 
           xrState.rightViewMatrix.set(views[1].transform.inverse.matrix);
           xrState.rightProjectionMatrix.set(views[1].projectionMatrix);
+          
+          // console.log('load hmd', frame, pose, views, xrState.leftViewMatrix);
 
           localMatrix
             .fromArray(xrState.leftViewMatrix)
@@ -344,8 +389,6 @@ export class XRPackageEngine {
         };
         _loadHmd();
 
-        // console.log('got gamepads', gamepads);
-        // debugger;
         const _loadGamepad = i => {
           const inputSource = inputSources[i];
           const xrGamepad = xrState.gamepads[i];
@@ -398,10 +441,6 @@ export class XRPackageEngine {
         _loadGamepad(0);
         _loadGamepad(1);
       }
-
-      /* const win = windows[0];
-      const {canvas, ctx} = win;
-      ctx.xrFramebuffer = session.renderState.baseLayer.framebuffer; */
     }
     
     const _computeDerivedGamepadsData = () => {
@@ -481,6 +520,8 @@ export class XRPackage {
     } else {
       throw new Error('no manifest.json in pack');
     }
+    
+    this.context = {};
   }
   static async compileFromFile(file) {
     const _createFile = async (file, spatialType) => {
@@ -533,5 +574,11 @@ export class XRPackage {
       }, data);
     }
     return builder.createBundle();
+  }
+  setMatrix(matrix) {
+    this.context.matrix && this.context.matrix.set(matrix);
+  }
+  setSession(session) {
+    this.context.iframe && this.context.iframe.contentWindow.rs.setSession(session);
   }
 }
