@@ -164,7 +164,7 @@ const spatialTypeHandlers = {
   },
 };
 
-export class RealityScriptEngine {
+export class XRPackageEngine {
   constructor() {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('webgl', {
@@ -448,7 +448,7 @@ export class RealityScriptEngine {
   }
 }
 
-export class RealityScript {
+export class XRPackage {
   constructor(d) {
     const bundle = new wbn.Bundle(d);
     const files = [];
@@ -521,7 +521,7 @@ export class RealityScript {
     }
   }
   static compile(files) {
-    const primaryUrl = `https://realityscript.org`;
+    const primaryUrl = `https://xrpackage.org`;
     // const manifestUrl = primaryUrl + '/manifest.json';
     const builder = (new wbn.BundleBuilder(primaryUrl + '/'))
       // .setManifestURL(manifestUrl);

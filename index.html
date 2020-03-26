@@ -28,7 +28,7 @@ canvas {
 <script type=module>
 import * as THREE from './three.module.js';
 import 'https://rawcdn.githack.com/exokitxr/webpackage/655f2378d91a0496b09b1ce1a820d3fc6243cdc2/dist/wbn.js';
-import {RealityScriptEngine, RealityScript} from './reality-script.js';
+import {XRPackageEngine, XRPackage} from './xrpackage.js';
 
 (async () => {
 
@@ -41,7 +41,7 @@ const cubeManifest = await (async () => {
   return await res.text();
 })();
 
-const b = RealityScript.compile(
+const b = XRPackage.compile(
   [
     {
       url: '/',
@@ -55,9 +55,9 @@ const b = RealityScript.compile(
     }
   ]
 );
-const rs = new RealityScript(b);
+const rs = new XRPackage(b);
 
-const rse = new RealityScriptEngine();
+const rse = new XRPackageEngine();
 rse.add(rs);
 
 /* const canvas = document.createElement('canvas');
