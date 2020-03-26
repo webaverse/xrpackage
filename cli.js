@@ -24,7 +24,7 @@ yargs.command('build [input] [output]', 'build xrpackage .wbn from [input] and w
     argv.input = '-';
   }
   if (typeof argv.output !== 'string') {
-    argv.output = 'a.wbn';
+    argv.output = '-';
   }
 
   const fileData = await (() => {
@@ -90,7 +90,11 @@ yargs.command('build [input] [output]', 'build xrpackage .wbn from [input] and w
   const uint8Array = builder.createBundle();
   // console.log('got bundle', uint8Array.byteLength);
 
-  fs.writeFileSync(argv.output, uint8Array);
+  if (argv.output === '-') {
+    process.stdout.write(uint8Array);
+  } else {
+    fs.writeFileSync(argv.output, uint8Array);
+  }
 
   console.log(argv.output);
 
