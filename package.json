@@ -12,14 +12,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/modulesio/exokit-lambda-token.git"
+    "url": "git+https://github.com/exokitxr/xrpackage.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/modulesio/exokit-lambda-token/issues"
+    "url": "https://github.com/exokitxr/xrpackage/issues"
   },
-  "homepage": "https://github.com/modulesio/exokit-lambda-token#readme",
+  "homepage": "https://github.com/exokitxr/xrpackage#readme",
   "dependencies": {
     "express": "^4.17.1",
     "mime": "^2.4.4",
