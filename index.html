@@ -117,12 +117,6 @@ function animate(timestamp, frame) {
   cubeMesh.rotation.y = f;
   cubeMesh.rotation.z = f;
 
-  /* if (!currentSession) {
-    const gl = renderer.getContext();
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    const viewport = renderer.getCurrentViewport(new THREE.Vector4());
-    pe.context.viewport(viewport.x, viewport.y, viewport.z, viewport.w);
-  } */
   renderer.render(scene, camera);
 }
 renderer.setAnimationLoop(animate);
