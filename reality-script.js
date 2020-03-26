@@ -114,6 +114,47 @@ const xrState = (() => {
 })();
 GlobalContext.xrState = xrState;
 
+const spatialTypeHandlers = {
+  'webxr-site@0.0.1': async function(rs) {
+    const iframe = document.createElement('iframe');
+    iframe.src = 'iframe.html';
+    iframe.style.position = 'absolute';
+    iframe.style.top = '-10000px';
+    iframe.style.left = '-10000px';
+    iframe.style.visibility = 'hidden';
+    document.body.appendChild(iframe);
+    
+    await new Promise((accept, reject) => {
+      iframe.addEventListener('load', accept);
+      iframe.addEventListener('error', reject);
+    });
+
+    const {files} = rs;
+    const indexFile = files.find(file => new URL(file.url).pathname === '/');
+    const indexHtml = indexFile.response.body.toString('utf-8');
+    await iframe.contentWindow.rs.iframeInit({
+      engine: this,
+      indexHtml,
+      canvas: this.domElement,
+      context: this.context,
+      xrState,
+    });
+    
+    this.contexts.push({
+      setSession(session) {
+        iframe.contentWindow.rs.setSession(session);
+      },
+    });
+  },
+  'vrm@0.0.1': async function(rs) {
+    this.contexts.push({
+      /* setSession(session) {
+        iframe.contentWindow.rs.setSession(session);
+      }, */
+    });
+  },
+};
+
 export class RealityScriptEngine {
   constructor() {
     const canvas = document.createElement('canvas');
@@ -167,7 +208,7 @@ export class RealityScriptEngine {
 
     this.domElement = canvas;
     this.context = ctx;
-    this.iframes = [];
+    this.contexts = [];
     this.ids = 0;
     this.rafs = [];
     this.session = null;
@@ -175,33 +216,13 @@ export class RealityScriptEngine {
     this.loadReferenceSpaceInterval = 0;
   }
   async add(rs) {
-    const queue = [];
-    const iframe = document.createElement('iframe');
-    iframe.src = 'iframe.html';
-    iframe.style.position = 'absolute';
-    iframe.style.top = '-10000px';
-    iframe.style.left = '-10000px';
-    iframe.style.visibility = 'hidden';
-    document.body.appendChild(iframe);
-    this.iframes.push(iframe);
-    
-    await new Promise((accept, reject) => {
-      iframe.addEventListener('load', accept);
-      iframe.addEventListener('error', reject);
-    });
-
-    const {files} = rs;
-    const indexFile = files.find(file => new URL(file.url).pathname === '/');
-    // console.log('got index file', indexFile);
-    const indexHtml = indexFile.response.body.toString('utf-8');
-    await iframe.contentWindow.rs.iframeInit({
-      engine: this,
-      indexHtml,
-      canvas: this.domElement,
-      context: this.context,
-      xrState,
-    });
-    // console.log('iframe init post');
+    const {type} = rs;
+    const handler = spatialTypeHandlers[type];
+    if (handler) {
+      return await handler.call(this, rs);
+    } else {
+      throw new Error(`unknown spatial type: {type}`);
+    }
   }
   async setSession(session) {
     if (this.loadReferenceSpaceInterval !== 0) {
@@ -433,6 +454,24 @@ export class RealityScript {
       });
     }
     this.files = files;
+    
+    const manifestJsonFile = files.find(file => new URL(file.url).pathname === '/manifest.json');
+    if (manifestJsonFile) {
+      const s = manifestJsonFile.response.body.toString('utf-8');
+      const j = JSON.parse(s);
+      if (j && typeof j.spatial_type === 'string') {
+        const handler = spatialTypeHandlers[j.spatial_type];
+        if (handler) {
+          this.type = j.spatial_type;
+        } else {
+          throw new Error(`unknown spatial_type: ${j.spatial_type}`);
+        }
+      } else {
+        throw new Error('could not find spatial_type string in manifest.json');
+      }
+    } else {
+      throw new Error('no manifest.json in pack');
+    }
   }
   static compile(files) {
     const primaryUrl = `https://realityscript.org`;

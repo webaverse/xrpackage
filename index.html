@@ -32,8 +32,14 @@ import {RealityScriptEngine, RealityScript} from './reality-script.js';
 
 (async () => {
 
-const res = await fetch('cube.html');
-const cubeHtml = await res.text();
+const cubeHtml = await (async () => {
+  const res = await fetch('cube.html');
+  return await res.text();
+})();
+const cubeManifest = await (async () => {
+  const res = await fetch('cube-manifest.json');
+  return await res.text();
+})();
 
 const b = RealityScript.compile(
   [
@@ -41,6 +47,11 @@ const b = RealityScript.compile(
       url: '/',
       type: 'text/html',
       data: cubeHtml,
+    },
+    {
+      url: '/manifest.json',
+      type: 'application/json',
+      data: cubeManifest,
     }
   ]
 );
