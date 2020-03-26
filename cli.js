@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const fs = require('fs');
 const wbn = require('wbn');
 // const {XRPackage} = require('./xrpackage.js');
