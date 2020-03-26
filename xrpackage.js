@@ -157,7 +157,7 @@ const spatialTypeHandlers = {
     });
     URL.revokeObjectURL(u);
 
-    p.object = scene;
+    p.context.object = scene;
     this.scene.add(scene);
 
     this.packages.push(p);
@@ -174,7 +174,7 @@ const spatialTypeHandlers = {
 
     scene.position.z = -3;
 
-    p.object = scene;
+    p.context.object = scene;
     this.scene.add(scene);
 
     this.packages.push(p);
@@ -649,7 +649,10 @@ export class XRPackage {
     return builder.createBundle();
   }
   setMatrix(matrix) {
-    this.context.matrix && this.context.matrix.set(matrix);
+    this.context.object &&
+      this.context.object.matrix
+        .copy(matrix)
+        .decompose(this.context.object.position, this.context.object.quaternion, this.context.object.scale);
   }
   setSession(session) {
     this.context.iframe && this.context.iframe.contentWindow.rs.setSession(session);

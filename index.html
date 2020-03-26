@@ -117,11 +117,20 @@ function animate(timestamp, frame) {
   cubeMesh.rotation.y = f;
   cubeMesh.rotation.z = f;
 
+  for (let i = 0; i < objects.length; i++) {
+    objects[i].setMatrix(new THREE.Matrix4().compose(new THREE.Vector3(0, Math.sin((Date.now()%2000)/2000 * Math.PI*2), 0), new THREE.Quaternion(), new THREE.Vector3(1, 1, 1)));
+  }
+  for (let i = 0; i < avatars.length; i++) {
+    avatars[i].setMatrix(new THREE.Matrix4().compose(new THREE.Vector3(0, Math.sin((Date.now()%2000)/2000 * Math.PI*2), 0), new THREE.Quaternion(), new THREE.Vector3(1, 1, 1)));
+  }
+
   renderer.render(scene, camera);
 }
 renderer.setAnimationLoop(animate);
 renderer.xr.setSession(pe.fakeSession);
 
+const objects = [];
+const avatars = [];
 document.addEventListener('dragover', e => {
   e.preventDefault();
 });
@@ -129,6 +138,12 @@ const _handleUpload = async file => {
   const d = await XRPackage.compileFromFile(file);
   const p = new XRPackage(d);
   pe.add(p);
+
+  if (/\.vrm/.test(file.type)) {
+    avatars.push(p);
+  } else {
+    objects.push(p);
+  }
 };
 document.addEventListener('drop', e => {
   e.preventDefault();
