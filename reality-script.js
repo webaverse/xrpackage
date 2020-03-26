@@ -298,8 +298,8 @@ export class RealityScriptEngine {
     }
     this.session = session;
     
-    this.iframes.forEach(iframe => {
-      iframe.contentWindow.rs.setSession(session);
+    this.contexts.forEach(context => {
+      context.setSession(session);
     });
   }
   tick(timestamp, frame) {
