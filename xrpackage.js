@@ -1,6 +1,7 @@
 import * as THREE from './three.module.js';
 import * as XR from './XR.js';
 import GlobalContext from './GlobalContext.js';
+import {GLTFLoader} from './GLTFLoader.js';
 
 const rafSymbol = Symbol();
 
@@ -101,15 +102,15 @@ const xrState = (() => {
     }
     return result;
   })();
-  result.id = _makeTypedArray(Uint32Array, 1);
-  result.hmdType = _makeTypedArray(Uint32Array, 1);
-  result.tex = _makeTypedArray(Uint32Array, 1);
-  result.depthTex = _makeTypedArray(Uint32Array, 1);
-  result.msTex = _makeTypedArray(Uint32Array, 1);
-  result.msDepthTex = _makeTypedArray(Uint32Array, 1);
-  result.aaEnabled = _makeTypedArray(Uint32Array, 1);
-  result.fakeVrDisplayEnabled = _makeTypedArray(Uint32Array, 1);
-  result.blobId = _makeTypedArray(Uint32Array, 1);
+  // result.id = _makeTypedArray(Uint32Array, 1);
+  // result.hmdType = _makeTypedArray(Uint32Array, 1);
+  // result.tex = _makeTypedArray(Uint32Array, 1);
+  // result.depthTex = _makeTypedArray(Uint32Array, 1);
+  // result.msTex = _makeTypedArray(Uint32Array, 1);
+  // result.msDepthTex = _makeTypedArray(Uint32Array, 1);
+  // result.aaEnabled = _makeTypedArray(Uint32Array, 1);
+  // result.fakeVrDisplayEnabled = _makeTypedArray(Uint32Array, 1);
+  // result.blobId = _makeTypedArray(Uint32Array, 1);
 
   return result;
 })();
@@ -134,8 +135,7 @@ const spatialTypeHandlers = {
     });
     p.context.iframe = iframe;
 
-    const {files} = p;
-    const indexFile = files.find(file => new URL(file.url).pathname === '/');
+    const indexFile = p.files.find(file => new URL(file.url).pathname === '/');
     const indexHtml = indexFile.response.body.toString('utf-8');
     await iframe.contentWindow.rs.iframeInit({
       engine: this,
@@ -148,24 +148,77 @@ const spatialTypeHandlers = {
     this.packages.push(p);
   },
   'gltf@0.0.1': async function(p) {
-    console.log('add gltf', p);
+    const indexFile = p.files.find(file => new URL(file.url).pathname === '/');
+    const indexBlob = new Blob([indexFile.response.body]);
+    const u = URL.createObjectURL(indexBlob);
+    const {scene} = await new Promise((accept, reject) => {
+      const loader = new GLTFLoader();
+      loader.load(u, accept, function onProgress() {}, reject);
+    });
+    URL.revokeObjectURL(u);
+
+    p.object = scene;
+    this.scene.add(scene);
+
     this.packages.push(p);
   },
   'vrm@0.0.1': async function(p) {
-    console.log('add vrm', p);
+    const indexFile = p.files.find(file => new URL(file.url).pathname === '/');
+    const indexBlob = new Blob([indexFile.response.body]);
+    const u = URL.createObjectURL(indexBlob);
+    const {scene} = await new Promise((accept, reject) => {
+      const loader = new GLTFLoader();
+      loader.load(u, accept, function onProgress() {}, reject);
+    });
+    URL.revokeObjectURL(u);
+
+    scene.position.z = -3;
+
+    p.object = scene;
+    this.scene.add(scene);
+
     this.packages.push(p);
   },
 };
 
 export class XRPackageEngine {
   constructor() {
-    const canvas = document.createElement('canvas');
+    /* const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('webgl', {
       antialias: true,
       alpha: true,
       preserveDrawingBuffer: false,
       xrCompatible: true,
+    }); */
+
+    const renderer = new THREE.WebGLRenderer({
+      // canvas: pe.domElement,
+      // context: pe.context,
+      antialias: true,
+      alpha: true,
+      // preserveDrawingBuffer: true,
     });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.autoClear = false;
+    renderer.sortObjects = false;
+    renderer.physicallyCorrectLights = true;
+    renderer.xr.enabled = true;
+    this.renderer = renderer;
+
+    const scene = new THREE.Scene();
+    this.scene = scene;
+
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 0, 1);
+    this.camera = camera;
+
+    const ambientLight = new THREE.AmbientLight(0xFFFFFF);
+    scene.add(ambientLight);
+    const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 3);
+    scene.add(directionalLight);
+    const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 3);
+    scene.add(directionalLight2);
 
     /* const renderer = new THREE.WebGLRenderer({
       canvas,
@@ -208,8 +261,8 @@ export class XRPackageEngine {
     scene.add(cubeMesh);
     this.cubeMesh = cubeMesh; */
 
-    this.domElement = canvas;
-    this.context = ctx;
+    this.domElement = this.renderer.domElement;
+    this.context = this.renderer.getContext();
 
     this.fakeSession = new XR.XRSession();
     this.fakeSession.onrequestanimationframe = this.requestAnimationFrame.bind(this);
@@ -250,7 +303,9 @@ export class XRPackageEngine {
     window.XRSpace = XR.XRSpace;
     window.XRReferenceSpace = XR.XRReferenceSpace;
     window.XRBoundedReferenceSpace = XR.XRBoundedReferenceSpace;
-    
+
+    renderer.xr.setSession(this.fakeSession);
+
     this.packages = [];
     this.ids = 0;
     this.rafs = [];
@@ -476,6 +531,9 @@ export class XRPackageEngine {
       }
     };
     _computeDerivedGamepadsData();
+
+    this.renderer.state.reset();
+    this.renderer.render(this.scene, this.camera);
 
     // tick rafs
     const _tickRafs = () => {
