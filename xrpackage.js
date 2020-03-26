@@ -216,7 +216,22 @@ export class XRPackageEngine {
     this.fakeSession.oncancelanimationframe = this.cancelAnimationFrame.bind(this);
 
     window.OldXR = {
+      XR,
+      XRSession,
+      XRRenderState,
       XRWebGLLayer,
+      XRFrame,
+      XRView,
+      XRViewport,
+      XRPose,
+      XRViewerPose,
+      XRInputSource,
+      XRRay,
+      // XRInputPose,
+      XRInputSourceEvent,
+      XRSpace,
+      XRReferenceSpace,
+      XRBoundedReferenceSpace,
     };
 
     window.XR = XR.XR;
@@ -230,7 +245,7 @@ export class XRPackageEngine {
     window.XRViewerPose = XR.XRViewerPose;
     window.XRInputSource = XR.XRInputSource;
     window.XRRay = XR.XRRay;
-    window.XRInputPose = XR.XRInputPose;
+    // window.XRInputPose = XR.XRInputPose;
     window.XRInputSourceEvent = XR.XRInputSourceEvent;
     window.XRSpace = XR.XRSpace;
     window.XRReferenceSpace = XR.XRReferenceSpace;

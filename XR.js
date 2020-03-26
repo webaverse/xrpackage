@@ -538,12 +538,12 @@ class XRRay { // non-standard
   }
 }
 
-class XRInputPose { // non-standard
+/* class XRInputPose { // non-standard
   constructor() {
     this.targetRay = new XRRay();
     this.gripTransform = new XRRigidTransform();
   }
-}
+} */
 
 class XRInputSourceEvent extends Event {
   constructor(type, init = {}) {
@@ -760,7 +760,7 @@ export {
   XRInputSource,
   DOMPoint,
   XRRay,
-  XRInputPose,
+  // XRInputPose,
   XRInputSourceEvent,
   XRRigidTransform,
   XRSpace,
