@@ -1,12 +1,11 @@
 {
-  "name": "realityscript",
+  "name": "xrpackage",
   "version": "0.0.1",
   "description": "",
-  "main": "server.js",
+  "main": "cli.js",
   "scripts": {
     "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "rm -f function.zip && zip -r function.zip * && aws lambda update-function-code --function-name tokens --zip-file fileb://function.zip"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
@@ -19,6 +18,9 @@
   },
   "homepage": "https://github.com/modulesio/exokit-lambda-token#readme",
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "mime": "^2.4.4",
+    "wbn": "0.0.4",
+    "yargs": "^15.3.1"
   }
 }
