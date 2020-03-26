@@ -226,7 +226,7 @@ export class XRPackageEngine {
       XRPose,
       XRViewerPose,
       XRInputSource,
-      XRRay,
+      // XRRay,
       // XRInputPose,
       XRInputSourceEvent,
       XRSpace,

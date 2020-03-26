@@ -530,7 +530,7 @@ class DOMPoint {
   }
 }
 
-class XRRay { // non-standard
+/* class XRRay { // non-standard
   constructor() {
     this.origin = new DOMPoint();
     this.direction = new DOMPoint(0, 0, -1);
@@ -538,7 +538,7 @@ class XRRay { // non-standard
   }
 }
 
-/* class XRInputPose { // non-standard
+class XRInputPose { // non-standard
   constructor() {
     this.targetRay = new XRRay();
     this.gripTransform = new XRRigidTransform();
@@ -759,7 +759,7 @@ export {
   XRViewerPose,
   XRInputSource,
   DOMPoint,
-  XRRay,
+  // XRRay,
   // XRInputPose,
   XRInputSourceEvent,
   XRRigidTransform,
