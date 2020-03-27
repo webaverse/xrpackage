@@ -181,8 +181,10 @@ const spatialTypeHandlers = {
   },
 };
 
-export class XRPackageEngine {
+export class XRPackageEngine extends EventTarget {
   constructor() {
+    super();
+
     /* const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('webgl', {
       antialias: true,
@@ -431,6 +433,9 @@ export class XRPackageEngine {
     };
     _localRender(); */
 
+    // emit event
+    this.dispatchEvent(new CustomEvent('tick'));
+
     // update pose
     const {realSession} = this;
     if (realSession) {
@@ -584,8 +589,10 @@ export class XRPackageEngine {
   }
 }
 
-export class XRPackage {
+export class XRPackage extends EventTarget {
   constructor(d) {
+    super();
+
     const bundle = new wbn.Bundle(d);
     const files = [];
     for (const url of bundle.urls) {
