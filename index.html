@@ -152,7 +152,7 @@ const _handleUpload = async file => {
   const p = new XRPackage(d);
   pe.add(p);
 
-  if (/\.vrm/.test(file.type)) {
+  if (/\.vrm$/.test(file.name)) {
     p.wearAvatar();
   } else {
     objects.push(p);
