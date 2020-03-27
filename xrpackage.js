@@ -1,10 +1,9 @@
 import * as THREE from './three.module.js';
 import * as XR from './XR.js';
+import symbols from './symbols.js';
 import GlobalContext from './GlobalContext.js';
 import {GLTFLoader} from './GLTFLoader.js';
 import Avatar from 'https://avatars.exokit.org/avatars.js';
-
-const rafSymbol = Symbol();
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -552,11 +551,11 @@ export class XRPackageEngine {
     this.rafs.push(fn);
 
     const id = ++this.ids;
-    fn[rafSymbol] = id;
+    fn[symbols.rafCbsSymbol] = id;
     return id;
   }
   cancelAnimationFrame(id) {
-    const index = this.rafs.findIndex(fn => fn[rafSymbol].id === id);
+    const index = this.rafs.findIndex(fn => fn[symbols.rafCbsSymbol].id === id);
     if (index !== -1) {
       this.rafs.splice(index, 1);
     }
