@@ -122,8 +122,10 @@ cubeMesh.position.set(0, -1/2, 0);
 scene.add(cubeMesh);
 
 pe.addEventListener('tick', () => {
-  orbitControls.update();
-  pe.setCamera(camera);
+  if (!currentSession) {
+    orbitControls.update();
+    pe.setCamera(camera);
+  }
 });
 
 function animate(timestamp, frame) {
