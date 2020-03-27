@@ -2,6 +2,7 @@ import * as THREE from './three.module.js';
 import * as XR from './XR.js';
 import GlobalContext from './GlobalContext.js';
 import {GLTFLoader} from './GLTFLoader.js';
+import Avatar from 'https://avatars.exokit.org/avatars.js';
 
 const rafSymbol = Symbol();
 
@@ -309,6 +310,7 @@ export class XRPackageEngine {
     this.packages = [];
     this.ids = 0;
     this.rafs = [];
+    this.rig = null;
     this.realSession = null;
     this.referenceSpace = null;
     this.loadReferenceSpaceInterval = 0;
@@ -323,11 +325,12 @@ export class XRPackageEngine {
     };
     window.requestAnimationFrame(animate);
   }
-  async add(rs) {
-    const {type} = rs;
+  async add(p) {
+    const {type} = p;
     const handler = spatialTypeHandlers[type];
     if (handler) {
-      return await handler.call(this, rs);
+      await handler.call(this, p);
+      p.parent = this;
     } else {
       throw new Error(`unknown spatial type: ${type}`);
     }
@@ -558,6 +561,28 @@ export class XRPackageEngine {
       this.rafs.splice(index, 1);
     }
   }
+  setLocalAvatar(model) {
+    if (this.rig) {
+      this.scene.remove(this.rig);
+      this.rig.destroy();
+      this.rig = null;
+    }
+
+    if (model) {
+      model.traverse(o => {
+        o.frustumCulled = false;
+      });
+      this,rig = new Avatar(model, {
+        fingers: true,
+        hair: true,
+        visemes: true,
+        decapitate: true,
+        microphoneMediaStream: null,
+        // debug: !newModel,
+      });
+      this.scene.add(this.rig.model);
+    }
+  }
 }
 
 export class XRPackage {
@@ -593,7 +618,8 @@ export class XRPackage {
     } else {
       throw new Error('no manifest.json in pack');
     }
-    
+
+    this.parent = null;
     this.context = {};
   }
   static async compileFromFile(file) {
@@ -658,5 +684,10 @@ export class XRPackage {
   }
   setSession(session) {
     this.context.iframe && this.context.iframe.contentWindow.rs.setSession(session);
+  }
+  wearAvatar() {
+    if (this.context.object) {
+      this.parent.setLocalAvatar(this.context.object);
+    }
   }
 }
