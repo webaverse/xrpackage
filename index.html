@@ -26,6 +26,10 @@ canvas {
   <input type=button id=enter-vr-button value="Enter XR">
 </div>
 <script type=module>
+  import THREE from './three.module.js';
+  window.THREE = THREE;
+</script>
+<script type=module>
 import * as THREE from './three.module.js';
 import {OrbitControls} from './OrbitControls.js';
 import 'https://rawcdn.githack.com/exokitxr/webpackage/655f2378d91a0496b09b1ce1a820d3fc6243cdc2/dist/wbn.js';
@@ -133,9 +137,6 @@ function animate(timestamp, frame) {
   for (let i = 0; i < objects.length; i++) {
     objects[i].setMatrix(new THREE.Matrix4().compose(new THREE.Vector3(0, Math.sin((Date.now()%2000)/2000 * Math.PI*2), 0), new THREE.Quaternion(), new THREE.Vector3(1, 1, 1)));
   }
-  for (let i = 0; i < avatars.length; i++) {
-    avatars[i].setMatrix(new THREE.Matrix4().compose(new THREE.Vector3(0, Math.sin((Date.now()%2000)/2000 * Math.PI*2), 0), new THREE.Quaternion(), new THREE.Vector3(1, 1, 1)));
-  }
 
   renderer.render(scene, camera);
 }
@@ -143,7 +144,6 @@ renderer.setAnimationLoop(animate);
 renderer.xr.setSession(pe.fakeSession);
 
 const objects = [];
-const avatars = [];
 document.addEventListener('dragover', e => {
   e.preventDefault();
 });
@@ -153,7 +153,7 @@ const _handleUpload = async file => {
   pe.add(p);
 
   if (/\.vrm/.test(file.type)) {
-    avatars.push(p);
+    p.wearAvatar();
   } else {
     objects.push(p);
   }
