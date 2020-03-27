@@ -152,7 +152,7 @@ document.addEventListener('dragover', e => {
 const _handleUpload = async file => {
   const d = await XRPackage.compileFromFile(file);
   const p = new XRPackage(d);
-  pe.add(p);
+  await pe.add(p);
 
   if (/\.vrm$/.test(file.name)) {
     p.wearAvatar();
