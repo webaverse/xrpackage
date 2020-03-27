@@ -166,16 +166,14 @@ const spatialTypeHandlers = {
     const indexFile = p.files.find(file => new URL(file.url).pathname === '/');
     const indexBlob = new Blob([indexFile.response.body]);
     const u = URL.createObjectURL(indexBlob);
-    const {scene} = await new Promise((accept, reject) => {
+    const o = await new Promise((accept, reject) => {
       const loader = new GLTFLoader();
       loader.load(u, accept, function onProgress() {}, reject);
     });
     URL.revokeObjectURL(u);
 
-    scene.position.z = -3;
-
-    p.context.object = scene;
-    this.scene.add(scene);
+    p.context.object = o;
+    this.scene.add(o.scene);
 
     this.packages.push(p);
   },
@@ -519,7 +517,7 @@ export class XRPackageEngine extends EventTarget {
         _loadGamepad(1);
       }
     }
-    
+
     const _computeDerivedGamepadsData = () => {
       const _deriveGamepadData = gamepad => {
         localQuaternion.fromArray(gamepad.orientation);
@@ -538,6 +536,18 @@ export class XRPackageEngine extends EventTarget {
       }
     };
     _computeDerivedGamepadsData();
+
+    const {rig} = this;
+    if (rig) {
+      const m = new THREE.Matrix4().fromArray(xrState.leftViewMatrix);
+      m.getInverse(m);
+      m.decompose(rig.inputs.hmd.position, rig.inputs.hmd.quaternion, new THREE.Vector3(1, 1, 1));
+      rig.inputs.leftGamepad.position.copy(rig.inputs.hmd.position).add(localVector.set(0.3, -0.15, -0.5).applyQuaternion(rig.inputs.hmd.quaternion));
+      rig.inputs.leftGamepad.quaternion.copy(rig.inputs.hmd.quaternion);
+      rig.inputs.rightGamepad.position.copy(rig.inputs.hmd.position).add(localVector.set(-0.3, -0.15, -0.5).applyQuaternion(rig.inputs.hmd.quaternion));
+      rig.inputs.rightGamepad.quaternion.copy(rig.inputs.hmd.quaternion);
+      rig.update();
+    }
 
     this.renderer.state.reset();
     this.renderer.render(this.scene, this.camera);
@@ -580,10 +590,10 @@ export class XRPackageEngine extends EventTarget {
     }
 
     if (model) {
-      model.traverse(o => {
+      model.scene.traverse(o => {
         o.frustumCulled = false;
       });
-      this,rig = new Avatar(model, {
+      this.rig = new Avatar(model, {
         fingers: true,
         hair: true,
         visemes: true,
