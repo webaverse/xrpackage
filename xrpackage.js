@@ -565,6 +565,13 @@ export class XRPackageEngine extends EventTarget {
       this.rafs.splice(index, 1);
     }
   }
+  setCamera(camera) {
+    camera.matrixWorldInverse.toArray(xrState.leftViewMatrix);
+    camera.projectionMatrix.toArray(xrState.leftProjectionMatrix);
+
+    xrState.rightViewMatrix.set(xrState.leftViewMatrix);
+    xrState.rightProjectionMatrix.set(xrState.leftProjectionMatrix);
+  }
   setLocalAvatar(model) {
     if (this.rig) {
       this.scene.remove(this.rig);
