@@ -1,106 +1,138 @@
 #!/usr/bin/env node
 
 const fs = require('fs');
+const readline = require('readline');
+const {Writable} = require('stream');
 const yargs = require('yargs');
 const wbn = require('wbn');
-// const {XRPackage} = require('./xrpackage.js');
 
 let handled = false;
+yargs
+  .command('login', 'log in to wallet', yargs => {
+    yargs
+      /* .positional('input', {
+        describe: 'input file to build',
+        // default: 5000
+      }) */
+  }, async argv => {
+    handled = true;
 
-yargs.command('build [input] [output]', 'build xrpackage .wbn from [input] and write to [output]', yargs => {
-  yargs
-    .positional('input', {
-      describe: 'input file to build',
-      // default: 5000
-    })
-    .positional('output', {
-      describe: 'output file to write',
-      // default: 5000
+    process.stdout.write('mnemonic: ');
+
+    var mutableStdout = new Writable({
+      write: function(chunk, encoding, callback) {
+        if (!this.muted)
+          process.stdout.write(chunk, encoding);
+        callback();
+      }
     });
-}, async argv => {
-  handled = true;
+    mutableStdout.muted = false;
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: mutableStdout,
+      terminal: true
+    });
+    rl.question('Password: ', password => {
+      rl.close();
 
-  if (typeof argv.input !== 'string') {
-    argv.input = '-';
-  }
-  if (typeof argv.output !== 'string') {
-    argv.output = '-';
-  }
-
-  const fileData = await (() => {
-    if (argv.input === '-') {
-      return new Promise((accept, reject) => {
-        const bs = [];
-        process.stdin.on('data', d => {
-          bs.push(d);
-        });
-        process.stdin.once('end', () => {
-          accept(Buffer.concat(bs));
-        });
-        process.stdin.once('error', reject);
+      console.log('\nPassword is ' + password);
+    });
+    mutableStdout.muted = true;
+  })
+  .command('build [input] [output]', 'build xrpackage .wbn from [input] and write to [output]', yargs => {
+    yargs
+      .positional('input', {
+        describe: 'input file to build',
+        // default: 5000
+      })
+      .positional('output', {
+        describe: 'output file to write',
+        // default: 5000
       });
-    } else {
-      return Promise.resolve(fs.readFileSync(argv.input));
+  }, async argv => {
+    handled = true;
+
+    if (typeof argv.input !== 'string') {
+      argv.input = '-';
     }
-  })();
+    if (typeof argv.output !== 'string') {
+      argv.output = '-';
+    }
 
-  // console.log('got data', data.length);
+    const fileData = await (() => {
+      if (argv.input === '-') {
+        return new Promise((accept, reject) => {
+          const bs = [];
+          process.stdin.on('data', d => {
+            bs.push(d);
+          });
+          process.stdin.once('end', () => {
+            accept(Buffer.concat(bs));
+          });
+          process.stdin.once('error', reject);
+        });
+      } else {
+        return Promise.resolve(fs.readFileSync(argv.input));
+      }
+    })();
 
-  let spatialType, mimeType;
-  if (/\.gltf$/.test(argv.input)) {
-    spatialType = 'gltf@0.0.1';
-    mimeType = 'model/gltf+json';
-  } else if (/\.glb$/.test(argv.input)) {
-    spatialType = 'gltf@0.0.1';
-    mimeType = 'application/octet-stream';
-  } else if (/\.vrm$/.test(argv.input)) {
-    spatialType = 'vrm@0.0.1';
-    mimeType = 'application/octet-stream';
-  } else if (argv.input === '-' || /\.html$/.test(argv.input)) {
-    spatialType = 'webxr-site@0.0.1';
-    mimeType = 'text/html';
-  } else {
-    throw new Error(`unknown file type: ${argv.input}`);
-  }
+    // console.log('got data', data.length);
 
-  const files = [
-    {
-      url: '/',
-      type: mimeType,
-      data: fileData,
-    },
-    {
-      url: '/manifest.json',
-      type: 'application/json',
-      data: JSON.stringify({
-        spatial_type: spatialType,
-      }, null, 2),
-    },
-  ];
+    let spatialType, mimeType;
+    if (/\.gltf$/.test(argv.input)) {
+      spatialType = 'gltf@0.0.1';
+      mimeType = 'model/gltf+json';
+    } else if (/\.glb$/.test(argv.input)) {
+      spatialType = 'gltf@0.0.1';
+      mimeType = 'application/octet-stream';
+    } else if (/\.vrm$/.test(argv.input)) {
+      spatialType = 'vrm@0.0.1';
+      mimeType = 'application/octet-stream';
+    } else if (argv.input === '-' || /\.html$/.test(argv.input)) {
+      spatialType = 'webxr-site@0.0.1';
+      mimeType = 'text/html';
+    } else {
+      throw new Error(`unknown file type: ${argv.input}`);
+    }
 
-  const primaryUrl = `https://xrpackage.org`;
-  const builder = (new wbn.BundleBuilder(primaryUrl + '/'))
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    const {url, type, data} = file;
-    builder.addExchange(primaryUrl + url, 200, {
-      'Content-Type': type,
-    }, data);
-  }
-  const uint8Array = builder.createBundle();
-  // console.log('got bundle', uint8Array.byteLength);
+    const files = [
+      {
+        url: '/',
+        type: mimeType,
+        data: fileData,
+      },
+      {
+        url: '/manifest.json',
+        type: 'application/json',
+        data: JSON.stringify({
+          spatial_type: spatialType,
+        }, null, 2),
+      },
+    ];
 
-  if (argv.output === '-') {
-    process.stdout.write(uint8Array);
-  } else {
-    fs.writeFileSync(argv.output, uint8Array);
-  }
+    const primaryUrl = `https://xrpackage.org`;
+    const builder = (new wbn.BundleBuilder(primaryUrl + '/'))
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const {url, type, data} = file;
+      builder.addExchange(primaryUrl + url, 200, {
+        'Content-Type': type,
+      }, data);
+    }
+    const uint8Array = builder.createBundle();
+    // console.log('got bundle', uint8Array.byteLength);
 
-  console.log(argv.output);
+    if (argv.output === '-') {
+      process.stdout.write(uint8Array);
+    } else {
+      fs.writeFileSync(argv.output, uint8Array);
+    }
 
-  /* if (argv.verbose) console.info(`start server on :${argv.port}`)
-  serve(argv.port) */
-}).argv;
+    console.log(argv.output);
+
+    /* if (argv.verbose) console.info(`start server on :${argv.port}`)
+    serve(argv.port) */
+  }).argv;
 if (!handled) {
   yargs.showHelp();
 }
