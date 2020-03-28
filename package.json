@@ -21,11 +21,16 @@
   },
   "homepage": "https://github.com/exokitxr/xrpackage#readme",
   "dependencies": {
+    "bignumber.js": "^9.0.0",
     "eth-lightwallet": "^4.0.0",
+    "ethereumjs-tx": "^2.1.2",
+    "ethereumjs-util": "^6.2.0",
     "express": "^4.17.1",
     "mime": "^2.4.4",
     "mkdirp": "^1.0.3",
+    "node-fetch": "^2.6.0",
     "wbn": "0.0.4",
+    "web3": "^1.2.6",
     "yargs": "^15.3.1"
   }
 }

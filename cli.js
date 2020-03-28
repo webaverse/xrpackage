@@ -7,8 +7,50 @@ const {Writable} = require('stream');
 const os = require('os');
 const mkdirp = require('mkdirp');
 const yargs = require('yargs');
+const fetch = require('node-fetch');
 const wbn = require('wbn');
+const ethereumjs = {
+  Tx: require('ethereumjs-tx').Transaction,
+};
+const {BigNumber} = require('bignumber.js');
 const lightwallet = require('eth-lightwallet');
+const Web3 = require('web3');
+
+const apiHost = `https://ipfs.exokit.org/ipfs`;
+const network = 'rinkeby';
+const infuraApiKey = '4fb939301ec543a0969f3019d74f80c2';
+const rpcUrl = `https://${network}.infura.io/v3/${infuraApiKey}`;
+const web3 = new Web3(new Web3.providers.HttpProvider(rpcUrl));
+
+const getContract = Promise.all([
+  fetch(`https://contracts.webaverse.com/address.js`).then(res => res.text()).then(s => s.replace(/^export default `(.+?)`[\s\S]*$/, '$1')),
+  fetch(`https://contracts.webaverse.com/abi.js`).then(res => res.text()).then(s => JSON.parse(s.replace(/^export default /, ''))),
+]).then(([address, abi]) => {
+  // console.log('got address + abi', {address, abi});
+  return new web3.eth.Contract(abi, address);
+});
+
+/* loadPromise.then(c => {
+  const m = c.methods.mint([1, 1, 1], '0x0', 'hash', 'lol');
+  console.log('got c', Object.keys(c), Object.keys(c.methods.mint), Object.keys(m), m.encodeABI());
+}); */
+
+/* window.web3.eth.contract(abi).at(address)
+window.web3 = new window.Web3(window.ethereum);
+try {
+  // Request account access if needed
+  await window.ethereum.enable();
+  // Acccounts now exposed
+  // web3.eth.sendTransaction({});
+
+  this.instance = ;
+  this.account = window.web3.eth.accounts[0];
+
+  this.promise.accept(this.instance);
+} catch (err) {
+  // User denied account access...
+  console.warn(err);
+} */
 
 function makePromise() {
   let accept, reject;
@@ -109,7 +151,7 @@ yargs
   }, async argv => {
     handled = true;
 
-    var mutableStdout = new Writable({
+    const mutableStdout = new Writable({
       write: function(chunk, encoding, callback) {
         if (!this.muted)
           process.stdout.write(chunk, encoding);
@@ -147,6 +189,145 @@ yargs
     });
     await p;
     mutableStdout.muted = true;
+  })
+  .command('publish [input]', 'publish token', yargs => {
+    yargs
+      .positional('input', {
+        describe: 'input file to publish',
+        // default: 5000
+      })
+  }, async argv => {
+    handled = true;
+
+    const ksString = fs.readFileSync(path.join(os.homedir(), '.xrpackage'));
+
+    const mutableStdout = new Writable({
+      write: function(chunk, encoding, callback) {
+        if (!this.muted)
+          process.stdout.write(chunk, encoding);
+        callback();
+      }
+    });
+    mutableStdout.muted = false;
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: mutableStdout,
+      terminal: true
+    });
+
+    const passwordPromise = makePromise();
+    rl.question('password: ', password => {
+      rl.close();
+
+      passwordPromise.accept(password);
+    });
+    const password = await passwordPromise;
+
+    const ks = await _importKeyStore(ksString, password);
+
+    const objectName = 'avatar';
+    const dataArrayBuffer = fs.readFileSync('model9.vrm');
+    const screenshotBlob = fs.readFileSync('model9.png');
+
+    console.log('uploading...');
+    const [
+      dataHash,
+      screenshotHash,
+    ] = await Promise.all([
+      fetch(`${apiHost}/`, {
+        method: 'PUT',
+        body: dataArrayBuffer,
+      })
+        .then(res => res.json())
+        .then(j => j.hash),
+      fetch(`${apiHost}/`, {
+        method: 'PUT',
+        body: screenshotBlob,
+      })
+        .then(res => res.json())
+        .then(j => j.hash),
+    ]);
+    const metadataHash = await fetch(`${apiHost}/`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        objectName,
+        dataHash,
+        screenshotHash,
+      }),
+    })
+      .then(res => res.json())
+      .then(j => j.hash);
+
+    /* const address = `0x${ks.addresses[0]}`;
+    const nonce = await web3.eth.getTransactionCount(address);
+    const gasPrice = await web3.eth.getGasPrice();
+    const rawTx = {
+      to: dstAddress,
+      srcValue: srcValue * 1e18,
+      gasPrice,
+      gas: 0,
+      nonce,
+    };
+    rawTx.gas = await web3.eth.estimateGas(rawTx);
+    const serializedTx = new ethereumjs.Tx(rawTx).serialize();
+    const signed = await ks.signTx(serializedTx);
+    web3.eth.sendSignedTransaction('0x' + signed).on('receipt', e => {
+      console.log('got tx receipt', e); // XXX
+    }); */
+
+    console.log('got hashes', ks, {dataHash, screenshotHash, metadataHash});
+
+    const contract = await getContract;
+    const address = `0x${ks.addresses[0]}`;
+    const nonce = await web3.eth.getTransactionCount(address);
+    console.log('get nonce', nonce);
+    const gasPrice = await web3.eth.getGasPrice();
+    console.log('gas price', gasPrice);
+    const m = contract.methods.mint([1, 1, 1], '0x0', 'hash', metadataHash);
+    const data = m.encodeABI();
+    console.log('got data', data);
+    const value = '10000000000000000'; // 0.01 ETH
+    const rawTx = {
+      from: address,
+      value: '0x' + BigNumber(value).toString(16), // 0.01 ETH
+      gasPrice: '0x' + BigNumber(gasPrice).toString(16),
+      gas: 0,
+      nonce,
+      data,
+    };
+    rawTx.gas = await m.estimateGas({
+      from: address,
+      value,
+    });
+    console.log('raw tx', rawTx);
+    const serializedTx = new ethereumjs.Tx(rawTx).serialize();
+    console.log('serialized tx', serializedTx);
+    const signedTx = await ks.signTx(serializedTx);
+    console.log('sign tx', signedTx);
+
+    const txPromise = makePromise();
+    web3.eth.sendSignedTransaction('0x' + signedTx).on('receipt', e => {
+      console.log('got tx receipt', e); // XXX
+      txPromise.accept();
+    }).on('error', txPromise.reject);
+    await txPromise;
+
+    /* const p = makePromise();
+    const instance = await contract.getInstance();
+    const account = await contract.getAccount();
+    const size = pointerMesh.getSize();
+    instance.mint([size[3] - size[0], size[4] - size[1], size[5] - size[2]], '0x0', 'hash', metadataHash, {
+      from: account,
+    // value: '1000000000000000000', // 1 ETH
+      value: '10000000000000000', // 0.01 ETH
+    }, (err, value) => {
+      if (!err) {
+        p.accept(value);
+      } else {
+        p.reject(err);
+      }
+    });
+    await p; */
   })
   .command('build [input] [output]', 'build xrpackage .wbn from [input] and write to [output]', yargs => {
     yargs
@@ -238,9 +419,6 @@ yargs
     }
 
     console.log(argv.output);
-
-    /* if (argv.verbose) console.info(`start server on :${argv.port}`)
-    serve(argv.port) */
   }).argv;
 if (!handled) {
   yargs.showHelp();
