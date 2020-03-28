@@ -3,7 +3,7 @@ import * as XR from './XR.js';
 import symbols from './symbols.js';
 import GlobalContext from './GlobalContext.js';
 import {GLTFLoader} from './GLTFLoader.js';
-import Avatar from 'https://avatars.exokit.org/avatars.js';
+import Avatar from './avatars/avatars.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
