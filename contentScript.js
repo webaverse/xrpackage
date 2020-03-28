@@ -1,4 +1,4 @@
-window.addEventListener('load', () => {
+// window.addEventListener('load', () => {
   console.log('got load', window);
 
   const script = document.createElement('script');
@@ -11,4 +11,4 @@ window.addEventListener('load', () => {
 
   // delete navigator.xr;
   // navigator.xr = {lol: 'zol'};
-});
+// });
