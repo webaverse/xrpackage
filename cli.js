@@ -89,6 +89,18 @@ async function signTx(ks, password, rawTx) {
   });
   return await p;
 }
+async function getPrivateKey(ks, password) {
+  const p = makePromise();
+  ks.keyFromPassword(password, function (err, pwDerivedKey) {
+    if (!err) {
+      const privateKey = ks.exportPrivateKey(ks.addresses[0], pwDerivedKey);
+      p.accept(privateKey);
+    } else {
+      p.reject(err);
+    }
+  });
+  return await p;
+}
 const _createKeystore = async (seedPhrase, password) => {
   const p = makePromise();
   lightwallet.keystore.createVault({
@@ -116,6 +128,7 @@ const _createKeystore = async (seedPhrase, password) => {
   const ks = await p;
   ks.exportSeed = exportSeed.bind(null, ks, password);
   ks.signTx = signTx.bind(null, ks, password);
+  ks.getPrivateKey = getPrivateKey.bind(null, ks, password);
   return ks;
 };
 const _exportKeyStore = ks => ks.serialize();
@@ -137,6 +150,7 @@ const _importKeyStore = async (s, password) => {
   await p;
   ks.exportSeed = exportSeed.bind(null, ks, password);
   ks.signTx = signTx.bind(null, ks, password);
+  ks.getPrivateKey = getPrivateKey.bind(null, ks, password);
   return ks;
 };
 
@@ -226,8 +240,8 @@ yargs
     const ks = await _importKeyStore(ksString, password);
 
     const objectName = 'avatar';
-    const dataArrayBuffer = fs.readFileSync('model9.vrm');
-    const screenshotBlob = fs.readFileSync('model9.png');
+    const dataArrayBuffer = fs.readFileSync('model11.vrm');
+    const screenshotBlob = fs.readFileSync('model11.png');
 
     console.log('uploading...');
     const [
@@ -279,38 +293,54 @@ yargs
 
     const contract = await getContract;
     const address = `0x${ks.addresses[0]}`;
+    const privateKey = await ks.getPrivateKey();
+    console.log('got pk', privateKey);
+    // web3.eth.accounts.wallet.add('0x' + Buffer.from(privateKey).toString('hex'));
+    const account = web3.eth.accounts.privateKeyToAccount('0x' + privateKey);
+    web3.eth.accounts.wallet.add(account);
+
     const nonce = await web3.eth.getTransactionCount(address);
     console.log('get nonce', nonce);
     const gasPrice = await web3.eth.getGasPrice();
     console.log('gas price', gasPrice);
-    const m = contract.methods.mint([1, 1, 1], '0x0', 'hash', metadataHash);
-    const data = m.encodeABI();
-    console.log('got data', data);
     const value = '10000000000000000'; // 0.01 ETH
-    const rawTx = {
-      from: address,
-      value: '0x' + BigNumber(value).toString(16), // 0.01 ETH
-      gasPrice: '0x' + BigNumber(gasPrice).toString(16),
+
+    const m = contract.methods.mint([1, 1, 1], 'hash', metadataHash);
+    const o = {
       gas: 0,
+      from: address,
       nonce,
-      data,
+      value,
     };
-    rawTx.gas = await m.estimateGas({
+    o.gas = await m.estimateGas(o);
+    const receipt = await m.send(o);
+    console.log('got receipt', receipt);
+
+    /* const m = contract.methods.mint([1, 1, 1], 'hash', metadataHash);
+    const encoded_tx = m.encodeABI();
+    const transactionObject = {
+      gas: 0,
+      gasPrice,
+      data: encoded_tx,
+      from: address,
+      value,
+      nonce,
+    };
+    console.log('got tx', encoded_tx);
+    transactionObject.gas = await m.estimateGas({
       from: address,
       value,
     });
-    console.log('raw tx', rawTx);
-    const serializedTx = new ethereumjs.Tx(rawTx).serialize();
-    console.log('serialized tx', serializedTx);
-    const signedTx = await ks.signTx(serializedTx);
-    console.log('sign tx', signedTx);
+
+    const signedTx = await web3.eth.accounts.signTransaction(transactionObject, privateKey);
+    console.log('got signed', signedTx);
 
     const txPromise = makePromise();
-    web3.eth.sendSignedTransaction('0x' + signedTx).on('receipt', e => {
-      console.log('got tx receipt', e); // XXX
-      txPromise.accept();
-    }).on('error', txPromise.reject);
-    await txPromise;
+    web3.eth.sendSignedTransaction(signedTx.rawTransaction)
+      .on('receipt', receipt => {
+         txPromise.accept(receipt);
+      });
+    const receipt = await txPromise; */
 
     /* const p = makePromise();
     const instance = await contract.getInstance();
