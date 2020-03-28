@@ -269,22 +269,22 @@ export class XRPackageEngine extends EventTarget {
     this.fakeSession.oncancelanimationframe = this.cancelAnimationFrame.bind(this);
 
     window.OldXR = {
-      XR,
-      XRSession,
-      XRRenderState,
-      XRWebGLLayer,
-      XRFrame,
-      XRView,
-      XRViewport,
-      XRPose,
-      XRViewerPose,
-      XRInputSource,
+      XR: window.XR,
+      XRSession: window.XRSession,
+      XRRenderState: window.XRRenderState,
+      XRWebGLLayer: window.XRWebGLLayer,
+      XRFrame: window.XRFrame,
+      XRView: window.XRView,
+      XRViewport: window.XRViewport,
+      XRPose: window.XRPose,
+      XRViewerPose: window.XRViewerPose,
+      XRInputSource: window.XRInputSource,
       // XRRay,
       // XRInputPose,
-      XRInputSourceEvent,
-      XRSpace,
-      XRReferenceSpace,
-      XRBoundedReferenceSpace,
+      XRInputSourceEvent: window.XRInputSourceEvent,
+      XRSpace: window.XRSpace,
+      XRReferenceSpace: window.XRReferenceSpace,
+      XRBoundedReferenceSpace: window.XRBoundedReferenceSpace,
     };
 
     window.XR = XR.XR;
