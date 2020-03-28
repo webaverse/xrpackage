@@ -1,0 +1,22 @@
+{
+  "name": "Metassium",
+  "description" : "Metassium overlay",
+  "version": "1.0",
+  "manifest_version": 2,
+  "permissions": [
+    "<all_urls>",
+    "http://*/",
+    "https://*/",
+    "activeTab"
+  ],
+  "content_scripts": [{
+    "js": ["contentScript.js"],
+    "matches": ["<all_urls>"],
+    "run_at": "document_start"
+   }],
+  "web_accessible_resources": [
+    "*",
+    "avatars/*",
+    "avatars/vrarmik/*"
+  ]
+}
