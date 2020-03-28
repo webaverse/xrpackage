@@ -1,10 +1,102 @@
 #!/usr/bin/env node
 
+const path = require('path');
 const fs = require('fs');
 const readline = require('readline');
 const {Writable} = require('stream');
+const os = require('os');
+const mkdirp = require('mkdirp');
 const yargs = require('yargs');
 const wbn = require('wbn');
+const lightwallet = require('eth-lightwallet');
+
+function makePromise() {
+  let accept, reject;
+  const p = new Promise((a, r) => {
+    accept = a;
+    reject = r;
+  });
+  p.accept = accept;
+  p.reject = reject;
+  return p;
+}
+const hdPathString = `m/44'/60'/0'/0`;
+async function exportSeed(ks, password) {
+  const p = makePromise();
+  ks.keyFromPassword(password, function (err, pwDerivedKey) {
+    if (!err) {
+      const seed = keystore.getSeed(pwDerivedKey);
+      p.accept(seed);
+    } else {
+      p.reject(err);
+    }
+  });
+  return await p;
+}
+async function signTx(ks, password, rawTx) {
+  const p = makePromise();
+  ks.keyFromPassword(password, function (err, pwDerivedKey) {
+    if (!err) {
+      const address = ks.addresses[0];
+      console.log('sign tx', ks, pwDerivedKey, rawTx, address, hdPathString);
+      const signed = lightwallet.signing.signTx(ks, pwDerivedKey, rawTx, `0x${address}`, hdPathString);
+      p.accept(signed);
+    } else {
+      p.reject(err);
+    }
+  });
+  return await p;
+}
+const _createKeystore = async (seedPhrase, password) => {
+  const p = makePromise();
+  lightwallet.keystore.createVault({
+    password,
+    seedPhrase, // Optionally provide a 12-word seed phrase
+    // salt: fixture.salt,     // Optionally provide a salt.
+                               // A unique salt will be generated otherwise.
+    hdPathString,    // Optional custom HD Path String
+  },
+  (err, ks) => {
+    if (!err) {
+      ks.keyFromPassword(password, function (err, pwDerivedKey) {
+        if (!err) {
+          ks.generateNewAddress(pwDerivedKey, 1);
+
+          p.accept(ks);
+        } else {
+          p.reject(err);
+        }
+      });
+    } else {
+      p.reject(err);
+    }
+  });
+  const ks = await p;
+  ks.exportSeed = exportSeed.bind(null, ks, password);
+  ks.signTx = signTx.bind(null, ks, password);
+  return ks;
+};
+const _exportKeyStore = ks => ks.serialize();
+const _importKeyStore = async (s, password) => {
+  const ks = lightwallet.keystore.deserialize(s);
+
+  const p = makePromise();
+  ks.keyFromPassword(password, function (err, pwDerivedKey) {
+    if (!err) {
+      if (ks.isDerivedKeyCorrect(pwDerivedKey)) {
+        p.accept();
+      } else {
+        p.reject(new Error('invalid password'));
+      }
+    } else {
+      p.reject(err);
+    }
+  });
+  await p;
+  ks.exportSeed = exportSeed.bind(null, ks, password);
+  ks.signTx = signTx.bind(null, ks, password);
+  return ks;
+};
 
 let handled = false;
 yargs
@@ -16,8 +108,6 @@ yargs
       }) */
   }, async argv => {
     handled = true;
-
-    process.stdout.write('mnemonic: ');
 
     var mutableStdout = new Writable({
       write: function(chunk, encoding, callback) {
@@ -32,11 +122,30 @@ yargs
       output: mutableStdout,
       terminal: true
     });
-    rl.question('Password: ', password => {
-      rl.close();
 
-      console.log('\nPassword is ' + password);
+    const p = makePromise();
+    rl.question('seed phrase (default: autogen): ', seedPhrase => {
+      if (!seedPhrase) {
+        seedPhrase = lightwallet.keystore.generateRandomSeed();
+        console.log(seedPhrase);
+      }
+
+      rl.question('password: ', async password => {
+        rl.close();
+
+        if (password) {
+          const ks = await _createKeystore(seedPhrase, password);
+          await mkdirp(os.homedir());
+          fs.writeFile(path.join(os.homedir(), '.xrpackage'), _exportKeyStore(ks), err => {
+            p.accept();
+          });
+          // console.log('\nPassword is ' + password);
+        } else {
+          p.reject(new Error('password is required'));
+        }
+      });
     });
+    await p;
     mutableStdout.muted = true;
   })
   .command('build [input] [output]', 'build xrpackage .wbn from [input] and write to [output]', yargs => {

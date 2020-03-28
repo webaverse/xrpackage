@@ -21,8 +21,10 @@
   },
   "homepage": "https://github.com/exokitxr/xrpackage#readme",
   "dependencies": {
+    "eth-lightwallet": "^4.0.0",
     "express": "^4.17.1",
     "mime": "^2.4.4",
+    "mkdirp": "^1.0.3",
     "wbn": "0.0.4",
     "yargs": "^15.3.1"
   }
