@@ -181,7 +181,7 @@ yargs
           fs.writeFile(path.join(os.homedir(), '.xrpackage'), _exportKeyStore(ks), err => {
             p.accept();
           });
-          // console.log('\nPassword is ' + password);
+          console.log(`0x${ks.addresses[0]}`);
         } else {
           p.reject(new Error('password is required'));
         }
