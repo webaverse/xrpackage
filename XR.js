@@ -12,10 +12,9 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 
 class XR extends EventTarget {
-  constructor(window) {
+  constructor(/*window*/) {
     super();
-
-    this._window = window;
+    // this._window = window;
   }
   supportsSession(mode) {
     return Promise.resolve(true);
