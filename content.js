@@ -1,3 +1,4 @@
+import * as THREE from './three.module.js';
 import {XRPackageEngine} from './xrpackage.js';
 import * as VR from './VR.js';
 import * as XR from './XR.js';
@@ -8,6 +9,12 @@ Object.defineProperty(navigator, 'getVRDisplays', {
     // if (window.location.origin !== "https://hubs.mozilla.com") {
       if (!pe) {
         pe = new XRPackageEngine();
+        const camera = new THREE.PerspectiveCamera(); 
+        pe.addEventListener('tick', e => {
+          camera.position.y = Math.sin((Date.now()%1000/1000)*Math.PI*2);
+          camera.updateMatrixWorld();
+          pe.setCamera(camera);
+        });
       }
       if (!vrDisplay) {
         vrDisplay = {
