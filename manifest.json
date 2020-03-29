@@ -13,7 +13,11 @@
     "js": ["contentScript.js"],
     "matches": ["<all_urls>"],
     "run_at": "document_start"
-   }],
+  }],
+  "browser_action": {
+    "default_title": "Metassium",
+    "default_popup": "popup.html"
+  },
   "web_accessible_resources": [
     "*",
     "avatars/*",
