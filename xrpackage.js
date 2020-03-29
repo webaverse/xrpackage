@@ -334,6 +334,32 @@ export class XRPackageEngine extends EventTarget {
       throw new Error(`unknown spatial type: ${type}`);
     }
   }
+  setCanvas(canvas) {
+    const oldChild = this.renderer.domElement;
+    const oldParent = oldChild.parentNode;
+
+    const context = canvas.getContext('webgl2') || canvas.getContext('webgl');
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      context,
+      antialias: true,
+      alpha: true,
+      // preserveDrawingBuffer: true,
+    });
+    renderer.setSize(GlobalContext.xrState.renderWidth[0]*2, GlobalContext.xrState.renderHeight[0]);
+    // renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.autoClear = false;
+    renderer.sortObjects = false;
+    renderer.physicallyCorrectLights = true;
+    renderer.xr.enabled = true;
+    this.renderer = renderer;
+
+    console.log('new renderer', this.renderer.domElement, oldChild);
+
+    if (oldParent) {
+      oldParent.replaceChild(this.renderer.domElement, oldChild);
+    }
+  }
   async setSession(realSession) {
     if (this.loadReferenceSpaceInterval !== 0) {
       clearInterval(this.loadReferenceSpaceInterval);
