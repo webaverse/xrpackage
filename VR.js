@@ -351,10 +351,14 @@ class VRDisplay extends EventTarget {
       globalGamepads.main[i].setVRButtons();
     }
 
-    if (this.onvrdisplaypresentchange && !this.isPresenting) {
+    if (!this.isPresenting) {
       this.isPresenting = true;
       Promise.resolve().then(() => {
-        this.onvrdisplaypresentchange();
+        window.dispatchEvent(new CustomEvent('vrdisplaypresentchange', {
+          detail: {
+            display: this,
+          },
+        }));
       });
     } else {
       this.isPresenting = true;
@@ -369,10 +373,14 @@ class VRDisplay extends EventTarget {
 
     await this.onexitpresent();
 
-    if (this.onvrdisplaypresentchange && this.isPresenting) {
+    if (this.isPresenting) {
       this.isPresenting = false;
       Promise.resolve().then(() => {
-        this.onvrdisplaypresentchange();
+        window.dispatchEvent(new CustomEvent('vrdisplaypresentchange', {
+          detail: {
+            display: null,
+          },
+        }));
       });
     } else {
       this.isPresenting = false;
