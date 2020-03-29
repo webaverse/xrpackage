@@ -244,7 +244,7 @@ class VRDisplay extends EventTarget {
     this.onrequestanimationframe = null;
     this.onvrdisplaypresentchange = null;
 
-    this._frameData = new VRFrameData();
+    // this._frameData = new VRFrameData();
     this._rafs = [];
     this._layers = [];
   }
