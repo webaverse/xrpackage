@@ -22,6 +22,11 @@ Object.defineProperty(navigator, 'getVRDisplays', {
             context: pe.context,
           };
         };
+
+        window.Gamepad = VR.Gamepad;
+        window.VRStageParameters = VR.VRStageParameters;
+        window.VRDisplay = VR.VRDisplay;
+        window.VRFrameData = VR.VRFrameData;
       }
       return async function getVRDisplays() {
         return [vrDisplay];
