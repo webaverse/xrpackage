@@ -60,19 +60,25 @@ window.removeEventListener = (old => function addEventListener(type, fn) {
   const script = document.createElement('script');
   // script.type = 'module';
   script.innerText = `
+window.pe = null;
+window.vrDisplay = null;
+window.xr = null;
+
 Object.defineProperty(navigator, 'userAgent', {get() {return 'Mozilla/5.0 (X11; Linux i686; rv:10.0) Gecko/20100101 Firefox/10.0';}});
 
 Object.defineProperty(navigator, 'getVRDisplays', {
   get() {
     console.log('get 1', window.location.origin);
     return async function getVRDisplays() {
-      // console.log('get vr displays', new Error().stack);
-      return [{
-        displayName: 'OpenVR',
-        capabilities: {
-          canPresent: true,
-        },
-      }];
+      if (!window.vrDisplay) {
+        window.vrDisplay = {
+          displayName: 'OpenVR',
+          capabilities: {
+            canPresent: true,
+          },
+        };
+      }
+      return [vrDisplay];
     };
   },
   configurable: true,
@@ -84,6 +90,10 @@ Object.defineProperty(navigator, 'xr', {
     /* if (window.location.origin !== "https://hubs.mozilla.com") {
       return xr;
     } */
+    if (!window.xr) {
+      window.xr = {};
+    }
+    return window.xr;
   },
   configurable: true,
 });

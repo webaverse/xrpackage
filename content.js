@@ -2,21 +2,32 @@ import {XRPackageEngine} from './xrpackage.js';
 import * as VR from './VR.js';
 import * as XR from './XR.js';
 
-let pe = null;
-let vrDisplay = null;
-let xr = null;
 Object.defineProperty(navigator, 'getVRDisplays', {
   get() {
-    console.log('get 1');
-    if (window.location.origin !== "https://hubs.mozilla.com") {
+    console.log('get 3');
+    // if (window.location.origin !== "https://hubs.mozilla.com") {
       if (!pe) {
         pe = new XRPackageEngine();
       }
       if (!vrDisplay) {
-        vrDisplay = new VR.VRDisplay('OpenVR', window);
+        vrDisplay = {
+          displayName: 'OpenVR',
+          capabilities: {
+            canPresent: true,
+          },
+        };
+      }
+      if (vrDisplay.__proto__ !== VR.VRDisplay.prototype) {
+        // console.log('set prototype', vrDisplay);
+        Object.setPrototypeOf(vrDisplay, VR.VRDisplay.prototype);
+        vrDisplay.init();
+        // vrDisplay = new VR.VRDisplay('OpenVR', window);
         vrDisplay.onrequestanimationframe = pe.requestAnimationFrame.bind(pe);
         vrDisplay.oncancelanimationframe = pe.cancelAnimationFrame.bind(pe);
-        vrDisplay.onrequestpresent = async () => {
+        vrDisplay.onrequestpresent = async (canvas = null) => {
+          if (canvas) {
+            pe.setCanvas(canvas);
+          }
           return {
             canvas: pe.domElement,
             context: pe.context,
@@ -31,17 +42,21 @@ Object.defineProperty(navigator, 'getVRDisplays', {
       return async function getVRDisplays() {
         return [vrDisplay];
       };
-    }
+    // }
   },
 });
 
 Object.defineProperty(navigator, 'xr', {
   get() {
-    console.log('get 2');
-    if (!xr) {
-      xr = new XR.XR();
+    console.log('get 4');
+    /* if (!xr) {
+      xr = {};
     }
-    return xr;
+    if (xr.__proto__ !== XR.XR.prototype) {
+      Object.setPrototypeOf(xr, XR.XR.prototype);
+      xr.init();
+    }
+    return xr; */
   },
 });
 
