@@ -1,6 +1,6 @@
 console.log('got load', window);
 
-function makePromise() {
+/* function makePromise() {
   let accept, reject;
   const p = new Promise((a, r) => {
     accept = a;
@@ -54,7 +54,7 @@ window.removeEventListener = (old => function addEventListener(type, fn) {
   } else {
     removeEventListener.apply(this, arguments);
   }
-})(window.removeEventListener);
+})(window.removeEventListener); */
 
 {
   const script = document.createElement('script');
