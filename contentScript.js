@@ -93,10 +93,10 @@ console.log('run 1');
   // script.textContent = '(' + contentScript.toString() + ')()';
   (document.head||document.documentElement).prepend(script);
 }
-/* {
+{
   const script = document.createElement('script');
   script.type = 'module';
   script.src = 'chrome-extension://oijfojbebpbpjfnlmndcgnocpbdeeghj/content.js';
   // script.textContent = '(' + contentScript.toString() + ')()';
   (document.head||document.documentElement).prepend(script);
-} */
+}
