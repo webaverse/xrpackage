@@ -222,11 +222,14 @@ function getXrOffsetMatrix() {
 GlobalContext.getXrOffsetMatrix = getXrOffsetMatrix;
 
 class VRDisplay extends EventTarget {
-  constructor(displayName, window) {
+  constructor() {
     super();
+    this.init();
+  }
 
-    this.displayName = displayName;
-    this.window = window;
+  init() {
+    this.displayName = 'OpenVR';
+    // this.window = window;
 
     this.isConnected = true;
     this.isPresenting = false;
@@ -248,7 +251,6 @@ class VRDisplay extends EventTarget {
     this._rafs = [];
     this._layers = [];
   }
-
   getFrameData(frameData) {
     const xrOffsetMatrix = getXrOffsetMatrix();
 
