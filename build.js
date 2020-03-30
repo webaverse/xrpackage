@@ -6,6 +6,7 @@ child_process.execFileSync('parcel', [
   'build',
   '--target', 'browser',
   'content.js',
+  '--no-minify',
 ], {
   stdio: 'inherit',
 });
