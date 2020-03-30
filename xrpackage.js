@@ -354,7 +354,7 @@ export class XRPackageEngine extends EventTarget {
     renderer.xr.enabled = true;
     this.renderer = renderer;
 
-    console.log('new renderer', this.renderer.domElement, oldChild);
+    // console.log('new renderer', this.renderer.domElement, oldChild);
 
     if (oldParent) {
       oldParent.replaceChild(this.renderer.domElement, oldChild);
