@@ -13,8 +13,9 @@ chrome.tabs.query({
     response = response || {};
     let {options} = response;
     options = options || {};
-    const {browser, webxr, webvr} = options;
+    const {enabled, browser, webxr, webvr} = options;
 
+    document.getElementById('enabled').checked = !!enabled;
     if (browser) {
       document.getElementById('browser').value = browser;
     }
@@ -27,6 +28,10 @@ chrome.tabs.query({
         console.log('got response set', response);
       });
     }
+    document.getElementById('enabled').addEventListener('change', () => {
+      options.enabled = document.getElementById('enabled').checked;
+      _save();
+    });
     document.getElementById('browser').addEventListener('change', () => {
       options.browser = document.getElementById('browser').value;
       _save();
