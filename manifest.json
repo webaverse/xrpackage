@@ -7,7 +7,8 @@
     "<all_urls>",
     "http://*/",
     "https://*/",
-    "activeTab"
+    "activeTab",
+    "storage"
   ],
   "content_scripts": [{
     "js": ["dist/contentScript.js"],
