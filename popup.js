@@ -45,4 +45,8 @@ chrome.tabs.query({
   });
 });
 
+if (/#overlay$/.test(location.hash)) {
+  document.body.parentNode.classList.add('overlay');
+}
+
 });

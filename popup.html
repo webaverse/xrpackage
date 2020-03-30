@@ -2,14 +2,31 @@
 <html>
 <head>
 <style>
-body {
-  margin: 30px;
+.form {
+  padding: 30px;
   background-color: #FFF;
+}
+html.overlay {
+  width: 100%;
+  height: 100%;
+}
+html.overlay body {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+html.overlay .mousetarget {
+  flex: 1;
+}
+html.overlay .form {
+  width: 300px;
+  height: 100%;
 }
 </style>
 </head>
 <body>
-<form>
+<div class=mousetarget id=mousetarget></div>
+<form class=form>
   <h3>Enabled</h3>
   <input type=checkbox id=enabled>
   <h3>Browser</h3>
