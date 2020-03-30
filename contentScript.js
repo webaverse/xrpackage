@@ -18,16 +18,7 @@ chrome.runtime.onMessage.addListener(
 });
 
 const script = document.createElement('script');
-// script.type = 'module';
 let options = localStorage.getItem('xrpackageOptions');
 options = options ? JSON.parse(options) : {};
 script.innerText = CONTENT_SCRIPT.replace('XRPACKAGE_OPTIONS', JSON.stringify(options));
-// script.textContent = '(' + contentScript.toString() + ')()';
 (document.head||document.documentElement).prepend(script);
-/* {
-  const script = document.createElement('script');
-  script.type = 'module';
-  script.src = 'chrome-extension://oijfojbebpbpjfnlmndcgnocpbdeeghj/content.js';
-  // script.textContent = '(' + contentScript.toString() + ')()';
-  (document.head||document.documentElement).prepend(script);
-} */
