@@ -1,7 +1,5 @@
 window.addEventListener('load', e => {
 
-let options = localStorage.getItem('options');
-
 // Read it using the storage API
 chrome.tabs.query({
   active: true,
