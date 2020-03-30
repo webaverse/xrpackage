@@ -3,15 +3,24 @@ import {XRPackageEngine} from './xrpackage.js';
 import * as VR from './VR.js';
 import * as XR from './XR.js';
 
+// console.log('load content.js');
+
+window.pe = null;
+window.vrDisplay = null;
+window.xr = null;
+
+Object.defineProperty(navigator, 'userAgent', {get() {return 'Mozilla/5.0 (X11; Linux i686; rv:10.0) Gecko/20100101 Firefox/10.0';}});
+
 Object.defineProperty(navigator, 'getVRDisplays', {
   get() {
-    console.log('get 3');
+    console.log('get 3', new Error().stack);
     // if (window.location.origin !== "https://hubs.mozilla.com") {
       if (!pe) {
         pe = new XRPackageEngine();
         const camera = new THREE.PerspectiveCamera(); 
         pe.addEventListener('tick', e => {
           camera.position.y = Math.sin((Date.now()%1000/1000)*Math.PI*2);
+          // console.log('set camera', camera.position.y);
           camera.updateMatrixWorld();
           pe.setCamera(camera);
         });
