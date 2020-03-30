@@ -11,6 +11,10 @@ window.xr = null;
 
 Object.defineProperty(navigator, 'userAgent', {get() {return 'Mozilla/5.0 (X11; Linux i686; rv:10.0) Gecko/20100101 Firefox/10.0';}});
 
+let xrpackageOptions = localStorage.getItem('xrpackageOptions');
+xrpackageOptions = xrpackageOptions ? JSON.parse(xrpackageOptions) : {};
+const {browser, webxr, webvr} = xrpackageOptions;
+
 Object.defineProperty(navigator, 'getVRDisplays', {
   get() {
     console.log('get 3', new Error().stack);
