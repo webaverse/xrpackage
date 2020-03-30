@@ -1,7 +1,7 @@
 window.addEventListener('load', e => {
 
 let options = localStorage.getItem('options');
-console.log('got options', options);
+// console.log('got options', options);
 options = options ? JSON.parse(options) : {};
 const {browser, webxr, webvr} = options;
 
