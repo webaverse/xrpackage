@@ -18,12 +18,12 @@ class XR extends EventTarget {
     this.init();
   }
   init() {}
-  supportsSession(mode) {
+  isSessionSupported(mode) {
     return Promise.resolve(true);
   }
-  supportsSessionMode(mode) { // non-standard
+  /* supportsSessionMode(mode) { // non-standard
     return this.supportsSession(mode);
-  }
+  } */
   async requestSession(mode, options) {
     if (!this.session) {
       /* const session = this._window[symbols.mrDisplaysSymbol].xrSession;

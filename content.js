@@ -12,7 +12,20 @@ if (enabled) {
   window.vrDisplay = null;
   window.xr = null;
 
-  if (browser !== 'default') {
+  const _ensurePe = () => {
+    if (!pe) {
+      pe = new XRPackageEngine();
+      const camera = new THREE.PerspectiveCamera();
+      pe.addEventListener('tick', e => {
+        camera.position.y = Math.sin((Date.now()%1000/1000)*Math.PI*2);
+        // console.log('set camera', camera.position.y);
+        camera.updateMatrixWorld();
+        pe.setCamera(camera);
+      });
+    }
+  };
+
+  if (browser) {
     Object.defineProperty(navigator, 'userAgent', {
       get() {
         if (browser === 'chrome') {
@@ -31,28 +44,9 @@ if (enabled) {
     get() {
       console.log('get 3', new Error().stack);
       if (webvr) {
-        if (!pe) {
-          pe = new XRPackageEngine();
-          const camera = new THREE.PerspectiveCamera(); 
-          pe.addEventListener('tick', e => {
-            camera.position.y = Math.sin((Date.now()%1000/1000)*Math.PI*2);
-            // console.log('set camera', camera.position.y);
-            camera.updateMatrixWorld();
-            pe.setCamera(camera);
-          });
-        }
+        _ensurePe();
         if (!vrDisplay) {
-          vrDisplay = {
-            displayName: 'OpenVR',
-            capabilities: {
-              canPresent: true,
-            },
-          };
-        }
-        if (vrDisplay.__proto__ !== VR.VRDisplay.prototype) {
-          // console.log('set prototype', vrDisplay);
-          Object.setPrototypeOf(vrDisplay, VR.VRDisplay.prototype);
-          vrDisplay.init();
+          vrDisplay = new VR.VRDisplay();
           // vrDisplay = new VR.VRDisplay('OpenVR', window);
           vrDisplay.onrequestanimationframe = pe.requestAnimationFrame.bind(pe);
           vrDisplay.oncancelanimationframe = pe.cancelAnimationFrame.bind(pe);
@@ -82,12 +76,9 @@ if (enabled) {
     get() {
       console.log('get 4');
       if (webxr) {
+        _ensurePe();
         if (!xr) {
-          xr = {};
-        }
-        if (xr.__proto__ !== XR.XR.prototype) {
-          Object.setPrototypeOf(xr, XR.XR.prototype);
-          xr.init();
+          xr = new XR.XR();
         }
         return xr;
       }
