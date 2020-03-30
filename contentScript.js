@@ -1,4 +1,4 @@
-console.log('contentScript.js', localStorage.getItem('xrpackageOptions'));
+console.log('contentScript.js', chrome.runtime.id, localStorage.getItem('xrpackageOptions'));
 
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
