@@ -56,6 +56,25 @@ window.removeEventListener = (old => function addEventListener(type, fn) {
   }
 })(window.removeEventListener); */
 
+console.log('contentScript.js', localStorage.getItem('options'));
+
+chrome.runtime.onMessage.addListener(
+  function(request, sender, sendResponse) {
+    // console.log('got request', request);
+    if (request.method === 'getOptions') {
+      let options = localStorage.getItem('xrpackageOptions');
+      options = options ? JSON.parse(options) : {};
+      sendResponse({
+        options,
+      });
+    } else if (request.method === 'setOptions') {
+      localStorage.setItem('xrpackageOptions', JSON.stringify(request.options));
+      sendResponse({
+        ok: true,
+      });
+  }
+});
+
 {
   const script = document.createElement('script');
   // script.type = 'module';
