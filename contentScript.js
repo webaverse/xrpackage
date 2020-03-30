@@ -87,13 +87,10 @@ Object.defineProperty(navigator, 'getVRDisplays', {
 Object.defineProperty(navigator, 'xr', {
   get() {
     console.log('get 2', window.location.origin);
-    /* if (window.location.origin !== "https://hubs.mozilla.com") {
-      return xr;
-    } */
-    if (!window.xr) {
+    /* if (!window.xr) {
       window.xr = {};
     }
-    return window.xr;
+    return window.xr; */
   },
   configurable: true,
 });
