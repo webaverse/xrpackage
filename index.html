@@ -39,14 +39,16 @@ import {XRPackageEngine, XRPackage} from './xrpackage.js';
 
 let currentSession = null;
 
-const cubeHtml = await (async () => {
-  const res = await fetch('cube.html');
-  return await res.text();
-})();
-const cubeManifest = await (async () => {
-  const res = await fetch('cube-manifest.json');
-  return await res.text();
-})();
+const [cubeHtml, cubeManifest]= await Promise.all([
+  (async () => {
+    const res = await fetch('examples/cube.html');
+    return await res.text();
+  })(),
+  (async () => {
+    const res = await fetch('examples/cube-manifest.json');
+    return await res.text();
+  })(),
+]);
 
 const d = XRPackage.compile(
   [

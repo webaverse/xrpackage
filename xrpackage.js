@@ -137,7 +137,7 @@ const spatialTypeHandlers = {
 
     const indexFile = p.files.find(file => new URL(file.url).pathname === '/');
     const indexHtml = indexFile.response.body.toString('utf-8');
-    await iframe.contentWindow.rs.iframeInit({
+    await iframe.contentWindow.pe.iframeInit({
       engine: this,
       indexHtml,
       canvas: this.domElement,

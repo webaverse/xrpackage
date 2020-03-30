@@ -33,14 +33,14 @@ class XR extends EventTarget {
       await session.onrequestpresent();
       session.isPresenting = true; */
       
-      const {fakeSession} = window.pe;
-      fakeSession.addEventListener('end', () => {
+      const {session} = window.pe;
+      session.addEventListener('end', () => {
         // session.isPresenting = false;
         this.session = null;
       }, {
         once: true,
       });
-      this.session = fakeSession;
+      this.session = session;
     }
     return Promise.resolve(this.session);
   }
