@@ -10,7 +10,7 @@
     "activeTab"
   ],
   "content_scripts": [{
-    "js": ["contentScript.js"],
+    "js": ["dist/contentScript.js"],
     "matches": ["<all_urls>"],
     "run_at": "document_start"
   }],
