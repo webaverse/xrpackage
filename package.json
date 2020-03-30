@@ -32,5 +32,8 @@
     "wbn": "0.0.4",
     "web3": "^1.2.6",
     "yargs": "^15.3.1"
-  }
+  },
+  "browserslist": [
+    "last 1 chrome version"
+  ]
 }
