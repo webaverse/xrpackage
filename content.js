@@ -3,6 +3,7 @@ import {XRPackageEngine} from './xrpackage.js';
 import * as VR from './VR.js';
 import * as XR from './XR.js';
 
+const extensionId = XRPACKAGE_EXTENSION_ID;
 const options = XRPACKAGE_OPTIONS;
 console.log('content.js', options);
 const {enabled, browser, webxr, webvr} = options;
@@ -80,6 +81,11 @@ if (enabled) {
         if (!xr) {
           xr = new XR.XR();
           xr.onrequestpresent = () => {
+            const iframe = document.createElement('iframe');
+            iframe.src = `chrome-extension://${extensionId}/popup.html`;
+            iframe.style.cssText = 'position: fixed; top: 0; bottom: 0; right: 0;';
+            document.body.appendChild(iframe);
+            
             return {
               session: pe.fakeSession,
             };

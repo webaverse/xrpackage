@@ -20,5 +20,7 @@ chrome.runtime.onMessage.addListener(
 const script = document.createElement('script');
 let options = localStorage.getItem('xrpackageOptions');
 options = options ? JSON.parse(options) : {};
-script.innerText = CONTENT_SCRIPT.replace('XRPACKAGE_OPTIONS', JSON.stringify(options));
+script.innerText = CONTENT_SCRIPT
+  .replace('XRPACKAGE_EXTENSION_ID', JSON.stringify(chrome.runtime.id))
+  .replace('XRPACKAGE_OPTIONS', JSON.stringify(options));
 (document.head||document.documentElement).prepend(script);
