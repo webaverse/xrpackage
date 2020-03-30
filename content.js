@@ -83,7 +83,7 @@ if (enabled) {
           xr.onrequestpresent = () => {
             const iframe = document.createElement('iframe');
             iframe.src = `chrome-extension://${extensionId}/popup.html`;
-            iframe.style.cssText = 'position: fixed; top: 0; bottom: 0; right: 0;';
+            iframe.style.cssText = 'position: fixed; top: 0; bottom: 0; right: 0; height: 100vh; z-index: 100; border: 0;';
             document.body.appendChild(iframe);
             
             return {
