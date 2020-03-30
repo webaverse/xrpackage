@@ -15,7 +15,9 @@ class XR extends EventTarget {
   constructor(/*window*/) {
     super();
     // this._window = window;
+    this.init();
   }
+  init() {}
   supportsSession(mode) {
     return Promise.resolve(true);
   }
