@@ -17,7 +17,14 @@ class XR extends EventTarget {
     // this._window = window;
     this.init();
   }
-  init() {}
+  init() {
+    this.onrequestpresent = null;
+
+    // needed for JanusWeb
+    this.supportsSession = function supportsSession(mode) {
+      return this.isSessionSupported(mode);
+    };
+  }
   isSessionSupported(mode) {
     return Promise.resolve(true);
   }
@@ -33,7 +40,7 @@ class XR extends EventTarget {
       await session.onrequestpresent();
       session.isPresenting = true; */
       
-      const {session} = window.pe;
+      const {session} = this.onrequestpresent();
       session.addEventListener('end', () => {
         // session.isPresenting = false;
         this.session = null;

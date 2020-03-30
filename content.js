@@ -79,6 +79,11 @@ if (enabled) {
         _ensurePe();
         if (!xr) {
           xr = new XR.XR();
+          xr.onrequestpresent = () => {
+            return {
+              session: pe.fakeSession,
+            };
+          };
         }
         return xr;
       }

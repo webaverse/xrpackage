@@ -50,6 +50,7 @@ window.pe = {
 
     delete Navigator.prototype.xr;
     window.navigator.xr = new XR.XR(window);
+    window.navigator.xr.onrequestpresent = () => ({session});
     
     // window.Gamepad = Gamepad;
     window.XR = XR.XR;
