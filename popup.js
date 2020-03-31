@@ -52,9 +52,10 @@ if (/#overlay$/.test(location.hash)) {
   mousetarget.addEventListener('mousedown', e => {
     e.preventDefault();
     e.stopPropagation();
-    const {clientX, clientY} = e;
+    const {button, clientX, clientY} = e;
     parent.postMessage({
       event: 'mousedown',
+      button,
       clientX,
       clientY,
     }, '*');
@@ -62,9 +63,10 @@ if (/#overlay$/.test(location.hash)) {
   mousetarget.addEventListener('mouseup', e => {
     e.preventDefault();
     e.stopPropagation();
-    const {clientX, clientY} = e;
+    const {button, clientX, clientY} = e;
     parent.postMessage({
       event: 'mouseup',
+      button,
       clientX,
       clientY,
     }, '*');
@@ -72,9 +74,10 @@ if (/#overlay$/.test(location.hash)) {
   mousetarget.addEventListener('mousemove', e => {
     e.preventDefault();
     e.stopPropagation();
-    const {clientX, clientY, movementX, movementY} = e;
+    const {button, clientX, clientY, movementX, movementY} = e;
     parent.postMessage({
       event: 'mousemove',
+      button,
       clientX,
       clientY,
       movementX,
@@ -84,14 +87,19 @@ if (/#overlay$/.test(location.hash)) {
   mousetarget.addEventListener('wheel', e => {
     e.preventDefault();
     e.stopPropagation();
-    const {clientX, clientY, deltaX, deltaY} = e;
+    const {button, clientX, clientY, deltaX, deltaY} = e;
     parent.postMessage({
       event: 'wheel',
+      button,
       clientX,
       clientY,
       deltaX,
       deltaY,
     }, '*');
+  });
+  mousetarget.addEventListener('contextmenu', e => {
+    e.preventDefault();
+    e.stopPropagation();
   });
 }
 
