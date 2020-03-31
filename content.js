@@ -6,7 +6,7 @@ import * as XR from './XR.js';
 
 const extensionId = XRPACKAGE_EXTENSION_ID;
 const options = XRPACKAGE_OPTIONS;
-console.log('content.js', options);
+console.log('content.js', extensionId, options);
 const {enabled, browser, webxr, webvr} = options;
 
 if (enabled) {
