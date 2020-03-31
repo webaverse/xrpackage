@@ -341,7 +341,8 @@ class VRDisplay extends EventTarget {
 
   async requestPresent(layers) {
     const [{source}] = layers;
-    const {canvas, context} = await this.onrequestpresent(source);
+    this.onmakeswapchain(source, source.getContext('webgl2') || source.getContext('webgl'));
+    const {canvas, context} = this.onrequestpresent();
 
     /* const [{source: canvas}] = layers;
     const context = canvas.getContext('webgl');

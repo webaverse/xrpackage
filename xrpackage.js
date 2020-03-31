@@ -334,11 +334,10 @@ export class XRPackageEngine extends EventTarget {
       throw new Error(`unknown spatial type: ${type}`);
     }
   }
-  setCanvas(canvas) {
+  setCanvas(canvas, context) {
     const oldChild = this.renderer.domElement;
     const oldParent = oldChild.parentNode;
 
-    const context = canvas.getContext('webgl2') || canvas.getContext('webgl');
     const renderer = new THREE.WebGLRenderer({
       canvas,
       context,

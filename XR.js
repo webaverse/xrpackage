@@ -95,9 +95,9 @@ class XRSession extends EventTarget {
     this._rafs = [];
     this._layers = [];
 
-    /* this.onrequestpresent = null;
+    // this.onrequestpresent = null;
     this.onmakeswapchain = null;
-    this.onexitpresent = null; */
+    // this.onexitpresent = null;
     this.onrequestanimationframe = null;
     this.oncancelanimationframe = null;
     // this.onlayers = null;
@@ -310,7 +310,7 @@ class XRWebGLLayer {
     this.stencil = stencil;
     this.alpha = alpha;
 
-    // this.session.onmakeswapchain(context);
+    this.session.onmakeswapchain && this.session.onmakeswapchain(context.canvas, context);
     /* const {fbo} = this.session.onmakeswapchain(context);
     
     this.framebuffer = {

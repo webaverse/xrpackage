@@ -51,10 +51,12 @@ if (enabled) {
           // vrDisplay = new VR.VRDisplay('OpenVR', window);
           vrDisplay.onrequestanimationframe = pe.requestAnimationFrame.bind(pe);
           vrDisplay.oncancelanimationframe = pe.cancelAnimationFrame.bind(pe);
-          vrDisplay.onrequestpresent = async (canvas = null) => {
-            if (canvas) {
-              pe.setCanvas(canvas);
-            }
+          vrDisplay.onmakeswapchain = (canvas, context) => {
+            // if (canvas) {
+              pe.setCanvas(canvas, context);
+            // }
+          };
+          vrDisplay.onrequestpresent = () => {
             return {
               canvas: pe.domElement,
               context: pe.context,
@@ -85,6 +87,14 @@ if (enabled) {
             iframe.src = `chrome-extension://${extensionId}/popup.html#overlay`;
             iframe.style.cssText = 'position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 100; border: 0;';
             document.body.appendChild(iframe);
+
+            pe.fakeSession.onmakeswapchain = (canvas, context) => {
+              console.log('onmakeswapchain', canvas, context);
+              // if (canvas) {
+                pe.setCanvas(canvas, context);
+              // }
+              });
+            };
             
             return {
               session: pe.fakeSession,
