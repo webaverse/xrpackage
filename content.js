@@ -99,9 +99,10 @@ if (enabled) {
                 case 'mouseup':
                 case 'mousemove':
                 case 'wheel': {
-                  const {clientX, clientY, movementX, movementY, deltaX, deltaY} = e.data;
+                  const {button, clientX, clientY, movementX, movementY, deltaX, deltaY} = e.data;
                   // console.log('got event', e.data);
                   const mouseEvent = new (event === 'wheel' ? WheelEvent : MouseEvent)(event, {
+                    button,
                     clientX,
                     clientY,
                     movementX,
