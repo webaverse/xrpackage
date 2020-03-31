@@ -1,0 +1,15 @@
+## Local React Setup
+
+`npm i`
+
+`npm run start-frontend` and pack the `reactSrc/dev` folder into `chrome://extensions/`
+
+On a second terminal:
+
+`npm run start-backend`
+
+## Production React Setup
+
+`npm i`
+
+`npm run build-frontend` and pack the `reactSrc/dev` folder into `chrome://extensions/`

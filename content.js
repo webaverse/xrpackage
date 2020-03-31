@@ -84,7 +84,7 @@ if (enabled) {
           xr = new XR.XR();
           xr.onrequestpresent = () => {
             const iframe = document.createElement('iframe');
-            iframe.src = `chrome-extension://${extensionId}/popup.html#overlay`;
+            iframe.src = `chrome-extension://${extensionId}/reactSrc/dev/index.html#overlay`;
             iframe.style.cssText = 'position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 100; border: 0;';
             /* iframe.onload = () => {
               iframe.contentWindow.addEventListener('message', e => {

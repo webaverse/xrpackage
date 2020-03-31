@@ -4,7 +4,10 @@
   "description": "",
   "main": "cli.js",
   "scripts": {
-    "start": "node index.js",
+    "start-backend": "node index.js",
+    "start-frontend": "webpack --config webpack.config.js && webpack-dev-server",
+    "build-content": "node build.js",
+    "build-frontend": "webpack --config webpack.config.production.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
@@ -31,7 +34,35 @@
     "node-fetch": "^2.6.0",
     "wbn": "0.0.4",
     "web3": "^1.2.6",
-    "yargs": "^15.3.1"
+    "yargs": "^15.3.1",
+    "react-dom": "^16.13.1",
+    "react": "^16.13.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.9.0",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
+    "@babel/plugin-proposal-logical-assignment-operators": "^7.8.3",
+    "@babel/plugin-proposal-optional-chaining": "^7.9.0",
+    "@babel/preset-env": "^7.9.0",
+    "@babel/preset-react": "^7.9.4",
+    "@types/react": "^16.9.27",
+    "@types/react-dom": "^16.9.5",
+    "babel-loader": "^8.1.0",
+    "browser-sync": "2.26.7",
+    "browser-sync-webpack-plugin": "2.2.2",
+    "css-loader": "^3.4.2",
+    "diff": "^4.0.2",
+    "file-loader": "^6.0.0",
+    "html-webpack-plugin": "^4.0.3",
+    "less": "^3.11.0",
+    "less-loader": "^5.0.0",
+    "source-map-loader": "^0.2.4",
+    "style-loader": "^1.1.3",
+    "ts-loader": "^6.2.2",
+    "typescript": "^3.8.3",
+    "webpack": "^4.42.1",
+    "webpack-cli": "^3.3.11",
+    "webpack-dev-server": "^3.10.3"
   },
   "browserslist": [
     "last 1 chrome version"

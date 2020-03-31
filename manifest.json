@@ -17,7 +17,7 @@
   }],
   "browser_action": {
     "default_title": "Metassium",
-    "default_popup": "popup.html"
+    "default_popup": "./reactSrc/dev/index.html"
   },
   "web_accessible_resources": [
     "*",
