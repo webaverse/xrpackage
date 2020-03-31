@@ -47,6 +47,52 @@ chrome.tabs.query({
 
 if (/#overlay$/.test(location.hash)) {
   document.body.parentNode.classList.add('overlay');
+
+  const mousetarget = document.getElementById('mousetarget');
+  mousetarget.addEventListener('mousedown', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    const {clientX, clientY} = e;
+    parent.postMessage({
+      event: 'mousedown',
+      clientX,
+      clientY,
+    }, '*');
+  });
+  mousetarget.addEventListener('mouseup', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    const {clientX, clientY} = e;
+    parent.postMessage({
+      event: 'mouseup',
+      clientX,
+      clientY,
+    }, '*');
+  });
+  mousetarget.addEventListener('mousemove', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    const {clientX, clientY, movementX, movementY} = e;
+    parent.postMessage({
+      event: 'mousemove',
+      clientX,
+      clientY,
+      movementX,
+      movementY,
+    }, '*');
+  });
+  mousetarget.addEventListener('wheel', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    const {clientX, clientY, deltaX, deltaY} = e;
+    parent.postMessage({
+      event: 'wheel',
+      clientX,
+      clientY,
+      deltaX,
+      deltaY,
+    }, '*');
+  });
 }
 
 });
