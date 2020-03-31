@@ -1,4 +1,5 @@
 import * as THREE from './three.module.js';
+import {OrbitControls} from './OrbitControls.js';
 import {XRPackageEngine} from './xrpackage.js';
 import * as VR from './VR.js';
 import * as XR from './XR.js';
@@ -16,13 +17,12 @@ if (enabled) {
   const _ensurePe = () => {
     if (!pe) {
       pe = new XRPackageEngine();
-      const camera = new THREE.PerspectiveCamera();
+      /* const camera = new THREE.PerspectiveCamera();
       pe.addEventListener('tick', e => {
         camera.position.y = Math.sin((Date.now()%1000/1000)*Math.PI*2);
-        // console.log('set camera', camera.position.y);
         camera.updateMatrixWorld();
         pe.setCamera(camera);
-      });
+      }); */
     }
   };
 
@@ -86,6 +86,34 @@ if (enabled) {
             const iframe = document.createElement('iframe');
             iframe.src = `chrome-extension://${extensionId}/popup.html#overlay`;
             iframe.style.cssText = 'position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 100; border: 0;';
+            /* iframe.onload = () => {
+              iframe.contentWindow.addEventListener('message', e => {
+                console.log('got message', e);
+              });
+            }; */
+            window.addEventListener('message', e => {
+              // console.log('got message', e.data);
+              const {event} = e.data;
+              switch (event) {
+                case 'mousedown':
+                case 'mouseup':
+                case 'mousemove':
+                case 'wheel': {
+                  const {clientX, clientY, movementX, movementY, deltaX, deltaY} = e.data;
+                  // console.log('got event', e.data);
+                  const mouseEvent = new (event === 'wheel' ? WheelEvent : MouseEvent)(event, {
+                    clientX,
+                    clientY,
+                    movementX,
+                    movementY,
+                    deltaX,
+                    deltaY,
+                  });
+                  (['mousemove', 'mouseup'].includes(event) ? document : pe.domElement).dispatchEvent(mouseEvent);
+                  break;
+                }
+              }
+            });
             document.body.appendChild(iframe);
 
             pe.fakeSession.onmakeswapchain = (canvas, context) => {
@@ -93,6 +121,18 @@ if (enabled) {
               // if (canvas) {
                 pe.setCanvas(canvas, context);
               // }
+
+              const camera = new THREE.PerspectiveCamera();
+              camera.position.set(0, 0.5, 1);
+              const orbitControls = new OrbitControls(camera, pe.domElement);
+              orbitControls.screenSpacePanning = true;
+              orbitControls.enableMiddleZoom = false;
+              // orbitControls.update();
+              pe.addEventListener('tick', () => {
+                if (!pe.session) {
+                  orbitControls.update();
+                  pe.setCamera(camera);
+                }
               });
             };
             
@@ -100,7 +140,7 @@ if (enabled) {
               session: pe.fakeSession,
             };
           };
-        }
+        };
         return xr;
       }
     },
