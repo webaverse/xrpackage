@@ -136,7 +136,8 @@ const xrTypeHandlers = {
     });
     p.context.iframe = iframe;
 
-    const indexFile = p.files.find(file => new URL(file.url).pathname === '/');
+    const mainPath = '/' + p.main;
+    const indexFile = p.files.find(file => new URL(file.url).pathname === mainPath);
     const indexHtml = indexFile.response.body.toString('utf-8');
     await iframe.contentWindow.xrpackage.iframeInit({
       engine: this,
@@ -149,7 +150,8 @@ const xrTypeHandlers = {
     this.packages.push(p);
   },
   'gltf@0.0.1': async function(p) {
-    const indexFile = p.files.find(file => new URL(file.url).pathname === '/');
+    const mainPath = '/' + p.main;
+    const indexFile = p.files.find(file => new URL(file.url).pathname === mainPath);
     const indexBlob = new Blob([indexFile.response.body]);
     const u = URL.createObjectURL(indexBlob);
     const {scene} = await new Promise((accept, reject) => {
@@ -164,7 +166,8 @@ const xrTypeHandlers = {
     this.packages.push(p);
   },
   'vrm@0.0.1': async function(p) {
-    const indexFile = p.files.find(file => new URL(file.url).pathname === '/');
+    const mainPath = '/' + p.main;
+    const indexFile = p.files.find(file => new URL(file.url).pathname === mainPath);
     const indexBlob = new Blob([indexFile.response.body]);
     const u = URL.createObjectURL(indexBlob);
     const o = await new Promise((accept, reject) => {
@@ -757,11 +760,15 @@ export class XRPackage extends EventTarget {
     if (manifestJsonFile) {
       const s = manifestJsonFile.response.body.toString('utf-8');
       const j = JSON.parse(s);
-      if (j && typeof j.xr_type === 'string') {
-        const xrType = j.xr_type;
+      if (j && typeof j.xr_type === 'string' && typeof j.xr_main === 'string') {
+        const {
+          xr_type: xrType,
+          xr_main: xrMain,
+        } = j;
         const handler = xrTypeHandlers[xrType];
         if (handler) {
           this.type = xrType;
+          this.main = xrMain;
         } else {
           throw new Error(`unknown xr_type: ${xrType}`);
         }
@@ -776,7 +783,7 @@ export class XRPackage extends EventTarget {
     this.context = {};
   }
   static async compileFromFile(file) {
-    const _createFile = async (file, xrType) => {
+    const _createFile = async (file, xrType, mimeType) => {
       const fileData = await new Promise((accept, reject) => {
         const reader = new FileReader();
         reader.onload = () => {
@@ -785,11 +792,11 @@ export class XRPackage extends EventTarget {
         reader.onerror = reject;
         reader.readAsArrayBuffer(file);
       });
-      return this.compile(
+      return this.compileRaw(
         [
           {
-            url: '/',
-            type: 'application/octet-stream',
+            url: '/' + file.name,
+            type: mimeType,
             data: fileData,
           },
           {
@@ -797,6 +804,7 @@ export class XRPackage extends EventTarget {
             type: 'application/json',
             data: JSON.stringify({
               xr_type: xrType,
+              xr_main: xrMain,
             }, null, 2),
           }
         ]
@@ -815,10 +823,14 @@ export class XRPackage extends EventTarget {
       throw new Error(`unknown file type: ${file.type}`);
     }
   }
-  static compile(files) {
+  static compileRaw(files) {
+    const manifestFile = files.find(file => file.url === '/manifest.json');
+    const j = JSON.parse(manifestFile.data);
+    const {xr_main: xrMain} = j;
+
     const primaryUrl = `https://xrpackage.org`;
     // const manifestUrl = primaryUrl + '/manifest.json';
-    const builder = (new wbn.BundleBuilder(primaryUrl + '/'))
+    const builder = (new wbn.BundleBuilder(primaryUrl + '/' + xrMain))
       // .setManifestURL(manifestUrl);
     for (let i = 0; i < files.length; i++) {
       const file = files[i];

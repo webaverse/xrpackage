@@ -49,10 +49,10 @@ const [cubeHtml, cubeManifest]= await Promise.all([
   })(),
 ]);
 
-const d = XRPackage.compile(
+const d = XRPackage.compileRaw(
   [
     {
-      url: '/',
+      url: '/cube.html',
       type: 'text/html',
       data: cubeHtml,
     },
