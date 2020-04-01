@@ -432,6 +432,8 @@ export class XRPackageEngine extends EventTarget {
     });
   }
   tick(timestamp, frame) {
+    this.renderer.clear(true, true, true);
+
     // emit event
     this.dispatchEvent(new CustomEvent('tick'));
 
