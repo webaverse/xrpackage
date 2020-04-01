@@ -643,7 +643,7 @@ export class XRPackage extends EventTarget {
   constructor(d) {
     super();
 
-    const bundle = new wbn.Bundle(wbn.Buffer.from(d));
+    const bundle = new wbn.Bundle(d);
     const files = [];
     for (const url of bundle.urls) {
       const response = bundle.getResponse(url);
