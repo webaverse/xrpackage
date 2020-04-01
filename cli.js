@@ -418,9 +418,10 @@ yargs
       throw new Error(`unknown file type: ${argv.input}`);
     }
 
+    const xrMain = (argv.input === '-' ? 'input' : path.basename(argv.input));
     const files = [
       {
-        url: '/',
+        url: '/' + xrMain,
         type: mimeType,
         data: fileData,
       },
@@ -429,6 +430,7 @@ yargs
         type: 'application/json',
         data: JSON.stringify({
           xr_type: xrType,
+          xr_main: xrMain,
         }, null, 2),
       },
     ];
