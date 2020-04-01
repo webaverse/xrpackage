@@ -658,7 +658,6 @@ export class XRPackageEngine extends EventTarget {
     } /* else {
       this.renderer.setRenderTarget(null);
     } */
-    this.renderer.render(this.scene, this.camera);
 
     // tick rafs
     const _tickRafs = () => {
@@ -669,6 +668,8 @@ export class XRPackageEngine extends EventTarget {
       }
     };
     _tickRafs();
+
+    this.renderer.render(this.scene, this.camera);
 
     if (this.externalCanvas) {
       const gl = this.externalContext;
