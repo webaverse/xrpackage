@@ -12673,6 +12673,9 @@ class Decoder extends BinaryParseStream {
 
 
   static decodeFirstSync(input, options) {
+    if (!Buffer.isBuffer(input)) {
+      input = Buffer.from(input);
+    }
     options = options || {
       encoding: 'hex'
     };
@@ -15321,7 +15324,5 @@ exports.Response = decoder_1.Response;
 var encoder_1 = require("./encoder");
 
 exports.BundleBuilder = encoder_1.BundleBuilder;
-
-exports.Buffer = Buffer;
 },{"./decoder":"vywm","./encoder":"Nl8V"}]},{},["NTZa"], "wbn")
 export default module.exports;
