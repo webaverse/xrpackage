@@ -376,7 +376,7 @@ yargs
       argv.input = '-';
     }
     if (typeof argv.output !== 'string') {
-      argv.output = '-';
+      argv.output = 'a.wbn';
     }
 
     const fileData = await (() => {
