@@ -38,35 +38,89 @@ import {XRPackageEngine, XRPackage} from './xrpackage.js';
 
 let currentSession = null;
 
-const [cubeHtml, cubeManifest]= await Promise.all([
-  (async () => {
-    const res = await fetch('examples/html/cube.html');
-    return await res.text();
-  })(),
-  (async () => {
-    const res = await fetch('examples/html/manifest.json');
-    return await res.text();
-  })(),
-]);
-
-const d = XRPackage.compileRaw(
-  [
-    {
-      url: '/cube.html',
-      type: 'text/html',
-      data: cubeHtml,
-    },
-    {
-      url: '/manifest.json',
-      type: 'application/json',
-      data: cubeManifest,
-    }
-  ]
-);
-const p = new XRPackage(d);
-
 const pe = new XRPackageEngine();
-pe.add(p);
+
+(async () => {
+  const [cubeHtml, cubeManifest, modelVrm, catVox]= await Promise.all([
+    (async () => {
+      const res = await fetch('examples/html/cube.html');
+      return await res.text();
+    })(),
+    (async () => {
+      const res = await fetch('examples/html/manifest.json');
+      return await res.text();
+    })(),
+    (async () => {
+      const res = await fetch('examples/vrm/model.vrm');
+      return await res.arrayBuffer();
+    })(),
+    (async () => {
+      const res = await fetch('examples/vox/cat.vox');
+      return await res.arrayBuffer();
+    })(),
+  ]);
+
+  {
+    const d = XRPackage.compileRaw(
+      [
+        {
+          url: '/cube.html',
+          type: 'text/html',
+          data: cubeHtml,
+        },
+        {
+          url: '/manifest.json',
+          type: 'application/json',
+          data: cubeManifest,
+        }
+      ]
+    );
+    const p = new XRPackage(d);
+    pe.add(p);
+  }
+  {
+    const d = XRPackage.compileRaw(
+      [
+        {
+          url: '/model.vrm',
+          type: 'application/octet-stream',
+          data: new Uint8Array(modelVrm),
+        },
+        {
+          url: '/manifest.json',
+          type: 'application/json',
+          data: JSON.stringify({
+            xr_type: 'vrm@0.0.1',
+            xr_main: 'model.vrm',
+          }),
+        }
+      ]
+    );
+    const p = new XRPackage(d);
+    pe.add(p);
+  }
+  {
+    const d = XRPackage.compileRaw(
+      [
+        {
+          url: '/cat.vox',
+          type: 'application/octet-stream',
+          data: new Uint8Array(catVox),
+        },
+        {
+          url: '/manifest.json',
+          type: 'application/json',
+          data: JSON.stringify({
+            xr_type: 'vox@0.0.1',
+            xr_main: 'cat.vox',
+          }),
+        }
+      ]
+    );
+    const p = new XRPackage(d);
+    pe.add(p);
+  }
+})();
 
 /* const canvas = document.createElement('canvas');
 const context = canvas.getContext('webgl', {
