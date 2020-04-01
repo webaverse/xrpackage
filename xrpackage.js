@@ -207,6 +207,7 @@ export class XRPackageEngine extends EventTarget {
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
+    // renderer.setClearAlpha(0);
     renderer.autoClear = false;
     renderer.sortObjects = false;
     renderer.physicallyCorrectLights = true;
