@@ -14,7 +14,20 @@ chrome.runtime.onMessage.addListener(
       sendResponse({
         ok: true,
       });
-  }
+    } else if (request.method === 'loadpackage') {
+      fetch(request.url)
+        .then(res => res.blob())
+        .then(blob => {
+          window.dispatchEvent(new MessageEvent('loadpackage', {
+            data: {
+              blob,
+            },
+          }));
+        });
+      sendResponse({
+        ok: true,
+      });
+    }
 });
 
 const script = document.createElement('script');

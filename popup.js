@@ -42,6 +42,51 @@ chrome.tabs.query({
       options.webvr = document.getElementById('webvr').checked;
       _save();
     });
+
+    let packageFile = null;
+    const _handleUpload = file => {
+      packageFile = file;
+    };
+    const _bindUploadFileButton = (inputFileEl, handleUpload) => {
+      console.log('bind upload file button', inputFileEl);
+      inputFileEl.addEventListener('change', async e => {
+        const {files} = e.target;
+        if (files.length === 1) {
+          const [file] = files;
+          handleUpload(file);
+        }
+
+        const {parentNode} = inputFileEl;
+        parentNode.removeChild(inputFileEl);
+        const newInputFileEl = inputFileEl.ownerDocument.createElement('input');
+        newInputFileEl.type = 'file';
+        // newInputFileEl.id = 'upload-file-button';
+        // newInputFileEl.style.display = 'none';
+        parentNode.appendChild(newInputFileEl);
+        _bindUploadFileButton(newInputFileEl);
+      });
+    };
+    _bindUploadFileButton(document.getElementById('file-input'), _handleUpload);
+    document.getElementById('load-button').addEventListener('click', async e => {
+      console.log('reading');
+      // const u = URL.createObjectURL(packageFile);
+      const u = await new Promise((accept, reject) => {
+        const r = new FileReader();
+        r.readAsDataURL(packageFile);
+        r.onload = () => {
+          accept(r.result);
+        };
+        r.onerror = reject;
+      });
+      chrome.tabs.sendMessage(tabs[0].id, {method: 'loadpackage', url: u}, response => {
+        console.log('got response set', response);
+      });
+      // console.log('posting', arrayBuffer);
+      /* parent.postMessage({
+        event: 'load',
+        arrayBuffer,
+      }, '*', [arrayBuffer]); */
+    });
   });
 });
 

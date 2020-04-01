@@ -146,4 +146,18 @@ if (enabled) {
       }
     },
   });
+
+  console.log('listening for load');
+  window.addEventListener('loadpackage', e => {
+    // const {url} = e.data;
+    console.log('got load', e.data);
+    /* fetch(url)
+      .then(res => {
+        console.log('got response', res);
+        return res.blob();
+      })
+      .then(b => {
+        console.log('got blob', b);
+      }); */
+  });
 }
