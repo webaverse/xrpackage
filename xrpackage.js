@@ -120,7 +120,7 @@ const xrOffsetMatrix = new THREE.Matrix4();
 GlobalContext.getXrOffsetMatrix = () => xrOffsetMatrix;
 GlobalContext.xrFramebuffer = null;
 
-const spatialTypeHandlers = {
+const xrTypeHandlers = {
   'webxr-site@0.0.1': async function(p) {
     const iframe = document.createElement('iframe');
     iframe.src = 'iframe.html';
@@ -334,12 +334,12 @@ export class XRPackageEngine extends EventTarget {
   }
   async add(p) {
     const {type} = p;
-    const handler = spatialTypeHandlers[type];
+    const handler = xrTypeHandlers[type];
     if (handler) {
       await handler.call(this, p);
       p.parent = this;
     } else {
-      throw new Error(`unknown spatial type: ${type}`);
+      throw new Error(`unknown xr_type: ${type}`);
     }
   }
   setExternalCanvas(canvas, context) {
@@ -757,15 +757,16 @@ export class XRPackage extends EventTarget {
     if (manifestJsonFile) {
       const s = manifestJsonFile.response.body.toString('utf-8');
       const j = JSON.parse(s);
-      if (j && typeof j.spatial_type === 'string') {
-        const handler = spatialTypeHandlers[j.spatial_type];
+      if (j && typeof j.xr_type === 'string') {
+        const xrType = j.xr_type;
+        const handler = xrTypeHandlers[xrType];
         if (handler) {
-          this.type = j.spatial_type;
+          this.type = xrType;
         } else {
-          throw new Error(`unknown spatial_type: ${j.spatial_type}`);
+          throw new Error(`unknown xr_type: ${xrType}`);
         }
       } else {
-        throw new Error('could not find spatial_type string in manifest.json');
+        throw new Error('could not find xr_type string in manifest.json');
       }
     } else {
       throw new Error('no manifest.json in pack');
@@ -775,7 +776,7 @@ export class XRPackage extends EventTarget {
     this.context = {};
   }
   static async compileFromFile(file) {
-    const _createFile = async (file, spatialType) => {
+    const _createFile = async (file, xrType) => {
       const fileData = await new Promise((accept, reject) => {
         const reader = new FileReader();
         reader.onload = () => {
@@ -795,7 +796,7 @@ export class XRPackage extends EventTarget {
             url: '/manifest.json',
             type: 'application/json',
             data: JSON.stringify({
-              spatial_type: spatialType,
+              xr_type: xrType,
             }, null, 2),
           }
         ]

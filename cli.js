@@ -398,18 +398,18 @@ yargs
 
     // console.log('got data', data.length);
 
-    let spatialType, mimeType;
+    let xrType, mimeType;
     if (/\.gltf$/.test(argv.input)) {
-      spatialType = 'gltf@0.0.1';
+      xrType = 'gltf@0.0.1';
       mimeType = 'model/gltf+json';
     } else if (/\.glb$/.test(argv.input)) {
-      spatialType = 'gltf@0.0.1';
+      xrType = 'gltf@0.0.1';
       mimeType = 'application/octet-stream';
     } else if (/\.vrm$/.test(argv.input)) {
-      spatialType = 'vrm@0.0.1';
+      xrType = 'vrm@0.0.1';
       mimeType = 'application/octet-stream';
     } else if (argv.input === '-' || /\.html$/.test(argv.input)) {
-      spatialType = 'webxr-site@0.0.1';
+      xrType = 'webxr-site@0.0.1';
       mimeType = 'text/html';
     } else {
       throw new Error(`unknown file type: ${argv.input}`);
@@ -425,7 +425,7 @@ yargs
         url: '/manifest.json',
         type: 'application/json',
         data: JSON.stringify({
-          spatial_type: spatialType,
+          xr_type: xrType,
         }, null, 2),
       },
     ];
