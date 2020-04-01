@@ -20,7 +20,10 @@ body {
 <script type=module>
 import * as THREE from './three.module.js';
 
-window.pe.init().then(({canvas, context}) => {
+console.log('listening');
+window.xrpackage.addEventListener('load', e => {
+
+const {canvas, context, session} = e.data;
 
 const renderer = new THREE.WebGLRenderer({
   canvas,
@@ -87,23 +90,17 @@ function onSessionEnded() {
 
   currentSession = null;
 }
-
-/* document.getElementById('enter-vr-button').addEventListener('click', e => {
-  e.preventDefault();
-  e.stopPropagation(); */
-  
-  if (currentSession === null) {
-    navigator.xr.requestSession('immersive-vr', {
-      optionalFeatures: [
-        'local-floor',
-        'bounded-floor',
-      ],
-    }).then(onSessionStarted);
-  } else {
-    currentSession.end();
-  }
-// });
-// document.getElementById('enter-vr-button').click();
+onSessionStarted(session);
+/* if (currentSession === null) {
+  navigator.xr.requestSession('immersive-vr', {
+    optionalFeatures: [
+      'local-floor',
+      'bounded-floor',
+    ],
+  }).then(onSessionStarted);
+} else {
+  currentSession.end();
+} */
 
 });
 </script>

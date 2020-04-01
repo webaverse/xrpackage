@@ -40,11 +40,11 @@ let currentSession = null;
 
 const [cubeHtml, cubeManifest]= await Promise.all([
   (async () => {
-    const res = await fetch('examples/cube.html');
+    const res = await fetch('examples/html/cube.html');
     return await res.text();
   })(),
   (async () => {
-    const res = await fetch('examples/cube-manifest.json');
+    const res = await fetch('examples/html/manifest.json');
     return await res.text();
   })(),
 ]);

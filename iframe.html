@@ -22,9 +22,15 @@ function makePromise() {
   result.reject = reject;
   return result;
 };
-window.pe = {
-  loadPromise: makePromise(),
-  session: null,
+
+class XRPackageManager extends EventTarget {
+  constructor() {
+    super();
+
+    this.session = null;
+    this.loadPromise = makePromise();
+    this.listenedLoad = false;
+  }
   async iframeInit({engine, indexHtml, canvas, context, xrState}) {
     document.open();
     document.write(indexHtml);
@@ -44,9 +50,10 @@ window.pe = {
     // window.innerWidth = canvas.width;
     // window.innerHeight = canvas.height;
 
-    this.session = new XR.XRSession();
-    this.session.onrequestanimationframe = engine.requestAnimationFrame.bind(engine);
-    this.session.oncancelanimationframe = engine.cancelAnimationFrame.bind(engine);
+    const session = new XR.XRSession();
+    session.onrequestanimationframe = engine.requestAnimationFrame.bind(engine);
+    session.oncancelanimationframe = engine.cancelAnimationFrame.bind(engine);
+    this.session = session;
 
     delete Navigator.prototype.xr;
     window.navigator.xr = new XR.XR(window);
@@ -70,25 +77,33 @@ window.pe = {
     window.XRReferenceSpace = XR.XRReferenceSpace;
     window.XRBoundedReferenceSpace = XR.XRBoundedReferenceSpace;
 
-    this.loadPromise.resolve({canvas, context});
-  },
+    this.loadPromise.resolve({
+      canvas,
+      context,
+      session,
+    });
+  }
+  addEventListener(e, fn, opts) {
+    super.addEventListener(e, fn, opts);
+
+    if (e === 'load' && !this.listenedLoad) {
+      this.listenedLoad = true;
+      this.loadPromise.then(data => {
+        this.dispatchEvent(new MessageEvent('load', {
+          data,
+        }));
+      });
+    }
+  }
   setSession(session) {
     if (session) {
       GlobalContext.xrFramebuffer = session.renderState.baseLayer.framebuffer;
     } else {
       GlobalContext.xrFramebuffer = null;
     }
-  },
-  async init() {
-    // console.log('await load promise 1');
-    const {canvas, context} = await this.loadPromise;
-    // console.log('await load promise 2');
-    return {
-      canvas,
-      context,
-    };
   }
-};
+}
+window.xrpackage = new XRPackageManager();
 })();
 </script>
 </body>

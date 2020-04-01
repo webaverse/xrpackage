@@ -138,7 +138,7 @@ const spatialTypeHandlers = {
 
     const indexFile = p.files.find(file => new URL(file.url).pathname === '/');
     const indexHtml = indexFile.response.body.toString('utf-8');
-    await iframe.contentWindow.pe.iframeInit({
+    await iframe.contentWindow.xrpackage.iframeInit({
       engine: this,
       indexHtml,
       canvas: this.domElement,
@@ -204,7 +204,7 @@ export class XRPackageEngine extends EventTarget {
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
-    // renderer.autoClear = false;
+    renderer.autoClear = false;
     renderer.sortObjects = false;
     renderer.physicallyCorrectLights = true;
     renderer.xr.enabled = true;
@@ -432,19 +432,6 @@ export class XRPackageEngine extends EventTarget {
     });
   }
   tick(timestamp, frame) {
-    // local render
-    /* const _localRender = () => {
-      this.renderer.state.reset();
-        
-      const f = (Date.now()%2000)/2000 * Math.PI*2;
-      this.cubeMesh.rotation.x = f;
-      this.cubeMesh.rotation.y = f;
-      this.cubeMesh.rotation.z = f;
-
-      this.renderer.render(this.scene, this.camera);
-    };
-    _localRender(); */
-
     // emit event
     this.dispatchEvent(new CustomEvent('tick'));
 
