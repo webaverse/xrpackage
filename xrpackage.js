@@ -204,7 +204,7 @@ export class XRPackageEngine extends EventTarget {
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.autoClear = false;
+    // renderer.autoClear = false;
     renderer.sortObjects = false;
     renderer.physicallyCorrectLights = true;
     renderer.xr.enabled = true;
@@ -274,6 +274,8 @@ export class XRPackageEngine extends EventTarget {
 
     this.externalCanvas = null;
     this.externalContext = null;
+    this.localRenderTarget = null;
+
     window.OldXR = {
       XR: window.XR,
       XRSession: window.XRSession,
@@ -561,6 +563,103 @@ export class XRPackageEngine extends EventTarget {
       rig.update();
     }
 
+    this.renderer.state.reset();
+    if (this.externalCanvas) {
+      if (!this.renderState) {
+        // this.localRenderTarget = new THREE.WebGLRenderTarget(this.renderer.domElement.width, this.renderer.domElement.height);
+
+        const gl = this.externalContext;
+
+        this.renderState = {};
+
+        const oldBuffer = gl.getParameter(gl.ARRAY_BUFFER_BINDING);
+        const oldTexture2d = gl.getParameter(gl.TEXTURE_BINDING_2D);
+
+        const positions = Float32Array.from([
+          // First triangle:
+           1.0,  1.0,
+          -1.0,  1.0,
+          -1.0, -1.0,
+          // Second triangle:
+          -1.0, -1.0,
+           1.0, -1.0,
+           1.0,  1.0
+        ]);
+        const vertexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+        this.renderState.vertexBuffer = vertexBuffer;
+
+        const vs = gl.createShader(gl.VERTEX_SHADER);
+        const vertexShader = `
+          attribute vec2 position;
+          varying vec2 vUv;
+          const vec2 scale = vec2(0.5, 0.5);
+          void main() {
+            gl_Position = vec4(position, 0.0, 1.0);
+            vUv = position * scale + scale; // scale vertex attribute to [0,1] range
+            vUv.y = 1.0 - vUv.y;
+          }
+        `;
+        gl.shaderSource(vs, vertexShader);
+        gl.compileShader(vs);
+        if (!gl.getShaderParameter(vs, gl.COMPILE_STATUS)) {
+          throw new Error("could not compile shader: " + gl.getShaderInfoLog(vs));
+        }
+
+        const fs = gl.createShader(gl.FRAGMENT_SHADER);
+        const fragmentShader = `
+          precision highp float;
+
+          uniform sampler2D tex;
+          varying vec2 vUv;
+          void main() {
+            gl_FragColor = texture2D(tex, vUv);
+          }
+        `;
+        gl.shaderSource(fs, fragmentShader);
+        gl.compileShader(fs);
+        if (!gl.getShaderParameter(fs, gl.COMPILE_STATUS)) {
+          throw new Error("could not compile shader: " + gl.getShaderInfoLog(fs));
+        }
+
+        const program = gl.createProgram();
+        gl.attachShader(program, vs);
+        gl.attachShader(program, fs);
+        gl.linkProgram(program);
+        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+          throw new Error("program failed to link: " + gl.getProgramInfoLog(program));
+        }
+        this.renderState.program = program;
+        gl.deleteShader(vs);
+        gl.deleteShader(fs);
+
+        this.renderState.positionLocation = gl.getAttribLocation(program, 'position');
+        if (this.renderState.positionLocation === -1) {
+          throw new Error('failed to get location: position');
+        }
+        this.renderState.texLocation = gl.getUniformLocation(program, 'tex');
+        if (this.renderState.texLocation === -1) {
+          throw new Error('failed to get location: tex');
+        }
+
+        const tex = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        this.renderState.tex = tex;
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, oldBuffer);
+        gl.bindTexture(gl.TEXTURE_2D, oldTexture2d);
+      }
+      // this.renderer.setRenderTarget(this.localRenderTarget);
+    } /* else {
+      this.renderer.setRenderTarget(null);
+    } */
+    this.renderer.render(this.scene, this.camera);
+
     // tick rafs
     const _tickRafs = () => {
       const rafs = this.rafs.slice();
@@ -571,8 +670,36 @@ export class XRPackageEngine extends EventTarget {
     };
     _tickRafs();
 
-    this.renderer.state.reset();
-    this.renderer.render(this.scene, this.camera);
+    if (this.externalCanvas) {
+      const gl = this.externalContext;
+
+      const oldProgram = gl.getParameter(gl.CURRENT_PROGRAM);
+      const oldArrayBuffer = gl.getParameter(gl.ARRAY_BUFFER_BINDING);
+      const oldActiveTexture = gl.getParameter(gl.ACTIVE_TEXTURE);
+      // console.log('old active texture', oldActiveTexture);
+      const oldTexture2d = gl.getParameter(gl.TEXTURE_BINDING_2D);
+      const oldViewport = gl.getParameter(gl.VIEWPORT);
+      const oldDepthTest = gl.getParameter(gl.DEPTH_TEST);
+
+      gl.useProgram(this.renderState.program);
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.renderState.vertexBuffer);
+      gl.vertexAttribPointer(this.renderState.positionLocation, 2, gl.FLOAT, false, 0, 0);
+      gl.enableVertexAttribArray(this.renderState.positionLocation);
+      gl.uniform1i(this.renderState.texLocation, oldActiveTexture - gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, this.renderState.tex);
+      // console.log('tex image 2d', this.localRenderTarget.texture);
+      // const tex = this.renderer.properties.get(this.localRenderTarget.texture).__webglTexture;
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.renderer.domElement);
+      gl.viewport(0, 0, this.externalCanvas.width, this.externalCanvas.height);
+      gl.disable(gl.DEPTH_TEST);
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+      gl.useProgram(oldProgram);
+      gl.bindBuffer(gl.ARRAY_BUFFER, oldArrayBuffer);
+      gl.bindTexture(gl.TEXTURE_2D, oldTexture2d);
+      gl.viewport(oldViewport[0], oldViewport[1], oldViewport[2], oldViewport[3]);
+      oldDepthTest && gl.enable(gl.DEPTH_TEST);
+    }
   }
   requestAnimationFrame(fn) {
     this.rafs.push(fn);
