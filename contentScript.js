@@ -16,12 +16,10 @@ chrome.runtime.onMessage.addListener(
       });
     } else if (request.method === 'loadpackage') {
       fetch(request.url)
-        .then(res => res.blob())
-        .then(blob => {
+        .then(res => res.arrayBuffer())
+        .then(data => {
           window.dispatchEvent(new MessageEvent('loadpackage', {
-            data: {
-              blob,
-            },
+            data,
           }));
         });
       sendResponse({

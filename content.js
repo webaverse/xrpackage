@@ -1,6 +1,6 @@
 import * as THREE from './three.module.js';
 import {OrbitControls} from './OrbitControls.js';
-import {XRPackageEngine} from './xrpackage.js';
+import {XRPackageEngine, XRPackage} from './xrpackage.js';
 import * as VR from './VR.js';
 import * as XR from './XR.js';
 
@@ -23,6 +23,13 @@ if (enabled) {
         camera.updateMatrixWorld();
         pe.setCamera(camera);
       }); */
+
+      window.addEventListener('loadpackage', e => {
+        const p = new XRPackage(new Uint8Array(e.data));
+        pe.add(p);
+
+        console.log('load package', p);
+      });
     }
   };
 
@@ -145,19 +152,5 @@ if (enabled) {
         return xr;
       }
     },
-  });
-
-  console.log('listening for load');
-  window.addEventListener('loadpackage', e => {
-    // const {url} = e.data;
-    console.log('got load', e.data);
-    /* fetch(url)
-      .then(res => {
-        console.log('got response', res);
-        return res.blob();
-      })
-      .then(b => {
-        console.log('got blob', b);
-      }); */
   });
 }
