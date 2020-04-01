@@ -174,6 +174,9 @@ const spatialTypeHandlers = {
     URL.revokeObjectURL(u);
 
     p.context.object = o;
+    o.scene.traverse(o => {
+      o.frustumCulled = false;
+    });
     this.scene.add(o.scene);
 
     this.packages.push(p);
