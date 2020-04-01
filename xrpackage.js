@@ -2,6 +2,7 @@ import * as THREE from './three.module.js';
 import * as XR from './XR.js';
 import symbols from './symbols.js';
 import GlobalContext from './GlobalContext.js';
+import wbn from './wbn.js';
 import {GLTFLoader} from './GLTFLoader.js';
 import Avatar from './avatars/avatars.js';
 
