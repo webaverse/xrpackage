@@ -60,7 +60,7 @@ if (enabled) {
           vrDisplay.oncancelanimationframe = pe.cancelAnimationFrame.bind(pe);
           vrDisplay.onmakeswapchain = (canvas, context) => {
             // if (canvas) {
-              pe.setCanvas(canvas, context);
+              pe.setExternalCanvas(canvas, context);
             // }
           };
           vrDisplay.onrequestpresent = () => {
@@ -117,7 +117,7 @@ if (enabled) {
                     deltaX,
                     deltaY,
                   });
-                  (['mousemove', 'mouseup'].includes(event) ? document : pe.domElement).dispatchEvent(mouseEvent);
+                  (['mousemove', 'mouseup'].includes(event) ? document : (pe.externalCanvas || pe.domElement)).dispatchEvent(mouseEvent);
                   break;
                 }
               }
@@ -127,12 +127,12 @@ if (enabled) {
             pe.fakeSession.onmakeswapchain = (canvas, context) => {
               console.log('onmakeswapchain', canvas, context);
               // if (canvas) {
-                pe.setCanvas(canvas, context);
+                pe.setExternalCanvas(canvas, context);
               // }
 
               const camera = new THREE.PerspectiveCamera();
               camera.position.set(0, 0.5, 1);
-              const orbitControls = new OrbitControls(camera, pe.domElement);
+              const orbitControls = new OrbitControls(camera, pe.externalCanvas);
               orbitControls.screenSpacePanning = true;
               orbitControls.enableMiddleZoom = false;
               // orbitControls.update();

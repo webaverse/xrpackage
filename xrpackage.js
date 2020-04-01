@@ -272,6 +272,8 @@ export class XRPackageEngine extends EventTarget {
     this.fakeSession.onrequestanimationframe = this.requestAnimationFrame.bind(this);
     this.fakeSession.oncancelanimationframe = this.cancelAnimationFrame.bind(this);
 
+    this.externalCanvas = null;
+    this.externalContext = null;
     window.OldXR = {
       XR: window.XR,
       XRSession: window.XRSession,
@@ -338,33 +340,10 @@ export class XRPackageEngine extends EventTarget {
       throw new Error(`unknown spatial type: ${type}`);
     }
   }
-  setCanvas(canvas, context) {
-    if (this.domElement !== canvas) {
-      this.domElement = canvas;
-      this.context = context;
-
-      const oldChild = this.renderer.domElement;
-      const oldParent = oldChild.parentNode;
-
-      const renderer = new THREE.WebGLRenderer({
-        canvas,
-        context,
-        antialias: true,
-        alpha: true,
-        // preserveDrawingBuffer: true,
-      });
-      renderer.setSize(GlobalContext.xrState.renderWidth[0]*2, GlobalContext.xrState.renderHeight[0]);
-      // renderer.setPixelRatio(window.devicePixelRatio);
-      renderer.autoClear = false;
-      renderer.sortObjects = false;
-      renderer.physicallyCorrectLights = true;
-      renderer.xr.enabled = true;
-      renderer.xr.setSession(this.fakeSession);
-      this.renderer = renderer;
-
-      if (oldParent) {
-        oldParent.replaceChild(this.renderer.domElement, oldChild);
-      }
+  setExternalCanvas(canvas, context) {
+    if (canvas !== this.domElement) {
+      this.externalCanvas = canvas;
+      this.externalContext = context;
     }
   }
   async setSession(realSession) {
