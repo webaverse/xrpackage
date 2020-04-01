@@ -408,6 +408,9 @@ yargs
     } else if (/\.vrm$/.test(argv.input)) {
       xrType = 'vrm@0.0.1';
       mimeType = 'application/octet-stream';
+    } else if (/\.vox$/.test(argv.input)) {
+      xrType = 'vox@0.0.1';
+      mimeType = 'application/octet-stream';
     } else if (argv.input === '-' || /\.html$/.test(argv.input)) {
       xrType = 'webxr-site@0.0.1';
       mimeType = 'text/html';
