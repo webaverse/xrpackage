@@ -448,8 +448,34 @@ yargs
       fs.writeFileSync(argv.output, uint8Array);
       console.log(argv.output);
     }
+  })
+  .command('view [input]', 'view contents of input .wbn file', yargs => {
+    yargs
+      .positional('input', {
+        describe: 'input .wbn file to view',
+        // default: 5000
+      });
+  }, async argv => {
+    handled = true;
 
-    console.log(argv.output);
+    /* if (typeof argv.input !== 'string') {
+      argv.input = '-';
+    } */
+    const d = fs.readFileSync(argv.input);
+    const bundle = new wbn.Bundle(d);
+    const files = [];
+    for (const url of bundle.urls) {
+      const response = bundle.getResponse(url);
+      console.log(url);
+      files.push({
+        url,
+        // status: response.status,
+        // headers: response.headers,
+        response,
+        // body: response.body.toString('utf-8')
+      });
+    }
+    // console.log(files.map());
   }).argv;
 if (!handled) {
   yargs.showHelp();
