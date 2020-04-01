@@ -339,29 +339,32 @@ export class XRPackageEngine extends EventTarget {
     }
   }
   setCanvas(canvas, context) {
-    const oldChild = this.renderer.domElement;
-    const oldParent = oldChild.parentNode;
+    if (this.domElement !== canvas) {
+      this.domElement = canvas;
+      this.context = context;
 
-    const renderer = new THREE.WebGLRenderer({
-      canvas,
-      context,
-      antialias: true,
-      alpha: true,
-      // preserveDrawingBuffer: true,
-    });
-    renderer.setSize(GlobalContext.xrState.renderWidth[0]*2, GlobalContext.xrState.renderHeight[0]);
-    // renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.autoClear = false;
-    renderer.sortObjects = false;
-    renderer.physicallyCorrectLights = true;
-    renderer.xr.enabled = true;
-    this.renderer = renderer;
+      const oldChild = this.renderer.domElement;
+      const oldParent = oldChild.parentNode;
 
-    this.domElement = canvas;
-    this.context = context;
+      const renderer = new THREE.WebGLRenderer({
+        canvas,
+        context,
+        antialias: true,
+        alpha: true,
+        // preserveDrawingBuffer: true,
+      });
+      renderer.setSize(GlobalContext.xrState.renderWidth[0]*2, GlobalContext.xrState.renderHeight[0]);
+      // renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.autoClear = false;
+      renderer.sortObjects = false;
+      renderer.physicallyCorrectLights = true;
+      renderer.xr.enabled = true;
+      renderer.xr.setSession(this.fakeSession);
+      this.renderer = renderer;
 
-    if (oldParent) {
-      oldParent.replaceChild(this.renderer.domElement, oldChild);
+      if (oldParent) {
+        oldParent.replaceChild(this.renderer.domElement, oldChild);
+      }
     }
   }
   async setSession(realSession) {
