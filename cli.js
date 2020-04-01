@@ -446,6 +446,7 @@ yargs
       process.stdout.write(uint8Array);
     } else {
       fs.writeFileSync(argv.output, uint8Array);
+      console.log(argv.output);
     }
 
     console.log(argv.output);
