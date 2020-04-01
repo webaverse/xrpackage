@@ -4,6 +4,7 @@ import symbols from './symbols.js';
 import GlobalContext from './GlobalContext.js';
 import wbn from './wbn.js';
 import {GLTFLoader} from './GLTFLoader.js';
+import {VOXLoader} from './VOXLoader.js';
 import Avatar from './avatars/avatars.js';
 
 const localVector = new THREE.Vector3();
@@ -181,6 +182,22 @@ const xrTypeHandlers = {
       o.frustumCulled = false;
     });
     this.scene.add(o.scene);
+
+    this.packages.push(p);
+  },
+  'vox@0.0.1': async function(p) {
+    const mainPath = '/' + p.main;
+    const indexFile = p.files.find(file => new URL(file.url).pathname === mainPath);
+    const indexBlob = new Blob([indexFile.response.body]);
+    const u = URL.createObjectURL(indexBlob);
+    const o = await new Promise((accept, reject) => {
+      const loader = new VOXLoader();
+      loader.load(u, accept, function onProgress() {}, reject);
+    });
+    URL.revokeObjectURL(u);
+
+    p.context.object = o;
+    this.scene.add(o);
 
     this.packages.push(p);
   },
