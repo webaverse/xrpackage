@@ -582,9 +582,6 @@ export class XRPackageEngine extends EventTarget {
       rig.update();
     }
 
-    this.renderer.state.reset();
-    this.renderer.render(this.scene, this.camera);
-
     // tick rafs
     const _tickRafs = () => {
       const rafs = this.rafs.slice();
@@ -594,6 +591,9 @@ export class XRPackageEngine extends EventTarget {
       }
     };
     _tickRafs();
+
+    this.renderer.state.reset();
+    this.renderer.render(this.scene, this.camera);
   }
   requestAnimationFrame(fn) {
     this.rafs.push(fn);
