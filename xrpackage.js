@@ -121,7 +121,7 @@ const xrOffsetMatrix = new THREE.Matrix4();
 GlobalContext.getXrOffsetMatrix = () => xrOffsetMatrix;
 GlobalContext.xrFramebuffer = null;
 
-const xrTypeHandlers = {
+const xrTypeLoaders = {
   'webxr-site@0.0.1': async function(p) {
     const iframe = document.createElement('iframe');
     iframe.src = 'iframe.html';
@@ -136,19 +136,6 @@ const xrTypeHandlers = {
       iframe.addEventListener('error', reject);
     });
     p.context.iframe = iframe;
-
-    const mainPath = '/' + p.main;
-    const indexFile = p.files.find(file => new URL(file.url).pathname === mainPath);
-    const indexHtml = indexFile.response.body.toString('utf-8');
-    await iframe.contentWindow.xrpackage.iframeInit({
-      engine: this,
-      indexHtml,
-      canvas: this.domElement,
-      context: this.context,
-      xrState,
-    });
-
-    this.packages.push(p);
   },
   'gltf@0.0.1': async function(p) {
     const mainPath = '/' + p.main;
@@ -162,9 +149,6 @@ const xrTypeHandlers = {
     URL.revokeObjectURL(u);
 
     p.context.object = scene;
-    this.scene.add(scene);
-
-    this.packages.push(p);
   },
   'vrm@0.0.1': async function(p) {
     const mainPath = '/' + p.main;
@@ -181,9 +165,6 @@ const xrTypeHandlers = {
     o.scene.traverse(o => {
       o.frustumCulled = false;
     });
-    this.scene.add(o.scene);
-
-    this.packages.push(p);
   },
   'vox@0.0.1': async function(p) {
     const mainPath = '/' + p.main;
@@ -197,7 +178,35 @@ const xrTypeHandlers = {
     URL.revokeObjectURL(u);
 
     p.context.object = o;
-    this.scene.add(o);
+  },
+};
+const xrTypeAdders = {
+  'webxr-site@0.0.1': async function(p) {
+    const mainPath = '/' + p.main;
+    const indexFile = p.files.find(file => new URL(file.url).pathname === mainPath);
+    const indexHtml = indexFile.response.body.toString('utf-8');
+    await p.context.iframe.contentWindow.xrpackage.iframeInit({
+      engine: this,
+      indexHtml,
+      canvas: this.domElement,
+      context: this.context,
+      xrState,
+    });
+
+    this.packages.push(p);
+  },
+  'gltf@0.0.1': async function(p) {
+    this.scene.add(p.context.object);
+
+    this.packages.push(p);
+  },
+  'vrm@0.0.1': async function(p) {
+    this.scene.add(p.context.object.scene);
+
+    this.packages.push(p);
+  },
+  'vox@0.0.1': async function(p) {
+    this.scene.add(p.context.object);
 
     this.packages.push(p);
   },
@@ -354,10 +363,18 @@ export class XRPackageEngine extends EventTarget {
     window.requestAnimationFrame(animate);
   }
   async add(p) {
+    if (!p.loaded) {
+      await new Promise((accept, reject) => {
+        p.addEventListener('load', e => {
+          accept();
+        }, {once: true});
+      });
+    }
+
     const {type} = p;
-    const handler = xrTypeHandlers[type];
-    if (handler) {
-      await handler.call(this, p);
+    const adder = xrTypeAdders[type];
+    if (adder) {
+      await adder.call(this, p);
       p.parent = this;
     } else {
       throw new Error(`unknown xr_type: ${type}`);
@@ -760,6 +777,8 @@ export class XRPackage extends EventTarget {
   constructor(d) {
     super();
 
+    this.loaded = false;
+
     const bundle = new wbn.Bundle(d);
     const files = [];
     for (const url of bundle.urls) {
@@ -783,10 +802,21 @@ export class XRPackage extends EventTarget {
           xr_type: xrType,
           xr_main: xrMain,
         } = j;
-        const handler = xrTypeHandlers[xrType];
-        if (handler) {
+        const loader = xrTypeLoaders[xrType];
+        if (loader) {
           this.type = xrType;
           this.main = xrMain;
+
+          loader(this)
+            .then(o => {
+              this.loaded = true;
+              this.dispatchEvent(new MessageEvent('load', {
+                data: {
+                  type: this.type,
+                  object: o,
+                },
+              }));
+            });
         } else {
           throw new Error(`unknown xr_type: ${xrType}`);
         }
