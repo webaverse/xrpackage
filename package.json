@@ -1,5 +1,5 @@
 {
-  "name": "xrpackage",
+  "name": "xrpk",
   "version": "0.0.9",
   "description": "",
   "main": "cli.js",
@@ -8,7 +8,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
-    "xrpackage": "./cli.js"
+    "xrpk": "./cli.js"
   },
   "repository": {
     "type": "git",
