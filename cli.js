@@ -207,10 +207,10 @@ yargs
     await p;
     mutableStdout.muted = true;
   })
-  .command('publish [input]', 'publish token', yargs => {
+  .command('publish [input]', 'publish a package', yargs => {
     yargs
       .positional('input', {
-        describe: 'input file to publish',
+        describe: '.wbn package to publish',
         // default: 5000
       })
   }, async argv => {
