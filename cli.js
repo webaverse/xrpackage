@@ -159,6 +159,43 @@ const _importKeyStore = async (s, password) => {
 
 let handled = false;
 yargs
+  .command('whoami', 'print logged in address', yargs => {
+    yargs
+      /* .positional('input', {
+        describe: 'input file to build',
+        // default: 5000
+      }) */
+  }, async argv => {
+    handled = true;
+
+    const ksString = fs.readFileSync(path.join(os.homedir(), '.xrpackage'));
+
+    const mutableStdout = new Writable({
+      write: function(chunk, encoding, callback) {
+        if (!this.muted)
+          process.stdout.write(chunk, encoding);
+        callback();
+      }
+    });
+    mutableStdout.muted = false;
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: mutableStdout,
+      terminal: true
+    });
+
+    const passwordPromise = makePromise();
+    rl.question('password: ', password => {
+      rl.close();
+
+      passwordPromise.accept(password);
+    });
+    const password = await passwordPromise;
+
+    const ks = await _importKeyStore(ksString, password);
+
+    console.log(`0x${ks.addresses[0]}`);
+  })
   .command('login', 'log in to wallet', yargs => {
     yargs
       /* .positional('input', {
