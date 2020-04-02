@@ -2,6 +2,7 @@
 
 const path = require('path');
 const fs = require('fs');
+const http = require('http');
 const readline = require('readline');
 const {Writable} = require('stream');
 const os = require('os');
@@ -15,6 +16,8 @@ const ethereumjs = {
 const {BigNumber} = require('bignumber.js');
 const lightwallet = require('eth-lightwallet');
 const Web3 = require('web3');
+const express = require('express');
+const opn = require('opn');
 
 const apiHost = `https://ipfs.exokit.org/ipfs`;
 const network = 'rinkeby';
@@ -446,6 +449,38 @@ yargs
     }
     const uint8Array = builder.createBundle();
     // console.log('got bundle', uint8Array.byteLength);
+
+    const app = express();
+    app.use(express.static(__dirname));
+    app.get('/a.wbn', (req, res) => {
+      res.end(uint8Array);
+    });
+    const gifPromise = makePromise();
+    const _readIntoPromise = p => (req, res) => {
+      const bs = [];
+      req.on('data', d => {
+        bs.push(d);
+      });
+      req.once('end', () => {
+        const d = Buffer.concat(bs);
+        p.accept(d);
+        res.end();
+      });
+      req.once('error', p.reject);
+    };
+    app.put('/a.gif', _readIntoPromise(gifPromise));
+    const glbPromise = makePromise();
+    app.put('/a.glb', _readIntoPromise(glbPromise));
+    const port = 9999;
+    const server = http.createServer(app);
+    server.listen(port, () => {
+      opn(`http://localhost:${port}/screenshot.html?srcWbn=http://localhost:${port}/a.wbn&dstGif=http://localhost:${port}/a.gif&dstGlb=http://localhost:${port}/a.glb`);
+    });
+
+    const [gif, glb] = await Promise.all([gifPromise, glbPromise]);
+    server.close();
+
+    // console.log('got gif/glb', gif, glb);
 
     if (argv.output === '-') {
       process.stdout.write(uint8Array);
