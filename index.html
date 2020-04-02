@@ -12,6 +12,15 @@ canvas {
   left: 0;
   right: 0;
 }
+.popup {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  border: 0;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
+  z-index: 1;
+}
 .buttons {
   display: flex;
   position: absolute;
@@ -25,6 +34,7 @@ canvas {
 <div class=buttons>
   <input type=button id=enter-vr-button value="Enter XR">
 </div>
+<iframe class=popup id=popup src="popup.html"></iframe>
 <script type=module>
   import THREE from './three.module.js';
   window.THREE = THREE;
@@ -255,6 +265,26 @@ document.getElementById('enter-vr-button').addEventListener('click', e => {
     currentSession.end();
   }
 });
+
+window.addEventListener('message', async e => {
+  console.log('got message', e.data);
+  const {method, url} = e.data;
+  switch (method) {
+    case 'loadpackage': {
+      const res = await fetch(url);
+      const arrayBuffer = await res.arrayBuffer();
+      const p = new XRPackage(new Uint8Array(arrayBuffer));
+      pe.add(p);
+
+      console.log('load package', p);
+      break;
+    }
+  }
+});
+/* const popup = document.getElementById('popup');
+popup.addEventListener('load', e => {
+  popup.contentWindow
+}); */
 
 })();
 </script>
