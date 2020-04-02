@@ -473,21 +473,24 @@ yargs
     app.put('/a.glb', _readIntoPromise(glbPromise));
     const port = 9999;
     const server = http.createServer(app);
+    const connections = [];
+    server.on('connection', c => {
+      connections.push(c);
+    });
     server.listen(port, () => {
       opn(`http://localhost:${port}/screenshot.html?srcWbn=http://localhost:${port}/a.wbn&dstGif=http://localhost:${port}/a.gif&dstGlb=http://localhost:${port}/a.glb`);
     });
 
-    const [gif, glb] = await Promise.all([gifPromise, glbPromise]);
+    const [gifUint8Array, glbUint8Array] = await Promise.all([gifPromise, glbPromise]);
     server.close();
-
-    // console.log('got gif/glb', gif, glb);
-
-    if (argv.output === '-') {
-      process.stdout.write(uint8Array);
-    } else {
-      fs.writeFileSync(argv.output, uint8Array);
-      console.log(argv.output);
+    for (let i = 0; i < connections.length; i++) {
+      connections[i].destroy();
     }
+
+    fs.writeFileSync(argv.output, uint8Array);
+    fs.writeFileSync(argv.output + '.gif', gifUint8Array);
+    fs.writeFileSync(argv.output + '.glb', glbUint8Array);
+    console.log(argv.output);
   })
   .command('view [input]', 'view contents of input .wbn file', yargs => {
     yargs
