@@ -370,6 +370,8 @@ yargs
     const receipt = await m.send(o);
     const id = parseInt(receipt.events.URI.returnValues[1], 10);
     console.log(`${tokenHost}/${id}`);
+    console.log(`https://${network}.opensea.io/assets/${contract._address}/${id}`);
+
     // console.log('got receipt 1', receipt);
     // console.log('got receipt 2', receipt.events.URI.returnValues[1]);
 
