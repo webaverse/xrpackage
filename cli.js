@@ -20,6 +20,7 @@ const express = require('express');
 const opn = require('opn');
 
 const apiHost = `https://ipfs.exokit.org/ipfs`;
+const tokenHost = `https://tokens.cryptopolys.com`;
 const network = 'rinkeby';
 const infuraApiKey = '4fb939301ec543a0969f3019d74f80c2';
 const rpcUrl = `https://${network}.infura.io/v3/${infuraApiKey}`;
@@ -329,20 +330,24 @@ yargs
       console.log('got tx receipt', e); // XXX
     }); */
 
-    console.log('got hashes', ks, {dataHash, screenshotHash, metadataHash});
+    console.log(`${apiHost}/${dataHash}.wbn`);
+    console.log(`${apiHost}/${screenshotHash}.gif`);
+    console.log(`${apiHost}/${modelHash}.glb`);
+    console.log(`${apiHost}/${metadataHash}.json`);
 
+    console.log('minting...');
     const contract = await getContract;
     const address = `0x${ks.addresses[0]}`;
     const privateKey = await ks.getPrivateKey();
-    console.log('got pk', privateKey);
+    // console.log('got pk', privateKey);
     // web3.eth.accounts.wallet.add('0x' + Buffer.from(privateKey).toString('hex'));
     const account = web3.eth.accounts.privateKeyToAccount('0x' + privateKey);
     web3.eth.accounts.wallet.add(account);
 
     const nonce = await web3.eth.getTransactionCount(address);
-    console.log('get nonce', nonce);
+    // console.log('get nonce', nonce);
     const gasPrice = await web3.eth.getGasPrice();
-    console.log('gas price', gasPrice);
+    // console.log('gas price', gasPrice);
     const value = '10000000000000000'; // 0.01 ETH
 
     const m = contract.methods.mint([1, 1, 1], 'hash', metadataHash);
@@ -354,7 +359,10 @@ yargs
     };
     o.gas = await m.estimateGas(o);
     const receipt = await m.send(o);
-    console.log('got receipt', receipt);
+    const id = parseInt(receipt.events.URI.returnValues[1], 10);
+    console.log(`${tokenHost}/${id}`);
+    // console.log('got receipt 1', receipt);
+    // console.log('got receipt 2', receipt.events.URI.returnValues[1]);
 
     /* const m = contract.methods.mint([1, 1, 1], 'hash', metadataHash);
     const encoded_tx = m.encodeABI();
