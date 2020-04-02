@@ -1,6 +1,23 @@
 window.addEventListener('load', e => {
 
-// Read it using the storage API
+const tabs = Array.from(document.querySelectorAll('header > .nav'));
+const sections = Array.from(document.querySelectorAll('section'));
+for (let i = 0; i < tabs.length; i++) {
+  const tab = tabs[i];
+  tab.addEventListener('click', e => {
+    for (let i = 0; i < tabs.length; i++) {
+      tabs[i].classList.remove('open');
+    }
+    tab.classList.add('open');
+
+    const tabName = tab.getAttribute('tab');
+    for (let i = 0; i < sections.length; i++) {
+      sections[i].classList.remove('open');
+    }
+    document.querySelector('section.' + tabName).classList.add('open');
+  });
+}
+
 chrome.tabs.query({
   active: true,
   currentWindow: true,
