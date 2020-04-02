@@ -280,14 +280,16 @@ yargs
 
     const ks = await _importKeyStore(ksString, password);
 
-    const objectName = 'avatar';
-    const dataArrayBuffer = fs.readFileSync('model11.vrm');
-    const screenshotBlob = fs.readFileSync('model11.png');
+    const objectName = path.basename(argv.input);
+    const dataArrayBuffer = fs.readFileSync(argv.input);
+    const screenshotBlob = fs.readFileSync(argv.input + '.gif');
+    const modelBlob = fs.readFileSync(argv.input + '.glb');
 
     console.log('uploading...');
     const [
       dataHash,
       screenshotHash,
+      modelHash,
     ] = await Promise.all([
       fetch(`${apiHost}/`, {
         method: 'PUT',
@@ -301,6 +303,12 @@ yargs
       })
         .then(res => res.json())
         .then(j => j.hash),
+      fetch(`${apiHost}/`, {
+        method: 'PUT',
+        body: modelBlob,
+      })
+        .then(res => res.json())
+        .then(j => j.hash),
     ]);
     const metadataHash = await fetch(`${apiHost}/`, {
       method: 'PUT',
@@ -308,6 +316,7 @@ yargs
         objectName,
         dataHash,
         screenshotHash,
+        modelHash,
       }),
     })
       .then(res => res.json())
