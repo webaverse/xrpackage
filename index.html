@@ -267,7 +267,6 @@ document.getElementById('enter-vr-button').addEventListener('click', e => {
 });
 
 window.addEventListener('message', async e => {
-  console.log('got message', e.data);
   const {method, url} = e.data;
   switch (method) {
     case 'loadpackage': {
