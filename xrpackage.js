@@ -889,6 +889,9 @@ export class XRPackage extends EventTarget {
     }
     return builder.createBundle();
   }
+  getObject() {
+    return this.context.object;
+  }
   setMatrix(matrix) {
     this.context.object &&
       this.context.object.matrix
