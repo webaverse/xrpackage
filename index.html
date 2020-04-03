@@ -13,9 +13,47 @@ canvas {
   left: 0;
   right: 0;
 }
+header {
+  position: absolute;
+  display: flex;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 50px;
+  background-color: #FFF;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
+  align-items: center;
+  user-select: none;
+  z-index: 1;
+}
+header .icon {
+  height: 25px;
+  margin: 0 10px;
+}
+header .nav {
+  display: flex;
+  height: 100%;
+  padding: 0 10px;
+  justify-content: center;
+  align-items: center;
+  border-top: 3px solid transparent;
+  border-bottom: 3px solid transparent;
+  color: inherit;
+  font-size: 14px;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+header .nav:hover, header .nav.open {
+  border-bottom-color: #7986cb;
+}
+header .nav i {
+  display: inline-block;
+  padding: 0 7px;
+  padding-top: 2px;
+}
 .popup {
   position: absolute;
-  top: 0;
+  top: 50px;
   right: 0;
   height: 100vh;
   border: 0;
@@ -25,13 +63,18 @@ canvas {
 .buttons {
   display: flex;
   position: absolute;
-  top: 10px;
+  top: 60px;
   left: 10px;
   z-index: 1;
 }
 </style>
 </head>
 <body>
+<header id=header>
+  <a href="/" class="nav">メマアムく匕ムタヨ</a>
+  <a href="/" class="nav open">Home</a>
+  <a href="/test.html" class="nav">Test</a>
+</header>
 <div class=buttons>
   <input type=button id=enter-vr-button value="Enter XR">
 </div>
