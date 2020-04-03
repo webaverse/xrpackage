@@ -161,7 +161,8 @@ const xrTypeLoaders = {
     });
     URL.revokeObjectURL(u);
 
-    p.context.object = o;
+    p.context.object = o.scene;
+    p.context.model = o;
     o.scene.traverse(o => {
       o.frustumCulled = false;
     });
@@ -201,7 +202,7 @@ const xrTypeAdders = {
     this.packages.push(p);
   },
   'vrm@0.0.1': async function(p) {
-    this.scene.add(p.context.object.scene);
+    this.scene.add(p.context.object);
 
     this.packages.push(p);
   },
@@ -902,8 +903,8 @@ export class XRPackage extends EventTarget {
     this.context.iframe && this.context.iframe.contentWindow.rs.setSession(session);
   }
   wearAvatar() {
-    if (this.context.object) {
-      this.parent.setLocalAvatar(this.context.object);
+    if (this.context.model) {
+      this.parent.setLocalAvatar(this.context.model);
     }
   }
 }
