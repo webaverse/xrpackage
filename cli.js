@@ -408,6 +408,44 @@ yargs
     console.log(`${tokenHost}/${id}`);
     console.log(`https://${network}.opensea.io/assets/${contract._address}/${id}`);
   })
+  .command('install [id]', 'install package with given id', yargs => {
+    yargs
+      .positional('id', {
+        describe: 'id of package to install',
+        // default: 5000
+      })
+  }, async argv => {
+    handled = true;
+
+    const contract = await getContract;
+
+    const metadataHash = await contract.methods.getMetadata(parseInt(argv.id, 10), 'hash').call();
+    const metadata = await fetch(`${apiHost}/${metadataHash}`)
+      .then(res => res.json());
+    // console.log(metadata);
+    const {dataHash, screenshotHash, modelHash} = metadata;
+
+    console.log('downloading...');
+    await Promise.all([
+      fetch(`${apiHost}/${dataHash}`)
+        .then(res => res.arrayBuffer())
+        .then(arrayBuffer => {
+          fs.writeFileSync('a.wbn', Buffer.from(arrayBuffer));
+        }),
+      fetch(`${apiHost}/${screenshotHash}`)
+        .then(res => res.arrayBuffer())
+        .then(arrayBuffer => {
+          fs.writeFileSync('a.wbn.gif', Buffer.from(arrayBuffer));
+        }),
+      fetch(`${apiHost}/${modelHash}`)
+        .then(res => res.arrayBuffer())
+        .then(arrayBuffer => {
+          fs.writeFileSync('a.wbn.glb', Buffer.from(arrayBuffer));
+        }),
+    ]);
+
+    console.log('a.wbn');
+  })
   .command('build [input] [output]', 'build xrpackage .wbn from [input] and write to [output]', yargs => {
     yargs
       .positional('input', {
