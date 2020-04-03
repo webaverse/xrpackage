@@ -354,9 +354,7 @@ yargs
     web3.eth.accounts.wallet.add(account);
 
     const nonce = await web3.eth.getTransactionCount(address);
-    // console.log('get nonce', nonce);
     const gasPrice = await web3.eth.getGasPrice();
-    // console.log('gas price', gasPrice);
     const value = '10000000000000000'; // 0.01 ETH
 
     const m = contract.methods.mint([1, 1, 1], 'hash', metadataHash);
@@ -371,52 +369,6 @@ yargs
     const id = parseInt(receipt.events.URI.returnValues[1], 10);
     console.log(`${tokenHost}/${id}`);
     console.log(`https://${network}.opensea.io/assets/${contract._address}/${id}`);
-
-    // console.log('got receipt 1', receipt);
-    // console.log('got receipt 2', receipt.events.URI.returnValues[1]);
-
-    /* const m = contract.methods.mint([1, 1, 1], 'hash', metadataHash);
-    const encoded_tx = m.encodeABI();
-    const transactionObject = {
-      gas: 0,
-      gasPrice,
-      data: encoded_tx,
-      from: address,
-      value,
-      nonce,
-    };
-    console.log('got tx', encoded_tx);
-    transactionObject.gas = await m.estimateGas({
-      from: address,
-      value,
-    });
-
-    const signedTx = await web3.eth.accounts.signTransaction(transactionObject, privateKey);
-    console.log('got signed', signedTx);
-
-    const txPromise = makePromise();
-    web3.eth.sendSignedTransaction(signedTx.rawTransaction)
-      .on('receipt', receipt => {
-         txPromise.accept(receipt);
-      });
-    const receipt = await txPromise; */
-
-    /* const p = makePromise();
-    const instance = await contract.getInstance();
-    const account = await contract.getAccount();
-    const size = pointerMesh.getSize();
-    instance.mint([size[3] - size[0], size[4] - size[1], size[5] - size[2]], '0x0', 'hash', metadataHash, {
-      from: account,
-    // value: '1000000000000000000', // 1 ETH
-      value: '10000000000000000', // 0.01 ETH
-    }, (err, value) => {
-      if (!err) {
-        p.accept(value);
-      } else {
-        p.reject(err);
-      }
-    });
-    await p; */
   })
   .command('build [input] [output]', 'build xrpackage .wbn from [input] and write to [output]', yargs => {
     yargs
