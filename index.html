@@ -44,93 +44,24 @@ import * as THREE from './three.module.js';
 import {OrbitControls} from './OrbitControls.js';
 import {XRPackageEngine, XRPackage} from './xrpackage.js';
 
+const apiHost = `https://ipfs.exokit.org/ipfs`;
+const tokenHost = `https://tokens.cryptopolys.com`;
+
+function parseQuery(queryString) {
+  var query = {};
+  var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
+  for (var i = 0; i < pairs.length; i++) {
+    var pair = pairs[i].split('=');
+    query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+  }
+  return query;
+}
+
 (async () => {
 
 let currentSession = null;
 
 const pe = new XRPackageEngine();
-
-(async () => {
-  const [cubeHtml, cubeManifest, modelVrm, catVox]= await Promise.all([
-    (async () => {
-      const res = await fetch('examples/html/cube.html');
-      return await res.text();
-    })(),
-    (async () => {
-      const res = await fetch('examples/html/manifest.json');
-      return await res.text();
-    })(),
-    (async () => {
-      const res = await fetch('examples/vrm/model.vrm');
-      return await res.arrayBuffer();
-    })(),
-    (async () => {
-      const res = await fetch('examples/vox/cat.vox');
-      return await res.arrayBuffer();
-    })(),
-  ]);
-
-  {
-    const d = XRPackage.compileRaw(
-      [
-        {
-          url: '/cube.html',
-          type: 'text/html',
-          data: cubeHtml,
-        },
-        {
-          url: '/manifest.json',
-          type: 'application/json',
-          data: cubeManifest,
-        }
-      ]
-    );
-    const p = new XRPackage(d);
-    pe.add(p);
-  }
-  {
-    const d = XRPackage.compileRaw(
-      [
-        {
-          url: '/model.vrm',
-          type: 'application/octet-stream',
-          data: new Uint8Array(modelVrm),
-        },
-        {
-          url: '/manifest.json',
-          type: 'application/json',
-          data: JSON.stringify({
-            xr_type: 'vrm@0.0.1',
-            xr_main: 'model.vrm',
-          }),
-        }
-      ]
-    );
-    const p = new XRPackage(d);
-    pe.add(p);
-  }
-  {
-    const d = XRPackage.compileRaw(
-      [
-        {
-          url: '/cat.vox',
-          type: 'application/octet-stream',
-          data: new Uint8Array(catVox),
-        },
-        {
-          url: '/manifest.json',
-          type: 'application/json',
-          data: JSON.stringify({
-            xr_type: 'vox@0.0.1',
-            xr_main: 'cat.vox',
-          }),
-        }
-      ]
-    );
-    const p = new XRPackage(d);
-    pe.add(p);
-  }
-})();
 
 /* const canvas = document.createElement('canvas');
 const context = canvas.getContext('webgl', {
@@ -284,6 +215,103 @@ window.addEventListener('message', async e => {
 popup.addEventListener('load', e => {
   popup.contentWindow
 }); */
+
+{
+  const q = parseQuery(window.location.search);
+  if (q.i) {
+    const metadata = await fetch(`${tokenHost}/${q.i}`)
+      .then(res => res.json());
+    const {dataHash} = metadata;
+
+    const arrayBuffer = await fetch(`${apiHost}/${dataHash}`)
+      .then(res => res.arrayBuffer());
+
+    const p = new XRPackage(arrayBuffer);
+    pe.add(p);
+  } else {
+    (async () => {
+      const [cubeHtml, cubeManifest, modelVrm, catVox]= await Promise.all([
+        (async () => {
+          const res = await fetch('examples/html/cube.html');
+          return await res.text();
+        })(),
+        (async () => {
+          const res = await fetch('examples/html/manifest.json');
+          return await res.text();
+        })(),
+        (async () => {
+          const res = await fetch('examples/vrm/model.vrm');
+          return await res.arrayBuffer();
+        })(),
+        (async () => {
+          const res = await fetch('examples/vox/cat.vox');
+          return await res.arrayBuffer();
+        })(),
+      ]);
+
+      {
+        const d = XRPackage.compileRaw(
+          [
+            {
+              url: '/cube.html',
+              type: 'text/html',
+              data: cubeHtml,
+            },
+            {
+              url: '/manifest.json',
+              type: 'application/json',
+              data: cubeManifest,
+            }
+          ]
+        );
+        const p = new XRPackage(d);
+        pe.add(p);
+      }
+      {
+        const d = XRPackage.compileRaw(
+          [
+            {
+              url: '/model.vrm',
+              type: 'application/octet-stream',
+              data: new Uint8Array(modelVrm),
+            },
+            {
+              url: '/manifest.json',
+              type: 'application/json',
+              data: JSON.stringify({
+                xr_type: 'vrm@0.0.1',
+                xr_main: 'model.vrm',
+              }),
+            }
+          ]
+        );
+        const p = new XRPackage(d);
+        pe.add(p);
+      }
+      {
+        const d = XRPackage.compileRaw(
+          [
+            {
+              url: '/cat.vox',
+              type: 'application/octet-stream',
+              data: new Uint8Array(catVox),
+            },
+            {
+              url: '/manifest.json',
+              type: 'application/json',
+              data: JSON.stringify({
+                xr_type: 'vox@0.0.1',
+                xr_main: 'cat.vox',
+              }),
+            }
+          ]
+        );
+        const p = new XRPackage(d);
+        pe.add(p);
+      }
+    })();
+  }
+}
 
 })();
 </script>
