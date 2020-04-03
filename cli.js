@@ -408,6 +408,19 @@ yargs
     console.log(`${tokenHost}/${id}`);
     console.log(`https://${network}.opensea.io/assets/${contract._address}/${id}`);
   })
+  .command('ls', 'get list of published packages', yargs => {
+    yargs
+      /* .positional('id', {
+        describe: 'id of package to install',
+        // default: 5000
+      }) */
+  }, async argv => {
+    handled = true;
+
+    const contract = await getContract;
+    const nonce = await contract.methods.getNonce().call();
+    console.log(nonce);
+  })
   .command('install [id]', 'install package with given id', yargs => {
     yargs
       .positional('id', {
