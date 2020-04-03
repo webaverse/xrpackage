@@ -71,7 +71,7 @@ async function exportSeed(ks, password) {
   const p = makePromise();
   ks.keyFromPassword(password, function (err, pwDerivedKey) {
     if (!err) {
-      const seed = keystore.getSeed(pwDerivedKey);
+      const seed = ks.getSeed(pwDerivedKey);
       p.accept(seed);
     } else {
       p.reject(err);
