@@ -355,14 +355,14 @@ yargs
 
     const nonce = await web3.eth.getTransactionCount(address);
     const gasPrice = await web3.eth.getGasPrice();
-    const value = '10000000000000000'; // 0.01 ETH
+    // const value = '10000000000000000'; // 0.01 ETH
 
-    const m = contract.methods.mint([1, 1, 1], 'hash', metadataHash);
+    const m = contract.methods.mint('hash', metadataHash);
     const o = {
       gas: 0,
       from: address,
       nonce,
-      value,
+      // value,
     };
     o.gas = await m.estimateGas(o);
     const receipt = await m.send(o);
