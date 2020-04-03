@@ -421,6 +421,17 @@ yargs
     const nonce = await contract.methods.getNonce().call();
     console.log(nonce);
   })
+  .command('open [id]', 'open a package for testing', yargs => {
+    yargs
+      /* .positional('id', {
+        describe: 'id of package to install',
+        // default: 5000
+      }) */
+  }, async argv => {
+    handled = true;
+
+    opn(`https://xrpackage.org?i=${argv.id}`);
+  })
   .command('install [id]', 'install package with given id', yargs => {
     yargs
       .positional('id', {
