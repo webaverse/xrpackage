@@ -1,6 +1,7 @@
 <!doctype html>
 <html>
 <head>
+<script src="https://rawcdn.githack.com/ethereum/web3.js/a6ddec59e65116853435f203b25cb9c55824d084/dist/web3.min.js"></script>
 <style>
 body {
   margin: 0;
@@ -43,9 +44,16 @@ canvas {
 import * as THREE from './three.module.js';
 import {OrbitControls} from './OrbitControls.js';
 import {XRPackageEngine, XRPackage} from './xrpackage.js';
+import address from 'https://contracts.webaverse.com/address.js';
+import abi from 'https://contracts.webaverse.com/abi.js';
 
 const apiHost = `https://ipfs.exokit.org/ipfs`;
-const tokenHost = `https://tokens.cryptopolys.com`;
+const network = 'rinkeby';
+const infuraApiKey = '4fb939301ec543a0969f3019d74f80c2';
+const rpcUrl = `https://${network}.infura.io/v3/${infuraApiKey}`;
+const web3 = new Web3(new Web3.providers.HttpProvider(rpcUrl));
+// window.web3 = web3;
+const contract = new web3.eth.Contract(abi, address);
 
 function parseQuery(queryString) {
   var query = {};
@@ -219,14 +227,15 @@ popup.addEventListener('load', e => {
 {
   const q = parseQuery(window.location.search);
   if (q.i) {
-    const metadata = await fetch(`${tokenHost}/${q.i}`)
+    const metadataHash = await contract.methods.getMetadata(parseInt(q.i, 10), 'hash').call();
+    const metadata = await fetch(`${apiHost}/${metadataHash}`)
       .then(res => res.json());
     const {dataHash} = metadata;
 
-    const arrayBuffer = await fetch(`${apiHost}/${dataHash}`)
+    const arrayBuffer = await fetch(`${apiHost}/${dataHash}.wbn`)
       .then(res => res.arrayBuffer());
 
-    const p = new XRPackage(arrayBuffer);
+    const p = new XRPackage(new Uint8Array(arrayBuffer));
     pe.add(p);
   } else {
     (async () => {
