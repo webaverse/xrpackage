@@ -12,13 +12,6 @@ body {
   margin: 0;
   font-family: 'Open Sans';
 }
-canvas {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-}
 header {
   position: absolute;
   display: flex;
@@ -57,37 +50,44 @@ header .nav i {
   padding: 0 7px;
   padding-top: 2px;
 }
-.popup {
-  position: absolute;
-  top: 50px;
-  right: 0;
-  height: 100vh;
-  border: 0;
-  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
-  z-index: 1;
+.body {
+  background-color: #7986cb;
 }
-.buttons {
+.hero,
+.detail
+{
+  position: relative;
   display: flex;
-  position: absolute;
-  top: 60px;
-  left: 10px;
-  z-index: 1;
+  align-items: center;
+}
+.hero {
+  min-width: 100vw;
+  min-height: 100vh;
+  padding-top: 50px;
+}
+.container {
+  display: flex;
+  width: 600px;
+  margin-left: 100px;
+}
+.hero .container h1 {
+  padding: 20px 0;
+  border-bottom: 2px solid #000;
+  font-size: 40px;
+  font-weight: 400;
 }
 </style>
 </head>
-<body>
+<body class=body>
 <header id=header>
   <a href="/" class="nav">メマアムく匕ムウヨ</a>
   <a href="/" class="nav open">Home</a>
   <a href="/test.html" class="nav">Test</a>
 </header>
-<div class=buttons>
-  <input type=button id=enter-vr-button value="Enter XR">
-</div>
-<iframe class=popup id=popup src="popup.html"></iframe>
-<script type=module>
-  import THREE from './three.module.js';
-  window.THREE = THREE;
-</script>
+<section class=hero>
+  <div class=container>
+    <h1>Packaging for XR apps<br>WebXR / IPFS / ETH</h1>
+  </div>
+</section>
 </body>
 </html>
