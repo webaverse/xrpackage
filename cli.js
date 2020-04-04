@@ -408,7 +408,7 @@ yargs
     console.log(`${tokenHost}/${id}`);
     console.log(`https://${network}.opensea.io/assets/${contract._address}/${id}`);
   })
-  .command('ls', 'get list of published packages', yargs => {
+  .command('count', 'get count of published packages', yargs => {
     yargs
       /* .positional('id', {
         describe: 'id of package to install',
