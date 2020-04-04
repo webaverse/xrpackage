@@ -1,0 +1,85 @@
+<!doctype html>
+<html>
+  <head>
+    <link rel=icon type="image/png" href="favicon.png">
+    <link href="index.css" rel=stylesheet>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/0735724151.js" crossorigin="anonymous"></script>
+    <script src="https://rawcdn.githack.com/ethereum/web3.js/a6ddec59e65116853435f203b25cb9c55824d084/dist/web3.min.js"></script>
+  </head>
+  <body >
+<header id=header>
+  <a href="/" class="nav">メマアムく匕ムウヨ</a>
+  <!-- <a href="/" class="nav open">Home</a> -->
+  <a href="/packages.html" class="nav">Packages</a>
+  <a href="/test.html" class="nav">Test</a>
+</header>
+
+<section class=grid id=grid></section>
+
+<!-- <script src="https://kit.fontawesome.com/0735724151.js"></script> -->
+
+<script type=module>
+import address from 'https://contracts.webaverse.com/address.js';
+import abi from 'https://contracts.webaverse.com/abi.js';
+
+const apiHost = `https://ipfs.exokit.org/ipfs`;
+const network = 'rinkeby';
+const infuraApiKey = '4fb939301ec543a0969f3019d74f80c2';
+const rpcUrl = `https://${network}.infura.io/v3/${infuraApiKey}`;
+const web3 = new Web3(new Web3.providers.HttpProvider(rpcUrl));
+// window.web3 = web3;
+const contract = new web3.eth.Contract(abi, address);
+
+function makePromise() {
+  let accept, reject;
+  const p = new Promise((a, r) => {
+    accept = a;
+    reject = r;
+  });
+  p.accept = accept;
+  p.reject = reject;
+  return p;
+}
+
+// contract.init();
+
+const gridEl = document.getElementById('grid');
+(async () => {
+  let nonce = await contract.methods.getNonce().call();
+  nonce = parseInt(nonce, 10);
+
+  for (let i = 1; i <= nonce; i++) {
+    const metadataHash = await contract.methods.getMetadata(i, 'hash').call();
+    const metadata = await fetch(`${apiHost}/${metadataHash}`)
+      .then(res => res.json());
+    const {dataHash, screenshotHash} = metadata;
+    /* const [
+      data,
+      screenshotImg,
+    ] = await Promise.all([
+      fetch(`${apiHost}/${dataHash}`)
+        .then(res => res.arrayBuffer()),
+      new Promise((accept, reject) => {
+        const img = new Image();
+        img.src = `${apiHost}/${screenshotHash}`;
+        img.onload = () => {
+          accept(img);
+        };
+        img.onerror = reject;
+      }),
+    ]); */
+    const a = document.createElement('a');
+    a.href = `/create.html?o=${encodeURIComponent(metadataHash)}`;
+    a.classList.add('object');
+    a.innerHTML = `\
+      <img src="${apiHost}/${screenshotHash}" width=256 height=256>
+      <div class=name>${metadata.objectName}</div>
+    `;
+    grid.appendChild(a);
+  }
+})();
+
+</script>
+  </body>
+</html>
