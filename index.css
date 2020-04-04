@@ -91,12 +91,39 @@ header .nav i {
 .grid > .object > img {
   /* margin-bottom: 10px; */
 }
-.grid > .object > .name {
+.grid > .object .text {
+  display: flex;
   padding: 15px;
+  flex-direction: column;
 }
-.grid > .object:hover {
-  border-color: #CCC;
+.grid > .object a {
+  display: flex;
 }
+.grid > .object a:hover {
+  color: #42a5f5;
+}
+.grid > .object a:active {
+  color: #1e88e5;
+}
+.grid > .object a span {
+  margin-right: auto;
+}
+.grid > .object input {
+  padding: 5px;
+  background-color: #EEE;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  font-family: monospace;
+  font-size: inherit;
+}
+.grid > .object input:focus {
+  border-color: #000;
+  background-color: #FFF;
+  outline: none;
+}
+/* .grid > .object .name {
+  border-bottom: 1px solid #EEE;
+} */
 .popup {
   position: absolute;
   top: 50px;

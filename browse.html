@@ -70,14 +70,19 @@ const gridEl = document.getElementById('grid');
         img.onerror = reject;
       }),
     ]); */
-    const a = document.createElement('a');
-    a.href = `/create.html?o=${encodeURIComponent(metadataHash)}`;
-    a.classList.add('object');
-    a.innerHTML = `\
+    const div = document.createElement('div');
+    div.classList.add('object');
+    div.innerHTML = `\
       <img src="${apiHost}/${screenshotHash}" width=256 height=256>
-      <div class=name>${metadata.objectName}</div>
+      <div class=text>
+        <div class=name>${metadata.objectName}</div>
+        <input type=text value="xrpk install ${i}" readonly>
+        <a href="/run.html?i=${i}"><span>Run</span><i class="fa fa-chevron-right"></i></a>
+        <a href="/create.html?o=${encodeURIComponent(metadataHash)}"><span>Edit</span><i class="fa fa-chevron-right"></i></a>
+        <a href="https://${network}.opensea.io/assets/${address}/${i}"><span>Opensea</span><i class="fa fa-chevron-right"></i></a>
+      </div>
     `;
-    grid.appendChild(a);
+    grid.appendChild(div);
   }
 })();
 
