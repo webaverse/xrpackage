@@ -1,84 +1,15 @@
 <!doctype html>
 <html>
 <head>
+<link href="index.css" rel=stylesheet>
 <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700&display=swap" rel="stylesheet">
 <!-- <script src="https://kit.fontawesome.com/0735724151.js" crossorigin="anonymous"></script> -->
 <script src="https://rawcdn.githack.com/ethereum/web3.js/a6ddec59e65116853435f203b25cb9c55824d084/dist/web3.min.js"></script>
-<style>
-* {
-  box-sizing: border-box;
-}
-body {
-  margin: 0;
-  font-family: 'Open Sans';
-}
-canvas {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-}
-header {
-  position: absolute;
-  display: flex;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 50px;
-  background-color: #FFF;
-  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
-  align-items: center;
-  user-select: none;
-  z-index: 1;
-}
-header .icon {
-  height: 25px;
-  margin: 0 10px;
-}
-header .nav {
-  display: flex;
-  height: 100%;
-  padding: 0 10px;
-  justify-content: center;
-  align-items: center;
-  border-top: 3px solid transparent;
-  border-bottom: 3px solid transparent;
-  color: inherit;
-  font-size: 14px;
-  text-decoration: none;
-  text-transform: uppercase;
-}
-header .nav:hover, header .nav.open {
-  border-bottom-color: #7986cb;
-}
-header .nav i {
-  display: inline-block;
-  padding: 0 7px;
-  padding-top: 2px;
-}
-.popup {
-  position: absolute;
-  top: 50px;
-  right: 0;
-  height: 100vh;
-  border: 0;
-  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
-  z-index: 1;
-}
-.buttons {
-  display: flex;
-  position: absolute;
-  top: 60px;
-  left: 10px;
-  z-index: 1;
-}
-</style>
 </head>
 <body>
 <header id=header>
   <a href="/" class="nav">メマアムく匕ムウヨ</a>
-  <a href="/" class="nav">Browse</a>
+  <a href="/browse.html" class="nav">Browse</a>
   <a href="https://www.npmjs.com/package/xrpk" class="nav">CLI</a>
   <a href="/test.html" class="nav open">Run</a>
 </header>

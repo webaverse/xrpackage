@@ -97,3 +97,19 @@ header .nav i {
 .grid > .object:hover {
   border-color: #CCC;
 }
+.popup {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  height: 100vh;
+  border: 0;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
+  z-index: 1;
+}
+.buttons {
+  display: flex;
+  position: absolute;
+  top: 60px;
+  left: 10px;
+  z-index: 1;
+}

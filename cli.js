@@ -430,7 +430,7 @@ yargs
   }, async argv => {
     handled = true;
 
-    opn(`https://xrpackage.org/test.html?i=${argv.id}`);
+    opn(`https://xrpackage.org/run.html?i=${argv.id}`);
   })
   .command('install [id]', 'install package with given id', yargs => {
     yargs
