@@ -86,7 +86,6 @@ header .nav i {
   border: 1px solid #EEE;
   border-radius: 7px;
   overflow: hidden;
-  cursor: pointer;
 }
 .grid > .object > img {
   /* margin-bottom: 10px; */
