@@ -421,7 +421,7 @@ yargs
     const nonce = await contract.methods.getNonce().call();
     console.log(nonce);
   })
-  .command('open [id]', 'open a package for testing', yargs => {
+  .command('run [id]', 'run a package in browser', yargs => {
     yargs
       /* .positional('id', {
         describe: 'id of package to install',
