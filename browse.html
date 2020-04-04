@@ -82,6 +82,10 @@ const gridEl = document.getElementById('grid');
         <a href="https://${network}.opensea.io/assets/${address}/${i}"><span>Opensea</span><i class="fa fa-chevron-right"></i></a>
       </div>
     `;
+    const input = div.querySelector('input');
+    input.addEventListener('click', e => {
+      input.select();
+    });
     grid.appendChild(div);
   }
 })();
