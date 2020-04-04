@@ -69,3 +69,31 @@ header .nav i {
   font-size: 40px;
   font-weight: 400;
 }
+.grid {
+  display: flex;
+  margin-top: 50px;
+  flex-wrap: wrap;
+}
+.grid a {
+  color: inherit;
+  text-decoration: none;
+}
+.grid > .object {
+  display: flex;
+  position: relative;
+  flex-direction: column;
+  margin: 15px;
+  border: 1px solid #EEE;
+  border-radius: 7px;
+  overflow: hidden;
+  cursor: pointer;
+}
+.grid > .object > img {
+  /* margin-bottom: 10px; */
+}
+.grid > .object > .name {
+  padding: 15px;
+}
+.grid > .object:hover {
+  border-color: #CCC;
+}
