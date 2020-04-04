@@ -395,7 +395,7 @@ yargs
     const gasPrice = await web3.eth.getGasPrice();
     // const value = '10000000000000000'; // 0.01 ETH
 
-    const m = contract.methods.mint('hash', metadataHash);
+    const m = contract.methods.mint(1, 'hash', metadataHash);
     const o = {
       gas: 0,
       from: address,
