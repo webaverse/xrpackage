@@ -430,7 +430,26 @@ yargs
   }, async argv => {
     handled = true;
 
-    opn(`https://xrpackage.org/run.html?i=${argv.id}`);
+    if (!isNaN(parseInt(argv.id, 10))) {
+      opn(`https://xrpackage.org/run.html?i=${argv.id}`);
+    } else {
+      const app = express();
+      app.get('/a.wbn', (req, res) => {
+        console.log('read', argv.id);
+        const rs = fs.createReadStream(argv.id);
+        rs.pipe(res);
+        rs.once('error', err => {
+          res.statusCode = 500;
+          res.end(err.stack);
+        });
+      });
+      app.use(express.static(__dirname));
+      const port = 9999;
+      const server = http.createServer(app);
+      server.listen(port, () => {
+        opn(`http://localhost:${port}/run.html?u=/a.wbn`);
+      });
+    }
   })
   .command('install [id]', 'install package with given id', yargs => {
     yargs
