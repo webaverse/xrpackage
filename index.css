@@ -171,5 +171,6 @@ canvas {
 }
 .form {
   display: flex;
+  padding: 0 10px;
   flex-direction: column;
 }
