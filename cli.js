@@ -519,30 +519,36 @@ yargs
       if (/\.gltf$/.test(input)) {
         fileInput = input;
         xrType = 'gltf@0.0.1';
+        xrMain = path.basename(fileInput);
         mimeType = xrTypeToMimeType[xrType];
       } else if (/\.glb$/.test(input)) {
         fileInput = input;
         xrType = 'gltf@0.0.1';
+        xrMain = path.basename(fileInput);
         mimeType = xrTypeToMimeType[xrType];
       } else if (/\.vrm$/.test(input)) {
         fileInput = input;
         xrType = 'vrm@0.0.1';
+        xrMain = path.basename(fileInput);
         mimeType = xrTypeToMimeType[xrType];
       } else if (/\.vox$/.test(input)) {
         fileInput = input;
         xrType = 'vox@0.0.1';
+        xrMain = path.basename(fileInput);
         mimeType = xrTypeToMimeType[xrType];
       } else if (/\.html$/.test(input)) {
         fileInput = input;
         xrType = 'webxr-site@0.0.1';
+        xrMain = path.basename(fileInput);
         mimeType = xrTypeToMimeType[xrType];
       } else if (/\.json$/.test(input)) {
-        fileInput = input;
         const s = fs.readFileSync(input);
         const j = JSON.parse(s);
-        if (typeof j.xr_type === 'string') {
+        if (typeof j.xr_type === 'string' && typeof j.xr_main === 'string') {
           xrType = j.xr_type;
+          xrMain = j.xr_main;
           mimeType = xrTypeToMimeType[xrType];
+          fileInput = path.join(path.dirname(input), xrMain);
         } else {
           throw new Error(`manifest.json missing xr_type: ${input}`);
         }
@@ -560,7 +566,6 @@ yargs
     const fileData = fs.readFileSync(fileInput);
     // console.log('got data', data.length);
 
-    const xrMain = path.basename(fileInput);
     const files = [
       {
         url: '/' + xrMain,
