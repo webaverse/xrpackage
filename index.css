@@ -120,9 +120,9 @@ header .nav i {
   background-color: #FFF;
   outline: none;
 }
-/* .grid > .object .name {
-  border-bottom: 1px solid #EEE;
-} */
+canvas {
+  outline: none;
+}
 .popup {
   position: absolute;
   top: 50px;
@@ -133,9 +133,23 @@ header .nav i {
   z-index: 1;
 }
 .buttons {
-  display: flex;
+  margin-left: auto;
+  /* display: flex;
   position: absolute;
   top: 60px;
   left: 10px;
-  z-index: 1;
+  z-index: 1; */
+}
+.buttons .button {
+  display: flex;
+  margin-right: 10px;
+  justify-content: center;
+  align-items: center;
+  padding: 5px 10px;
+  background-color: #42a5f5;
+  color: #FFF;
+  border-radius: 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
 }
