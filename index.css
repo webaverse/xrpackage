@@ -134,6 +134,7 @@ canvas {
 }
 .buttons {
   margin-left: auto;
+  padding-right: 10px;
   /* display: flex;
   position: absolute;
   top: 60px;
@@ -142,7 +143,6 @@ canvas {
 }
 .buttons .button {
   display: flex;
-  margin-right: 10px;
   justify-content: center;
   align-items: center;
   padding: 5px 10px;
