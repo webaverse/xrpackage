@@ -6,19 +6,23 @@
 <!-- <script src="https://kit.fontawesome.com/0735724151.js" crossorigin="anonymous"></script> -->
 <script src="https://rawcdn.githack.com/ethereum/web3.js/a6ddec59e65116853435f203b25cb9c55824d084/dist/web3.min.js"></script>
 </head>
-<body class=body>
+<body>
 <header id=header>
   <a href="/" class="nav open">メマアムく匕ムウヨ</a>
   <!-- <a href="/" class="nav open">Home</a> -->
   <a href="/browse.html" class="nav">Browse</a>
-  <a href="/create.html" class="nav">Create</a>
+  <a href="/inventory.html" class="nav">Inventory</a>
+  <a href="/create.html" class="nav open">Create</a>
   <a href="https://www.npmjs.com/package/xrpk" class="nav">CLI</a>
   <a href="/run.html" class="nav">Run</a>
 </header>
-<section class=hero>
-  <div class=container>
-    <h1>Spatial app packages<br>WebXR / IPFS / ETH</h1>
-  </div>
-</section>
+<div class=main>
+  <form class=form>
+    <h1>Input file</h1>
+    <h3>.gltf .glb .vox .vrm .html</h3>
+    <input type=file>
+    <input type=submit value="Create package">
+  </form>
+</div>
 </body>
 </html>

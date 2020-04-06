@@ -71,7 +71,7 @@ header .nav i {
 }
 .grid {
   display: flex;
-  margin-top: 50px;
+  /* margin-top: 50px; */
   flex-wrap: wrap;
 }
 .grid a {
@@ -152,4 +152,24 @@ canvas {
   font-size: 12px;
   white-space: nowrap;
   cursor: pointer;
+}
+.main {
+  display: flex;
+  padding-top: 50px;
+  min-height: 100vh;
+}
+.main .sidebar {
+  display: flex;
+  width: 200px;
+  padding: 0 20px;
+  background-color: #F8F8F8;
+  /* box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08); */
+  flex-direction: column;
+}
+.main .grid {
+  flex: 1;
+}
+.form {
+  display: flex;
+  flex-direction: column;
 }
