@@ -3024,6 +3024,35 @@ const tesselate = (() => {
   return tesselate;
 })();
 
+export class VOXParser {
+  constructor(dims) {
+    this.dims = dims;
+  }
+  async parse(url) {
+    const parser = new vox.Parser();
+    const voxelData = await parser.parse(url);
+    const {
+      size,
+      voxels: voxelsObjects,
+      palette: paletteObjects
+    } = voxelData;
+    return voxelsObjects.map((voxelsObject, i) => {
+      let {
+        x,
+        y: z,
+        z: y,
+        colorIndex
+      } = voxelsObject;
+      const {r, g, b, a} = paletteObjects[colorIndex];
+      // x *= -1;
+      z *= -1;
+      x -= this.dims[0]*1.5;
+      // z -= this.dims[2];
+      const c = (r << 24) | (g << 16) | (b << 8) | a;
+      return [x, y, z, c];
+    });
+  }
+}
 export class VOXMesh {
   constructor(dims) {
     this.dims = dims;
@@ -3094,35 +3123,12 @@ export class VOXLoader {
     this.center = center;
   }
   async load(url, resolve, progress, reject) {
-    const parser = new vox.Parser();
-    const voxelData = await parser.parse(url);
-    // console.log('got voxel data', voxelData);
-    const {
-      size,
-      voxels: voxelsObjects,
-      palette: paletteObjects
-    } = voxelData;
     const dims = [size.x, size.y, size.z];
+    const parser = new VOXParser(dims);
+    const voxels = await parser.parse(url);
     const voxMesh = new VOXMesh(dims);
-
-    for (let i = 0; i < voxelsObjects.length; i++) {
-      let {
-        x,
-        y: z,
-        z: y,
-        colorIndex
-      } = voxelsObjects[i];
-      const {
-        r,
-        g,
-        b,
-        a
-      } = paletteObjects[colorIndex];
-      x *= -1;
-      z *= -1;
-      x += dims[0];
-      z += dims[2];
-      const c = (r << 24) | (g << 16) | (b << 8) | (y > 10 ? 64 : 255);
+    for (let i = 0; i < voxels.length; i++) {
+      const [x, y, z, c] = voxels[i];
       voxMesh.set(c, x, y, z);
     }
     const mesh = voxMesh.generate();
