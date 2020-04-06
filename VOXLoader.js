@@ -3025,9 +3025,9 @@ const tesselate = (() => {
 })();
 
 export class VOXParser {
-  constructor(dims) {
-    this.dims = dims;
-  }
+  /* constructor(dims) {
+    this.dims = null;
+  } */
   async parse(url) {
     const parser = new vox.Parser();
     const voxelData = await parser.parse(url);
@@ -3036,7 +3036,8 @@ export class VOXParser {
       voxels: voxelsObjects,
       palette: paletteObjects
     } = voxelData;
-    return voxelsObjects.map((voxelsObject, i) => {
+    const dims = [size.x, size.y, size.z];
+    const voxels = voxelsObjects.map((voxelsObject, i) => {
       let {
         x,
         y: z,
@@ -3045,12 +3046,16 @@ export class VOXParser {
       } = voxelsObject;
       const {r, g, b, a} = paletteObjects[colorIndex];
       // x *= -1;
-      z *= -1;
-      x -= this.dims[0]*1.5;
+      // z *= -1;
+      // x += dims[0];
       // z -= this.dims[2];
       const c = (r << 24) | (g << 16) | (b << 8) | a;
       return [x, y, z, c];
     });
+    return {
+      dims,
+      voxels,
+    };
   }
 }
 export class VOXMesh {
@@ -3123,15 +3128,15 @@ export class VOXLoader {
     this.center = center;
   }
   async load(url, resolve, progress, reject) {
-    const dims = [size.x, size.y, size.z];
-    const parser = new VOXParser(dims);
-    const voxels = await parser.parse(url);
+    const parser = new VOXParser();
+    const {dims, voxels} = await parser.parse(url);
     const voxMesh = new VOXMesh(dims);
     for (let i = 0; i < voxels.length; i++) {
       const [x, y, z, c] = voxels[i];
       voxMesh.set(c, x, y, z);
     }
     const mesh = voxMesh.generate();
+    mesh.geometry.applyMatrix4(new THREE.Matrix4().makeScale(-1, 1, -1)).applyMatrix4(new THREE.Matrix4().makeTranslation(dims[0]/2, 0, dims[2]/2));
     if (this.scale) {
       mesh.geometry.applyMatrix4(new THREE.Matrix4().makeScale(this.scale, this.scale, this.scale));
     }
