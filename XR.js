@@ -405,11 +405,11 @@ class XRViewport {
     this.eye = eye;
   }
   get x() {
-    // if (GlobalContext.xrState.stereo[0]) {
+    if (GlobalContext.xrState.stereo[0]) {
       return this.eye === 'left' ? 0 : GlobalContext.xrState.renderWidth[0];
-    /* } else {
+    } else {
       return this.eye === 'left' ? 0 : GlobalContext.xrState.renderWidth[0] * 2;
-    } */
+    }
   }
   set x(x) {}
   get y() {
@@ -417,15 +417,15 @@ class XRViewport {
   }
   set y(y) {}
   get width() {
-    // if (GlobalContext.xrState.stereo[0]) {
+    if (GlobalContext.xrState.stereo[0]) {
       return GlobalContext.xrState.renderWidth[0];
-    /* } else {
+    } else {
       if (this.eye === 'left') {
         return GlobalContext.xrState.renderWidth[0] * 2;
       } else {
         return 0;
       }
-    } */
+    }
   }
   set width(width) {}
   get height() {
