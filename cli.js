@@ -435,7 +435,6 @@ yargs
     } else {
       const app = express();
       app.get('/a.wbn', (req, res) => {
-        console.log('read', argv.id);
         const rs = fs.createReadStream(argv.id);
         rs.pipe(res);
         rs.once('error', err => {
