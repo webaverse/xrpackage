@@ -218,6 +218,12 @@ popup.addEventListener('load', e => {
 
     const p = new XRPackage(new Uint8Array(arrayBuffer));
     pe.add(p);
+  } else if (q.u) {
+    const arrayBuffer = await fetch(q.u)
+      .then(res => res.arrayBuffer());
+
+    const p = new XRPackage(new Uint8Array(arrayBuffer));
+    pe.add(p);
   } else {
     (async () => {
       const [cubeHtml, cubeManifest, modelVrm, catVox]= await Promise.all([
