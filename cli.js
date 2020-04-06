@@ -559,7 +559,6 @@ yargs
     // console.log('got bundle', uint8Array.byteLength);
 
     const app = express();
-    app.use(express.static(__dirname));
     app.get('/a.wbn', (req, res) => {
       res.end(uint8Array);
     });
@@ -579,6 +578,7 @@ yargs
     app.put('/a.gif', _readIntoPromise(gifPromise));
     const glbPromise = makePromise();
     app.put('/a.glb', _readIntoPromise(glbPromise));
+    app.use(express.static(__dirname));
     const port = 9999;
     const server = http.createServer(app);
     const connections = [];
