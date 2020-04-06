@@ -509,46 +509,59 @@ yargs
       argv.output = 'a.wbn';
     }
 
-    const fileData = await (() => {
-      if (argv.input === '-') {
-        return new Promise((accept, reject) => {
-          const bs = [];
-          process.stdin.on('data', d => {
-            bs.push(d);
-          });
-          process.stdin.once('end', () => {
-            accept(Buffer.concat(bs));
-          });
-          process.stdin.once('error', reject);
-        });
+    let fileInput, xrType, mimeType;
+    const xrTypeToMimeType = {
+      'gltf@0.0.1': 'model/gltf+json',
+      'vrm@0.0.1': 'application/octet-stream',
+      'vox@0.0.1': 'application/octet-stream',
+      'webxr-site@0.0.1': 'text/html',
+    };
+    const _detectType = input => {
+      if (/\.gltf$/.test(input)) {
+        fileInput = input;
+        xrType = 'gltf@0.0.1';
+        mimeType = xrTypeToMimeType[xrType];
+      } else if (/\.glb$/.test(input)) {
+        fileInput = input;
+        xrType = 'gltf@0.0.1';
+        mimeType = xrTypeToMimeType[xrType];
+      } else if (/\.vrm$/.test(input)) {
+        fileInput = input;
+        xrType = 'vrm@0.0.1';
+        mimeType = xrTypeToMimeType[xrType];
+      } else if (/\.vox$/.test(input)) {
+        fileInput = input;
+        xrType = 'vox@0.0.1';
+        mimeType = xrTypeToMimeType[xrType];
+      } else if (/\.html$/.test(input)) {
+        fileInput = input;
+        xrType = 'webxr-site@0.0.1';
+        mimeType = xrTypeToMimeType[xrType];
+      } else if (/\.json$/.test(input)) {
+        fileInput = input;
+        const s = fs.readFileSync(input);
+        const j = JSON.parse(s);
+        if (typeof j.xr_type === 'string') {
+          xrType = j.xr_type;
+          mimeType = xrTypeToMimeType[xrType];
+        } else {
+          throw new Error(`manifest.json missing xr_type: ${input}`);
+        }
       } else {
-        return Promise.resolve(fs.readFileSync(argv.input));
+        const stats = fs.statSync(input);
+        if (stats.isDirectory()) {
+          _detectType(path.join(input, 'manifest.json'));
+        } else {
+          throw new Error(`unknown file type: ${argv.input}`);
+        }
       }
-    })();
+    };
+    _detectType(path.resolve(process.cwd(), argv.input));
 
+    const fileData = fs.readFileSync(fileInput);
     // console.log('got data', data.length);
 
-    let xrType, mimeType;
-    if (/\.gltf$/.test(argv.input)) {
-      xrType = 'gltf@0.0.1';
-      mimeType = 'model/gltf+json';
-    } else if (/\.glb$/.test(argv.input)) {
-      xrType = 'gltf@0.0.1';
-      mimeType = 'application/octet-stream';
-    } else if (/\.vrm$/.test(argv.input)) {
-      xrType = 'vrm@0.0.1';
-      mimeType = 'application/octet-stream';
-    } else if (/\.vox$/.test(argv.input)) {
-      xrType = 'vox@0.0.1';
-      mimeType = 'application/octet-stream';
-    } else if (argv.input === '-' || /\.html$/.test(argv.input)) {
-      xrType = 'webxr-site@0.0.1';
-      mimeType = 'text/html';
-    } else {
-      throw new Error(`unknown file type: ${argv.input}`);
-    }
-
-    const xrMain = (argv.input === '-' ? 'input' : path.basename(argv.input));
+    const xrMain = path.basename(fileInput);
     const files = [
       {
         url: '/' + xrMain,
