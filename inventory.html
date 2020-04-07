@@ -5,6 +5,8 @@
 <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700&display=swap" rel="stylesheet">
 <script src="https://kit.fontawesome.com/0735724151.js" crossorigin="anonymous"></script>
 <script src="https://rawcdn.githack.com/ethereum/web3.js/a6ddec59e65116853435f203b25cb9c55824d084/dist/web3.min.js"></script>
+<script src="https://rawcdn.githack.com/ethereumjs/browser-builds/c31acaf66608f8176828b974ab50f2ea6308e7e1/dist/ethereumjs-tx/ethereumjs-tx-1.3.3.js"></script>
+<script src="https://rawcdn.githack.com/ConsenSys/eth-lightwallet/d21df74dd2d5e09632bf38309f147784668b1498/dist/lightwallet.js"></script>
 </head>
 <body>
 <header id=header>
@@ -15,10 +17,36 @@
   <a href="/create.html" class="nav">Create</a>
   <a href="https://www.npmjs.com/package/xrpk" class="nav" target="_blank" rel="noopener noreferrer">CLI</a>
   <a href="/run.html" class="nav">Run</a>
+  <div class="wallet none">
+    <div class=address>No wallet</div>
+    <div class=button id=import-key-button>Import key</div>
+    <div class=button id=create-wallet-button>Create wallet</div>
+  </div>
+  <div class="wallet import">
+    <input type=text id=seed-phrase-input placeholder="seed phrase">
+    <input type=password id=password-input placeholder="password">
+    <div class=button id=import-button>Log in</div>
+    <div class=button id=cancel-import-button>Cancel</div>
+  </div>
+  <div class="wallet locked">
+    <div class=address>Wallet locked</div>
+    <input type=password id=password-unlock-input placeholder="password">
+    <div class=button id=unlock-wallet-button>Unlock</div>
+    <div class=button id=forget-wallet-button>Forget</div>
+  </div>
+  <div class="wallet unlocked">
+    <div class=address id=address-text></div>
+    <div class=balance id=balance-text></div>
+    <div class=button id=download-key-button>D/L key</div>
+    <div class=button id=lock-wallet-button>Lock</div>
+  </div>
 </header>
 
-<section class=main>
-  <form class=sidebar>
+<section class=main id=main>
+  <section class=blocker>
+    <h1>Unlock wallet first</h1>
+  </section>
+  <form class="sidebar unblocker">
     <h1>Name</h1>
     <input type=text placeholder="Choose a name">
     <h1>Avatar</h1>
@@ -32,12 +60,11 @@
       <li><span class=key>key:</span><span class=key>value</span></li>
     </ul>
   </form>
-  <section class=grid id=grid></section>
+  <section class="grid unblocker" id=grid></section>
 </section>
 
-<!-- <script src="https://kit.fontawesome.com/0735724151.js"></script> -->
-
 <script type=module>
+import {keystoreManager} from './wallet.js';
 import address from 'https://contracts.webaverse.com/address.js';
 import abi from 'https://contracts.webaverse.com/abi.js';
 
@@ -60,33 +87,62 @@ function makePromise() {
   return p;
 }
 
-// contract.init();
+// const gridEl = document.getElementById('grid');
+keystoreManager.addEventListener('change', async e => {
+  const ks = e.data;
 
-const gridEl = document.getElementById('grid');
-(async () => {
-  let nonce = await contract.methods.getNonce().call();
-  nonce = parseInt(nonce, 10);
+  const main = document.getElementById('main');
+  if (ks) {
+    main.classList.add('unlocked');
 
-  for (let i = 1; i <= nonce; i++) {
-    const metadataHash = await contract.methods.getMetadata(i, 'hash').call();
-    const metadata = await fetch(`${apiHost}/${metadataHash}`)
-      .then(res => res.json());
-    const {dataHash, screenshotHash, modelHash} = metadata;
-    /* const [
-      data,
-      screenshotImg,
-    ] = await Promise.all([
-      fetch(`${apiHost}/${dataHash}`)
-        .then(res => res.arrayBuffer()),
-      new Promise((accept, reject) => {
-        const img = new Image();
-        img.src = `${apiHost}/${screenshotHash}`;
-        img.onload = () => {
-          accept(img);
-        };
-        img.onerror = reject;
-      }),
-    ]); */
+    const owner = '0x' + ks.addresses[0];
+    const owners = Array(100);
+    const ids = Array(owners.length);
+    for (let i = 0; i < ids.length; i++) {
+      owners[i] = owner;
+      ids[i] = i+1;
+    }
+    const balances = await contract.methods.balanceOfBatch(owners, ids).call();
+    const ownedIds = balances.map((balance, id) => {
+      balance = parseInt(balance, 10);
+      if (balance > 0) {
+        return id;
+      } else {
+        return null;
+      }
+    }).filter(id => id !== null);
+    console.log('got owned ids', ownedIds);
+    const objects = [];
+    for (let i = 0; i < ownedIds.length; i++) {
+      const id = ownedIds[i];
+      const metadataHash = await contract.methods.getMetadata(id, 'hash').call();
+      const metadata = await fetch(`${apiHost}/${metadataHash}`)
+        .then(res => res.json());
+      // const {objectName, dataHash} = metadata;
+
+      // const object = objects[i];
+      // console.log(object.id + ' ' + JSON.stringify(object.objectName) + ' ' + `${apiHost}/${object.dataHash}.wbn`);
+
+      // const metadataHash = await contract.methods.getMetadata(i, 'hash').call();
+      /* const metadata = await fetch(`${apiHost}/${metadataHash}`)
+        .then(res => res.json()); */
+      const {dataHash, screenshotHash, modelHash} = metadata;
+
+      /* const [
+        data,
+        screenshotImg,
+      ] = await Promise.all([
+        fetch(`${apiHost}/${dataHash}`)
+          .then(res => res.arrayBuffer()),
+        new Promise((accept, reject) => {
+          const img = new Image();
+          img.src = `${apiHost}/${screenshotHash}`;
+          img.onload = () => {
+            accept(img);
+          };
+          img.onerror = reject;
+        }),
+      ]); */
     const div = document.createElement('div');
     div.classList.add('object');
     div.classList.add('card');
@@ -104,13 +160,16 @@ const gridEl = document.getElementById('grid');
         <a href="https://${network}.opensea.io/assets/${address}/${i}" class="cardAction"><span>Opensea</span><i class="fa fa-chevron-right"></i></a>
       </div>
     `;
-    const input = div.querySelector('input');
-    input.addEventListener('click', e => {
-      input.select();
-    });
-    grid.appendChild(div);
+      const input = div.querySelector('input');
+      input.addEventListener('click', e => {
+        input.select();
+      });
+      grid.appendChild(div);
+    }
+  } else {
+    main.classList.remove('unlocked');
   }
-})();
+});
 
 </script>
 </body>
