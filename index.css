@@ -222,6 +222,14 @@ canvas {
 .main .grid {
   flex: 1;
 }
+.main .blocker {
+  width: 100%;
+  text-align: center;
+  padding-top: 20vh;
+}
+.main .blocker h1{
+  font-size: 15px;
+}
 .main.unlocked .blocker,
 .main:not(.unlocked) .unblocker
 {
