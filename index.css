@@ -4,6 +4,7 @@
 body {
   margin: 0;
   font-family: 'Open Sans';
+  font-size: 12px;
 }
 header {
   position: absolute;
@@ -68,6 +69,57 @@ header .nav i {
   border-bottom: 2px solid #000;
   font-size: 40px;
   font-weight: 400;
+}
+header .wallet
+{
+  display: flex;
+  height: 37px;
+  margin-left: auto;
+  margin-right: 10px;
+  padding: 5px 10px;
+  background-color: #F4F4F4;
+  border-radius: 7px;
+  align-items: center;
+}
+header .wallet.none,
+header .wallet.import,
+header .wallet.locked,
+header .wallet.unlocked
+{
+  display: none;
+}
+header.import .wallet.import,
+header.locked .wallet.locked,
+header.unlocked .wallet.unlocked,
+header:not(.import):not(.locked):not(.unlocked) .wallet.none
+{
+  display: flex;
+}
+header .button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 5px 10px;
+  background-color: #42a5f5;
+  color: #FFF;
+  border-radius: 8px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+header .button:hover {
+  background-color: #1e88e5;
+}h
+header .button:active {
+  transform: translateY(1px);
+}
+header .button.secondary {
+  background-color: #ef5350;
+}
+header .button.secondary:hover {
+  background-color: #e53935;
+}
+header .button:not(:first-child) {
+  margin-left: 10px;
 }
 .grid {
   display: flex;
