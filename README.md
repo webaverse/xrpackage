@@ -25,7 +25,8 @@ This will download the given package id locally.
 ## Build .wbn package
 
 ```
-xrpk build file.{gltf,glb,vrm,html}
+# supports gltf,glb,vrm,html
+xrpk build yourfile.glb # build package with the model file
 ```
 
 This will open your browser to screenshot. It will output the resulting [WebPackage](https://github.com/WICG/webpackage) to `a.wbn`. It will also output `a.wbn.gif` as a screenshot and `a.wbn.glb` as a 3D model preview.
