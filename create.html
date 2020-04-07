@@ -4,9 +4,6 @@
 <link href="index.css" rel=stylesheet>
 <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700&display=swap" rel="stylesheet">
 <script src="https://kit.fontawesome.com/0735724151.js" crossorigin="anonymous"></script>
-<script src="https://rawcdn.githack.com/ethereum/web3.js/a6ddec59e65116853435f203b25cb9c55824d084/dist/web3.min.js"></script>
-<script src="https://rawcdn.githack.com/ethereumjs/browser-builds/c31acaf66608f8176828b974ab50f2ea6308e7e1/dist/ethereumjs-tx/ethereumjs-tx-1.3.3.js"></script>
-<script src="https://rawcdn.githack.com/ConsenSys/eth-lightwallet/d21df74dd2d5e09632bf38309f147784668b1498/dist/lightwallet.js"></script>
 </head>
 <body>
 <header id=header>
@@ -18,27 +15,27 @@
   <a href="https://www.npmjs.com/package/xrpk" class="nav" target="_blank" rel="noopener noreferrer">CLI</a>
   <a href="/run.html" class="nav">Run</a>
   <div class="multibutton right">
-    <nav class="side selected">Builtin</nav>
-    <nav class="side">Metamask</nav>
+    <nav class="side" id=builtin-wallet-button>Builtin</nav>
+    <nav class="side" id=extension-wallet-button>Extension</nav>
   </div>
-  <div class="wallet none">
+  <div class="wallet none right">
     <div class=address>No wallet</div>
     <div class=button id=import-key-button>Import key</div>
     <div class=button id=create-wallet-button>Create wallet</div>
   </div>
-  <div class="wallet import">
+  <div class="wallet import right">
     <input type=text id=seed-phrase-input placeholder="seed phrase">
     <input type=password id=password-input placeholder="password">
     <div class=button id=import-button>Log in</div>
     <div class=button id=cancel-import-button>Cancel</div>
   </div>
-  <div class="wallet locked">
+  <div class="wallet locked right">
     <div class=address>Wallet locked</div>
     <input type=password id=password-unlock-input placeholder="password">
     <div class=button id=unlock-wallet-button>Unlock</div>
     <div class=button id=forget-wallet-button>Forget</div>
   </div>
-  <div class="wallet unlocked">
+  <div class="wallet unlocked right">
     <div class=address id=address-text></div>
     <div class=balance id=balance-text></div>
     <div class=button id=download-key-button>D/L key</div>
@@ -60,9 +57,13 @@
   </form>
 </div>
 <script type=module>
+  import THREE from './three.module.js';
+  window.THREE = THREE;
+</script>
+<script type=module>
 import {screenshotObject, exportObject} from './screenshot-object.js';
 import {XRPackage} from './xrpackage.js';
-import {keystoreManager, getKeystore} from './wallet.js';
+import {contractManager, getContract} from './wallet.js';
 import address from 'https://contracts.webaverse.com/address.js';
 import abi from 'https://contracts.webaverse.com/abi.js';
 
@@ -70,9 +71,8 @@ const apiHost = `https://ipfs.exokit.org/ipfs`;
 const network = 'rinkeby';
 const infuraApiKey = '4fb939301ec543a0969f3019d74f80c2';
 const rpcUrl = `https://${network}.infura.io/v3/${infuraApiKey}`;
-const web3 = new Web3(new Web3.providers.HttpProvider(rpcUrl));
-// window.web3 = web3;
-const contract = new web3.eth.Contract(abi, address);
+// const web3 = new Web3(new Web3.providers.HttpProvider(rpcUrl));
+// const contract = new web3.eth.Contract(abi, address);
 
 function makePromise() {
   let accept, reject;
@@ -234,27 +234,9 @@ document.getElementById('submit-button').addEventListener('click', async e => {
       .then(j => j.hash);
 
     console.log('minting...');
-    const ks = getKeystore();
-    const address = `0x${ks.addresses[0]}`;
-    const privateKey = await ks.getPrivateKey();
-    // console.log('got pk', privateKey);
-    // web3.eth.accounts.wallet.add('0x' + Buffer.from(privateKey).toString('hex'));
-    const account = web3.eth.accounts.privateKeyToAccount('0x' + privateKey);
-    web3.eth.accounts.wallet.add(account);
+    const contract = getContract();
+    const receipt = await contract.doSend('mint', 1, 'hash', metadataHash);
 
-    const nonce = await web3.eth.getTransactionCount(address);
-    const gasPrice = await web3.eth.getGasPrice();
-    // const value = '10000000000000000'; // 0.01 ETH
-
-    const m = contract.methods.mint(1, 'hash', metadataHash);
-    const opts = {
-      gas: 0,
-      from: address,
-      nonce,
-      // value,
-    };
-    opts.gas = await m.estimateGas(opts);
-    const receipt = await m.send(opts);
     console.log('got receipt', receipt);
     const id = parseInt(receipt.events.URI.returnValues[1], 10);
 
@@ -264,11 +246,14 @@ document.getElementById('submit-button').addEventListener('click', async e => {
   }
 });
 
-keystoreManager.addEventListener('change', async e => {
-  const ks = e.data;
+contractManager.addEventListener('change', async e => {
+  const {
+    contract,
+    address,
+  } = e.data;
 
   const main = document.getElementById('main');
-  if (ks) {
+  if (contract) {
     main.classList.add('unlocked');
   } else {
     main.classList.remove('unlocked');

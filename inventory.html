@@ -4,9 +4,6 @@
 <link href="index.css" rel=stylesheet>
 <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700&display=swap" rel="stylesheet">
 <script src="https://kit.fontawesome.com/0735724151.js" crossorigin="anonymous"></script>
-<script src="https://rawcdn.githack.com/ethereum/web3.js/a6ddec59e65116853435f203b25cb9c55824d084/dist/web3.min.js"></script>
-<script src="https://rawcdn.githack.com/ethereumjs/browser-builds/c31acaf66608f8176828b974ab50f2ea6308e7e1/dist/ethereumjs-tx/ethereumjs-tx-1.3.3.js"></script>
-<script src="https://rawcdn.githack.com/ConsenSys/eth-lightwallet/d21df74dd2d5e09632bf38309f147784668b1498/dist/lightwallet.js"></script>
 </head>
 <body>
 <header id=header>
@@ -18,27 +15,27 @@
   <a href="https://www.npmjs.com/package/xrpk" class="nav" target="_blank" rel="noopener noreferrer">CLI</a>
   <a href="/run.html" class="nav">Run</a>
   <div class="multibutton right">
-    <nav class="side selected">Builtin</nav>
-    <nav class="side">Metamask</nav>
+    <nav class="side" id=builtin-wallet-button>Builtin</nav>
+    <nav class="side" id=extension-wallet-button>Extension</nav>
   </div>
-  <div class="wallet none">
+  <div class="wallet none right">
     <div class=address>No wallet</div>
     <div class=button id=import-key-button>Import key</div>
     <div class=button id=create-wallet-button>Create wallet</div>
   </div>
-  <div class="wallet import">
+  <div class="wallet import right">
     <input type=text id=seed-phrase-input placeholder="seed phrase">
     <input type=password id=password-input placeholder="password">
     <div class=button id=import-button>Log in</div>
     <div class=button id=cancel-import-button>Cancel</div>
   </div>
-  <div class="wallet locked">
+  <div class="wallet locked right">
     <div class=address>Wallet locked</div>
     <input type=password id=password-unlock-input placeholder="password">
     <div class=button id=unlock-wallet-button>Unlock</div>
     <div class=button id=forget-wallet-button>Forget</div>
   </div>
-  <div class="wallet unlocked">
+  <div class="wallet unlocked right">
     <div class=address id=address-text></div>
     <div class=balance id=balance-text></div>
     <div class=button id=download-key-button>D/L key</div>
@@ -70,7 +67,7 @@
 </section>
 
 <script type=module>
-import {keystoreManager} from './wallet.js';
+import {contractManager} from './wallet.js';
 import address from 'https://contracts.webaverse.com/address.js';
 import abi from 'https://contracts.webaverse.com/abi.js';
 
@@ -78,9 +75,8 @@ const apiHost = `https://ipfs.exokit.org/ipfs`;
 const network = 'rinkeby';
 const infuraApiKey = '4fb939301ec543a0969f3019d74f80c2';
 const rpcUrl = `https://${network}.infura.io/v3/${infuraApiKey}`;
-const web3 = new Web3(new Web3.providers.HttpProvider(rpcUrl));
-// window.web3 = web3;
-const contract = new web3.eth.Contract(abi, address);
+// const web3 = new Web3(new Web3.providers.HttpProvider(rpcUrl));
+// const contract = new web3.eth.Contract(abi, address);
 
 function makePromise() {
   let accept, reject;
@@ -94,21 +90,22 @@ function makePromise() {
 }
 
 // const gridEl = document.getElementById('grid');
-keystoreManager.addEventListener('change', async e => {
-  const ks = e.data;
+contractManager.addEventListener('change', async e => {
+  const {contract, address} = e.data;
 
   const main = document.getElementById('main');
-  if (ks) {
+  if (contract) {
     main.classList.add('unlocked');
 
-    const owner = '0x' + ks.addresses[0];
+    const owner = '0x' + address;
     const owners = Array(100);
     const ids = Array(owners.length);
     for (let i = 0; i < ids.length; i++) {
       owners[i] = owner;
       ids[i] = i+1;
     }
-    const balances = await contract.methods.balanceOfBatch(owners, ids).call();
+    console.log('contract', contract);
+    const balances = await contract.doCall('balanceOfBatch', owners, ids);
     const ownedIds = balances.map((balance, id) => {
       balance = parseInt(balance, 10);
       if (balance > 0) {
@@ -121,7 +118,7 @@ keystoreManager.addEventListener('change', async e => {
     const objects = [];
     for (let i = 0; i < ownedIds.length; i++) {
       const id = ownedIds[i];
-      const metadataHash = await contract.methods.getMetadata(id, 'hash').call();
+      const metadataHash = await contract.doCall('getMetadata', id, 'hash');
       const metadata = await fetch(`${apiHost}/${metadataHash}`)
         .then(res => res.json());
       // const {objectName, dataHash} = metadata;

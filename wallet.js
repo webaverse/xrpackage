@@ -5,9 +5,8 @@ const apiHost = `https://ipfs.exokit.org/ipfs`;
 const network = 'rinkeby';
 const infuraApiKey = '4fb939301ec543a0969f3019d74f80c2';
 const rpcUrl = `https://${network}.infura.io/v3/${infuraApiKey}`;
-const web3 = new Web3(new Web3.providers.HttpProvider(rpcUrl));
-// window.web3 = web3;
-const contract = new web3.eth.Contract(abi, address);
+let web3;
+let contract;
 
 function makePromise() {
   let accept, reject;
@@ -31,8 +30,117 @@ function makePromise() {
 
 // wallet
 
+const builtinWalletButton = document.getElementById('builtin-wallet-button');
+const extensionWalletButton = document.getElementById('extension-wallet-button');
+builtinWalletButton.addEventListener('click', async e => {
+  // builtinWalletButton.classList.add('selected');
+  // extensionWalletButton.classList.remove('selected');
+  document.getElementById('header').classList.add('builtin');
+
+  await Promise.all([
+    `https://rawcdn.githack.com/ethereum/web3.js/a6ddec59e65116853435f203b25cb9c55824d084/dist/web3.min.js`,
+    `https://rawcdn.githack.com/ethereumjs/browser-builds/c31acaf66608f8176828b974ab50f2ea6308e7e1/dist/ethereumjs-tx/ethereumjs-tx-1.3.3.js`,
+    `https://rawcdn.githack.com/ConsenSys/eth-lightwallet/d21df74dd2d5e09632bf38309f147784668b1498/dist/lightwallet.js`,
+  ].map(src => new Promise((accept, reject) => {
+    const script = document.createElement('script');
+    script.src = src;
+    script.onload = accept;
+    script.onerror = reject;
+    document.body.appendChild(script);
+  })));
+  web3 = new Web3(new Web3.providers.HttpProvider(rpcUrl));
+  contract = new web3.eth.Contract(abi, address);
+  contract.doCall = function (method, ...args) {
+    return this.methods[method].apply(this.methods, args).call();
+  };
+  contract.doSend = async function (method, ...args) {
+    const address = `0x${keystore.addresses[0]}`;
+    const privateKey = await keystore.getPrivateKey();
+    const account = web3.eth.accounts.privateKeyToAccount('0x' + privateKey);
+    web3.eth.accounts.wallet.add(account);
+
+    const nonce = await web3.eth.getTransactionCount(address);
+    const gasPrice = await web3.eth.getGasPrice();
+    // const value = '10000000000000000'; // 0.01 ETH
+
+    const m = contract.methods.mint(1, 'hash', metadataHash);
+    const opts = {
+      gas: 0,
+      from: address,
+      nonce,
+      // value,
+    };
+    opts.gas = await m.estimateGas(opts);
+    const receipt = await m.send(opts);
+    return receipt;
+  };
+});
+extensionWalletButton.addEventListener('click', async e => {
+  // builtinWalletButton.classList.remove('selected');
+  // extensionWalletButton.classList.add('selected');
+  document.getElementById('header').classList.add('extension');
+
+  if (window.ethereum) {
+    web3 = new window.Web3(window.ethereum);
+    try {
+      // Request account access if needed
+      await window.ethereum.enable();
+      // Acccounts now exposed
+      // web3.eth.sendTransaction({/* ... */});
+
+      contract = web3.eth.contract(abi).at(address);
+      contract.doCall = function (method, ...args) {
+        return new Promise((accept, reject) => {
+          args.push((error, result) => {
+            if (!error) {
+              accept(result);
+            } else {
+              reject(error);
+            }
+          });
+          this[method].apply(this, args);
+        });
+      };
+      contract.doSend = async function (method, ...args) {
+        const txHash = await new Promise((accept, reject) => {
+          args.push((error, result) => {
+            if (!error) {
+              accept(result);
+            } else {
+              reject(error);
+            }
+          });
+          this[method].apply(contract, args);
+        });
+        const receipt = await new Promise((accept, reject) => {
+          web3.eth.getTransactionReceipt(txHash, (error, result) => {
+            if (!error) {
+              accept(result);
+            } else {
+              reject(error);
+            }
+          });
+        });
+        return receipt;
+      };
+
+      contractManager.dispatchEvent(new MessageEvent('change', {
+        data: {
+          contract,
+          address: web3.eth.accounts[0],
+        },
+      }));
+    } catch (err) {
+      // User denied account access...
+      console.warn(err);
+    }
+  } else {
+    console.warn('no ethereum!');
+  }
+});
+
 let keystore = null;
-const keystoreManager = new EventTarget();
+const contractManager = new EventTarget();
 const hdPathString = `m/44'/60'/0'/0`;
 async function exportSeed(ks, password) {
   const p = makePromise();
@@ -155,11 +263,14 @@ document.getElementById('import-button').addEventListener('click', async e => {
   // var seedPhrase = lightwallet.keystore.generateRandomSeed();
 
   keystore = await _createKeystore(seedPhrase, password);
-  keystoreManager.dispatchEvent(new MessageEvent('change', {
-    data: keystore,
+  const address = keystore.accounts[0];
+  contractManager.dispatchEvent(new MessageEvent('change', {
+    data: {
+      contract,
+      address,
+    },
   }));
   localStorage.setItem('wallet', _exportKeyStore(keystore));
-  const address = keystore.addresses[0];
   let balance = await web3.eth.getBalance(address);
   balance /= 1e18;
 
@@ -189,10 +300,13 @@ document.getElementById('unlock-wallet-button').addEventListener('click', async 
   const password = document.getElementById('password-unlock-input').value;
 
   keystore = await _importKeyStore(keystoreString, password);
-  keystoreManager.dispatchEvent(new MessageEvent('change', {
-    data: keystore,
-  }));
   const address = keystore.addresses[0];
+  contractManager.dispatchEvent(new MessageEvent('change', {
+    data: {
+      contract,
+      address,
+    },
+  }));
   let balance = await web3.eth.getBalance(address);
   balance /= 1e18;
 
@@ -226,15 +340,19 @@ document.getElementById('forget-wallet-button').addEventListener('click', e => {
 });
 document.getElementById('lock-wallet-button').addEventListener('click', e => {
   keystore = null;
-  keystoreManager.dispatchEvent(new MessageEvent('change', {
-    data: keystore,
+  const address = keystore.addresses[0];
+  contractManager.dispatchEvent(new MessageEvent('change', {
+    data: {
+      contract: null,
+      address: null,
+    },
   }));
 
   _clearWalletClasses();
   header.classList.add('locked');
 });
 
-export {keystoreManager};
-export async function getKeystore() {
-  return keystore;
+export {contractManager};
+export function getContract() {
+  return contract;
 }

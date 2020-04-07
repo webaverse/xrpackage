@@ -83,14 +83,16 @@ header .wallet
 header .wallet.none,
 header .wallet.import,
 header .wallet.locked,
-header .wallet.unlocked
+header .wallet.unlocked,
+header.builtin .multibutton,
+header.extension .multibutton
 {
   display: none;
 }
-header.import .wallet.import,
-header.locked .wallet.locked,
-header.unlocked .wallet.unlocked,
-header:not(.import):not(.locked):not(.unlocked) .wallet.none
+header.builtin.import .wallet.import,
+header.builtin.locked .wallet.locked,
+header.builtin.unlocked .wallet.unlocked,
+header.builtin:not(.import):not(.locked):not(.unlocked) .wallet.none
 {
   display: flex;
 }
@@ -200,7 +202,9 @@ canvas {
   color: #42a5f5;
   cursor: pointer;
 }
-.multibutton .side.selected {
+.multibutton .side.selected,
+.multibutton .side:hover
+{
   background-color: #42a5f5;
   border-color: transparent;
   color: #FFF;
