@@ -184,9 +184,11 @@ canvas {
   box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
   z-index: 1;
 }
+.right {
+  margin-left: auto;
+}
 .multibutton {
   display: flex;  
-  margin-left: auto;
   margin-right: 10px;
 }
 .multibutton .side {
