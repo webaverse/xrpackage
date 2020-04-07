@@ -61,7 +61,45 @@
       </div>
     </form>
   </div>
-  <script type=module>
+  <div class="wallet none right">
+    <div class=address>No wallet</div>
+    <div class=button id=import-key-button>Import key</div>
+    <div class=button id=create-wallet-button>Create wallet</div>
+  </div>
+  <div class="wallet import right">
+    <input type=text id=seed-phrase-input placeholder="seed phrase">
+    <input type=password id=password-input placeholder="password">
+    <div class=button id=import-button>Log in</div>
+    <div class=button id=cancel-import-button>Cancel</div>
+  </div>
+  <div class="wallet locked right">
+    <div class=address>Wallet locked</div>
+    <input type=password id=password-unlock-input placeholder="password">
+    <div class=button id=unlock-wallet-button>Unlock</div>
+    <div class=button id=forget-wallet-button>Forget</div>
+  </div>
+  <div class="wallet unlocked right">
+    <div class=address id=address-text></div>
+    <div class=balance id=balance-text></div>
+    <div class=button id=download-key-button>D/L key</div>
+    <div class=button id=lock-wallet-button>Lock</div>
+  </div>
+</header>
+<div class=main id=main>
+  <section class=blocker>
+    <i class="fa fa-lock" style="font-size: 50px"></i>
+    <h1>Unlock wallet first</h1>
+  </section>
+  <form class="form unblocker" id=form>
+    <h1>Object name</h1>
+    <input type=text placeholder=name id=object-name-input class="sidebarTextInput">
+    <h1>Input file</h1>
+    <h3>.gltf .glb .vox .vrm .html</h3>
+    <input type=file id=input-file>
+    <input type=button value="Create package" id=submit-button class="sidebarCreateButton">
+  </form>
+</div>
+<script type=module>
   import THREE from './three.module.js';
   window.THREE = THREE;
 </script>
@@ -263,6 +301,12 @@ contractManager.addEventListener('change', async e => {
   } else {
     main.classList.remove('unlocked');
   }
+});
+contractManager.addEventListener('error', async e => {
+  const error = e.data;
+  const h1 = document.createElement('h1');
+  h1.innerText = error.message;
+  document.getElementById('main').appendChild(h1);
 });
 
 </script>

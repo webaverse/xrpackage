@@ -354,6 +354,7 @@ canvas {
 
 .form {
   display: flex;
+  margin: 0 auto;
   padding: 0 10px;
   flex-direction: column;
 }

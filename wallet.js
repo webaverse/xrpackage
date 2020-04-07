@@ -88,48 +88,60 @@ extensionWalletButton.addEventListener('click', async e => {
       // Acccounts now exposed
       // web3.eth.sendTransaction({/* ... */});
 
-      contract = web3.eth.contract(abi).at(address);
-      contract.doCall = function (method, ...args) {
-        return new Promise((accept, reject) => {
-          args.push((error, result) => {
-            if (!error) {
-              accept(result);
-            } else {
-              reject(error);
-            }
-          });
-          this[method].apply(this, args);
-        });
-      };
-      contract.doSend = async function (method, ...args) {
-        const txHash = await new Promise((accept, reject) => {
-          args.push((error, result) => {
-            if (!error) {
-              accept(result);
-            } else {
-              reject(error);
-            }
-          });
-          this[method].apply(contract, args);
-        });
-        const receipt = await new Promise((accept, reject) => {
-          web3.eth.getTransactionReceipt(txHash, (error, result) => {
-            if (!error) {
-              accept(result);
-            } else {
-              reject(error);
-            }
-          });
-        });
-        return receipt;
-      };
+      web3.version.getNetwork((err, network) => {
+        if (!err && network !== '4') {
+          err = new Error('must be on rinkeby testnet!');
+        }
 
-      contractManager.dispatchEvent(new MessageEvent('change', {
-        data: {
-          contract,
-          address: web3.eth.accounts[0],
-        },
-      }));
+        if (!err) {
+          contract = web3.eth.contract(abi).at(address);
+          contract.doCall = function (method, ...args) {
+            return new Promise((accept, reject) => {
+              args.push((error, result) => {
+                if (!error) {
+                  accept(result);
+                } else {
+                  reject(error);
+                }
+              });
+              this[method].apply(this, args);
+            });
+          };
+          contract.doSend = async function (method, ...args) {
+            const txHash = await new Promise((accept, reject) => {
+              args.push((error, result) => {
+                if (!error) {
+                  accept(result);
+                } else {
+                  reject(error);
+                }
+              });
+              this[method].apply(contract, args);
+            });
+            const receipt = await new Promise((accept, reject) => {
+              web3.eth.getTransactionReceipt(txHash, (error, result) => {
+                if (!error) {
+                  accept(result);
+                } else {
+                  reject(error);
+                }
+              });
+            });
+            return receipt;
+          };
+
+          contractManager.dispatchEvent(new MessageEvent('change', {
+            data: {
+              contract,
+              address: web3.eth.accounts[0],
+            },
+          }));
+        } else {
+          contractManager.dispatchEvent(new MessageEvent('error', {
+            data: err,
+          }));
+        }
+      });
     } catch (err) {
       // User denied account access...
       console.warn(err);
