@@ -221,6 +221,11 @@ canvas {
 .main .grid {
   flex: 1;
 }
+.main.unlocked .blocker,
+.main:not(.unlocked) .unblocker
+{
+  display: none;
+}
 .form {
   display: flex;
   padding: 0 10px;

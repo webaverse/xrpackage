@@ -41,8 +41,11 @@
     <div class=button id=lock-wallet-button>Lock</div>
   </div>
 </header>
-<div class=main>
-  <form class=form id=form>
+<div class=main id=main>
+  <section class=blocker>
+    <h1>Unlock wallet first</h1>
+  </section>
+  <form class="form unblocker" id=form>
     <h1>Object name</h1>
     <input type=text placeholder=name id=object-name-input>
     <h1>Input file</h1>
@@ -54,7 +57,7 @@
 <script type=module>
 import {screenshotObject, exportObject} from './screenshot-object.js';
 import {XRPackage} from './xrpackage.js';
-import {getKeystore} from './wallet.js';
+import {keystoreManager, getKeystore} from './wallet.js';
 import address from 'https://contracts.webaverse.com/address.js';
 import abi from 'https://contracts.webaverse.com/abi.js';
 
@@ -253,6 +256,17 @@ document.getElementById('submit-button').addEventListener('click', async e => {
     const a = document.createElement('a');
     a.href = `/run.html?i=${id}`;
     document.getElementById('form').appendChild(a);
+  }
+});
+
+keystoreManager.addEventListener('change', async e => {
+  const ks = e.data;
+
+  const main = document.getElementById('main');
+  if (ks) {
+    main.classList.add('unlocked');
+  } else {
+    main.classList.remove('unlocked');
   }
 });
 

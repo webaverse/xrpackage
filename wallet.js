@@ -234,7 +234,7 @@ document.getElementById('lock-wallet-button').addEventListener('click', e => {
   header.classList.add('locked');
 });
 
+export {keystoreManager};
 export async function getKeystore() {
   return keystore;
 }
-export {keystoreManager};
