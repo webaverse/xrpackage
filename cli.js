@@ -3,9 +3,10 @@
 const path = require('path');
 const fs = require('fs');
 const http = require('http');
-const readline = require('readline');
 const {Writable} = require('stream');
 const os = require('os');
+
+const read = require('read');
 const mkdirp = require('mkdirp');
 const yargs = require('yargs');
 const fetch = require('node-fetch');
@@ -65,6 +66,20 @@ function makePromise() {
   p.accept = accept;
   p.reject = reject;
   return p;
+}
+async function getKs() {
+  const ksString = fs.readFileSync(path.join(os.homedir(), '.xrpackage'));
+  const passwordPromise = makePromise();
+  read({ prompt: 'password: ', silent: true }, function(er, password) {
+    if (!er) {
+      passwordPromise.accept(password);
+    } else {
+      passwordPromise.reject(er);
+    }
+  });
+  const password = await passwordPromise;
+  const ks = await _importKeyStore(ksString, password);
+  return ks;
 }
 const hdPathString = `m/44'/60'/0'/0`;
 async function exportSeed(ks, password) {
@@ -169,31 +184,7 @@ yargs
   }, async argv => {
     handled = true;
 
-    const ksString = fs.readFileSync(path.join(os.homedir(), '.xrpackage'));
-
-    const mutableStdout = new Writable({
-      write: function(chunk, encoding, callback) {
-        if (!this.muted)
-          process.stdout.write(chunk, encoding);
-        callback();
-      }
-    });
-    mutableStdout.muted = false;
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: mutableStdout,
-      terminal: true
-    });
-
-    const passwordPromise = makePromise();
-    rl.question('password: ', password => {
-      rl.close();
-
-      passwordPromise.accept(password);
-    });
-    const password = await passwordPromise;
-
-    const ks = await _importKeyStore(ksString, password);
+    const ks = await getKs();
 
     console.log(`0x${ks.addresses[0]}`);
   })
@@ -206,31 +197,7 @@ yargs
   }, async argv => {
     handled = true;
 
-    const ksString = fs.readFileSync(path.join(os.homedir(), '.xrpackage'));
-
-    const mutableStdout = new Writable({
-      write: function(chunk, encoding, callback) {
-        if (!this.muted)
-          process.stdout.write(chunk, encoding);
-        callback();
-      }
-    });
-    mutableStdout.muted = false;
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: mutableStdout,
-      terminal: true
-    });
-
-    const passwordPromise = makePromise();
-    rl.question('password: ', password => {
-      rl.close();
-
-      passwordPromise.accept(password);
-    });
-    const password = await passwordPromise;
-
-    const ks = await _importKeyStore(ksString, password);
+    const ks = await getKs();
 
     const seed = await ks.exportSeed();
     console.log(seed);
@@ -292,31 +259,7 @@ yargs
   }, async argv => {
     handled = true;
 
-    const ksString = fs.readFileSync(path.join(os.homedir(), '.xrpackage'));
-
-    const mutableStdout = new Writable({
-      write: function(chunk, encoding, callback) {
-        if (!this.muted)
-          process.stdout.write(chunk, encoding);
-        callback();
-      }
-    });
-    mutableStdout.muted = false;
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: mutableStdout,
-      terminal: true
-    });
-
-    const passwordPromise = makePromise();
-    rl.question('password: ', password => {
-      rl.close();
-
-      passwordPromise.accept(password);
-    });
-    const password = await passwordPromise;
-
-    const ks = await _importKeyStore(ksString, password);
+    const ks = await getKs();
 
     const objectName = path.basename(argv.input);
     const dataArrayBuffer = fs.readFileSync(argv.input);
@@ -417,31 +360,7 @@ yargs
   }, async argv => {
     handled = true;
 
-    const ksString = fs.readFileSync(path.join(os.homedir(), '.xrpackage'));
-
-    const mutableStdout = new Writable({
-      write: function(chunk, encoding, callback) {
-        if (!this.muted)
-          process.stdout.write(chunk, encoding);
-        callback();
-      }
-    });
-    mutableStdout.muted = false;
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: mutableStdout,
-      terminal: true
-    });
-
-    const passwordPromise = makePromise();
-    rl.question('password: ', password => {
-      rl.close();
-
-      passwordPromise.accept(password);
-    });
-    const password = await passwordPromise;
-
-    const ks = await _importKeyStore(ksString, password);
+    const ks = await getKs();
 
     const contract = await getContract;
     const owner = '0x' + ks.addresses[0];
