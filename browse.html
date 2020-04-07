@@ -1,31 +1,34 @@
 <!doctype html>
 <html>
-  <head>
-    <title>xrpackage | browse</title>
-    <link rel=icon type="image/png" href="favicon.png">
-    <link href="index.css" rel=stylesheet>
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700&display=swap" rel="stylesheet">
-    <script src="https://kit.fontawesome.com/0735724151.js" crossorigin="anonymous"></script>
-    <script src="https://rawcdn.githack.com/ethereum/web3.js/a6ddec59e65116853435f203b25cb9c55824d084/dist/web3.min.js"></script>
-  </head>
-  <body >
-<header id=header>
-  <a href="/" class="nav">メマアムく匕ムウヨ</a>
-  <!-- <a href="/" class="nav open">Home</a> -->
-  <a href="/browse.html" class="nav open">Browse</a>
-  <a href="/inventory.html" class="nav">Inventory</a>
-  <a href="/create.html" class="nav">Create</a>
-  <a href="https://www.npmjs.com/package/xrpk" class="nav" target="_blank" rel="noopener noreferrer">CLI</a>
-  <a href="/run.html" class="nav">Run</a>
-</header>
 
-<div class=main>
-  <section class=grid id=grid></section>
-</div>
+<head>
+  <title>xrpackage | browse</title>
+  <link rel=icon type="image/png" href="favicon.png">
+  <link href="index.css" rel=stylesheet>
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/0735724151.js" crossorigin="anonymous"></script>
+  <script
+    src="https://rawcdn.githack.com/ethereum/web3.js/a6ddec59e65116853435f203b25cb9c55824d084/dist/web3.min.js"></script>
+</head>
 
-<!-- <script src="https://kit.fontawesome.com/0735724151.js"></script> -->
+<body>
+  <header id=header>
+    <a href="/" class="nav">メマアムく匕ムウヨ</a>
+    <!-- <a href="/" class="nav open">Home</a> -->
+    <a href="/browse.html" class="nav open">Browse</a>
+    <a href="/inventory.html" class="nav">Inventory</a>
+    <a href="/create.html" class="nav">Create</a>
+    <a href="https://www.npmjs.com/package/xrpk" class="nav" target="_blank" rel="noopener noreferrer">CLI</a>
+    <a href="/run.html" class="nav">Run</a>
+  </header>
 
-<script type=module>
+  <div class=main>
+    <section class=grid id=grid></section>
+  </div>
+
+  <!-- <script src="https://kit.fontawesome.com/0735724151.js"></script> -->
+
+  <script type=module>
 import address from 'https://contracts.webaverse.com/address.js';
 import abi from 'https://contracts.webaverse.com/abi.js';
 
@@ -101,5 +104,6 @@ const gridEl = document.getElementById('grid');
 })();
 
 </script>
-  </body>
+</body>
+
 </html>

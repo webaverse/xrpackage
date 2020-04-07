@@ -1,30 +1,33 @@
 <!doctype html>
 <html>
+
 <head>
-<title>xrpackage | run</title>
-<link href="index.css" rel=stylesheet>
-<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700&display=swap" rel="stylesheet">
-<!-- <script src="https://kit.fontawesome.com/0735724151.js" crossorigin="anonymous"></script> -->
-<script src="https://rawcdn.githack.com/ethereum/web3.js/a6ddec59e65116853435f203b25cb9c55824d084/dist/web3.min.js"></script>
+  <title>xrpackage | run</title>
+  <link href="index.css" rel=stylesheet>
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700&display=swap" rel="stylesheet">
+  <!-- <script src="https://kit.fontawesome.com/0735724151.js" crossorigin="anonymous"></script> -->
+  <script
+    src="https://rawcdn.githack.com/ethereum/web3.js/a6ddec59e65116853435f203b25cb9c55824d084/dist/web3.min.js"></script>
 </head>
+
 <body>
-<header id=header>
-  <a href="/" class="nav">メマアムく匕ムウヨ</a>
-  <a href="/browse.html" class="nav">Browse</a>
-  <a href="/inventory.html" class="nav">Inventory</a>
-  <a href="/create.html" class="nav">Create</a>
-  <a href="https://www.npmjs.com/package/xrpk" class="nav" target="_blank" rel="noopener noreferrer">CLI</a>
-  <a href="/run.html" class="nav open">Run</a>
-  <div class="buttons right">
-    <nav class=button id=enter-xr-button>Enter XR</nav>
-  </div>
-</header>
-<!-- s<iframe class=popup id=popup src="popup.html"></iframe> -->
-<script type=module>
+  <header id=header>
+    <a href="/" class="nav">メマアムく匕ムウヨ</a>
+    <a href="/browse.html" class="nav">Browse</a>
+    <a href="/inventory.html" class="nav">Inventory</a>
+    <a href="/create.html" class="nav">Create</a>
+    <a href="https://www.npmjs.com/package/xrpk" class="nav" target="_blank" rel="noopener noreferrer">CLI</a>
+    <a href="/run.html" class="nav open">Run</a>
+    <div class="buttons right">
+      <nav class=button id=enter-xr-button>Enter XR</nav>
+    </div>
+  </header>
+  <!-- s<iframe class=popup id=popup src="popup.html"></iframe> -->
+  <script type=module>
   import THREE from './three.module.js';
   window.THREE = THREE;
 </script>
-<script type=module>
+  <script type=module>
 import * as THREE from './three.module.js';
 import {OrbitControls} from './OrbitControls.js';
 import {XRPackageEngine, XRPackage} from './xrpackage.js';
@@ -315,4 +318,5 @@ popup.addEventListener('load', e => {
 })();
 </script>
 </body>
+
 </html>
