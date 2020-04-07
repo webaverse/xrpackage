@@ -247,8 +247,10 @@ document.getElementById('submit-button').addEventListener('click', async e => {
     const receipt = await m.send(opts);
     console.log('got receipt', receipt);
     const id = parseInt(receipt.events.URI.returnValues[1], 10);
-    // console.log(`${tokenHost}/${id}`);
-    // console.log(`https://${network}.opensea.io/assets/${contract._address}/${id}`);
+
+    const a = document.createElement('a');
+    a.href = `/run.html?i=${id}`;
+    document.getElementById('form').appendChild(a);
   }
 });
 
