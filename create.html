@@ -169,7 +169,7 @@ document.getElementById('submit-button').addEventListener('click', async e => {
 
     const uint8Array = await XRPackage.compileRaw(files);
 
-    const p = new XRPackage(Uint8Array.from(uint8Array));
+    const p = new XRPackage(uint8Array);
     await new Promise((accept, reject) => {
       p.addEventListener('load', e => {
         accept();
