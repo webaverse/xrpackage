@@ -124,6 +124,7 @@ header .button:not(:first-child) {
 .grid {
   display: flex;
   /* margin-top: 50px; */
+  justify-content: center;
   flex-wrap: wrap;
 }
 .grid a {
