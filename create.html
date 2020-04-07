@@ -43,6 +43,8 @@
 </header>
 <div class=main>
   <form class=form id=form>
+    <h1>Object name</h1>
+    <input type=text placeholder=name id=object-name-input>
     <h1>Input file</h1>
     <h3>.gltf .glb .vox .vrm .html</h3>
     <input type=file id=input-file>
@@ -184,6 +186,69 @@ document.getElementById('submit-button').addEventListener('click', async e => {
     document.getElementById('form').appendChild(img);
 
     console.log('got data', gifBlob, glbUint8Array);
+
+    const [
+      dataHash,
+      screenshotHash,
+      modelHash,
+    ] = await Promise.all([
+      fetch(`${apiHost}/`, {
+        method: 'PUT',
+        body: uint8Array,
+      })
+        .then(res => res.json())
+        .then(j => j.hash),
+      fetch(`${apiHost}/`, {
+        method: 'PUT',
+        body: p,
+      })
+        .then(res => res.json())
+        .then(j => j.hash),
+      fetch(`${apiHost}/`, {
+        method: 'PUT',
+        body: glbUint8Array,
+      })
+        .then(res => res.json())
+        .then(j => j.hash),
+    ]);
+    const objectNameEl = document.getElementById('object-name-input');
+    const metadataHash = await fetch(`${apiHost}/`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        objectName: objectNameEl.value,
+        dataHash,
+        screenshotHash,
+        modelHash,
+      }),
+    })
+      .then(res => res.json())
+      .then(j => j.hash);
+
+    console.log('minting...');
+    const address = `0x${keystore.addresses[0]}`;
+    const privateKey = await keystore.getPrivateKey();
+    // console.log('got pk', privateKey);
+    // web3.eth.accounts.wallet.add('0x' + Buffer.from(privateKey).toString('hex'));
+    const account = web3.eth.accounts.privateKeyToAccount('0x' + privateKey);
+    web3.eth.accounts.wallet.add(account);
+
+    const nonce = await web3.eth.getTransactionCount(address);
+    const gasPrice = await web3.eth.getGasPrice();
+    // const value = '10000000000000000'; // 0.01 ETH
+
+    const m = contract.methods.mint(1, 'hash', metadataHash);
+    const opts = {
+      gas: 0,
+      from: address,
+      nonce,
+      // value,
+    };
+    o.gas = await m.estimateGas(opts);
+    console.log('sending', opts);
+    /* const receipt = await m.send(opts);
+    const id = parseInt(receipt.events.URI.returnValues[1], 10);
+    console.log(`${tokenHost}/${id}`);
+    console.log(`https://${network}.opensea.io/assets/${contract._address}/${id}`); */
   }
 });
 
@@ -204,7 +269,7 @@ async function exportSeed(ks, password) {
   const p = makePromise();
   ks.keyFromPassword(password, function (err, pwDerivedKey) {
     if (!err) {
-      const seed = keystore.getSeed(pwDerivedKey);
+      const seed = ks.getSeed(pwDerivedKey);
       p.accept(seed);
     } else {
       p.reject(err);
@@ -220,6 +285,18 @@ async function signTx(ks, password, rawTx) {
       console.log('sign tx', ks, pwDerivedKey, rawTx, address, hdPathString);
       const signed = lightwallet.signing.signTx(ks, pwDerivedKey, rawTx, `0x${address}`, hdPathString);
       p.accept(signed);
+    } else {
+      p.reject(err);
+    }
+  });
+  return await p;
+}
+async function getPrivateKey(ks, password) {
+  const p = makePromise();
+  ks.keyFromPassword(password, function (err, pwDerivedKey) {
+    if (!err) {
+      const privateKey = ks.exportPrivateKey(ks.addresses[0], pwDerivedKey);
+      p.accept(privateKey);
     } else {
       p.reject(err);
     }
@@ -258,6 +335,7 @@ const _createKeystore = async (seedPhrase, password) => {
   const ks = await p;
   ks.exportSeed = exportSeed.bind(null, ks, password);
   ks.signTx = signTx.bind(null, ks, password);
+  ks.getPrivateKey = getPrivateKey.bind(null, ks, password);
   return ks;
 };
 const _exportKeyStore = ks => ks.serialize();
@@ -279,6 +357,7 @@ const _importKeyStore = async (s, password) => {
   await p;
   ks.exportSeed = exportSeed.bind(null, ks, password);
   ks.signTx = signTx.bind(null, ks, password);
+  ks.getPrivateKey = getPrivateKey.bind(null, ks, password);
   return ks;
 };
 const _clearWalletClasses = () => {
