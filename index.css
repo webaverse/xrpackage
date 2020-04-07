@@ -1,11 +1,13 @@
 * {
   box-sizing: border-box;
 }
+
 body {
   margin: 0;
   font-family: 'Open Sans';
   font-size: 12px;
 }
+
 header {
   position: fixed;
   display: flex;
@@ -19,10 +21,12 @@ header {
   user-select: none;
   z-index: 1;
 }
+
 header .icon {
   height: 25px;
   margin: 0 10px;
 }
+
 header .nav {
   display: flex;
   height: 100%;
@@ -36,42 +40,47 @@ header .nav {
   text-decoration: none;
   text-transform: uppercase;
 }
+
 header .nav:hover, header .nav.open {
   border-bottom-color: #7986cb;
 }
+
 header .nav i {
   display: inline-block;
   padding: 0 7px;
   padding-top: 2px;
 }
+
 .body {
   background-color: #7986cb;
 }
-.hero,
-.detail
-{
+
+.hero, .detail {
   position: relative;
   display: flex;
   align-items: center;
 }
+
 .hero {
   min-width: 100vw;
   min-height: 100vh;
   padding-top: 50px;
 }
+
 .container {
   display: flex;
   width: 600px;
   margin-left: 100px;
 }
+
 .hero .container h1 {
   padding: 20px 0;
   border-bottom: 2px solid #000;
   font-size: 40px;
   font-weight: 400;
 }
-header .wallet
-{
+
+header .wallet {
   display: flex;
   height: 37px;
   margin-right: 10px;
@@ -80,22 +89,15 @@ header .wallet
   border-radius: 7px;
   align-items: center;
 }
-header .wallet.none,
-header .wallet.import,
-header .wallet.locked,
-header .wallet.unlocked,
-header.builtin .multibutton,
-header.extension .multibutton
-{
+
+header .wallet.none, header .wallet.import, header .wallet.locked, header .wallet.unlocked, header.builtin .multibutton, header.extension .multibutton {
   display: none;
 }
-header.builtin.import .wallet.import,
-header.builtin.locked .wallet.locked,
-header.builtin.unlocked .wallet.unlocked,
-header.builtin:not(.import):not(.locked):not(.unlocked) .wallet.none
-{
+
+header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, header.builtin.unlocked .wallet.unlocked, header.builtin:not(.import):not(.locked):not(.unlocked) .wallet.none {
   display: flex;
 }
+
 header .button {
   display: flex;
   justify-content: center;
@@ -107,31 +109,39 @@ header .button {
   white-space: nowrap;
   cursor: pointer;
 }
+
 header .button:hover {
   background-color: #1e88e5;
-}h
-header .button:active {
+}
+
+h header .button:active {
   transform: translateY(1px);
 }
+
 header .button.secondary {
   background-color: #ef5350;
 }
+
 header .button.secondary:hover {
   background-color: #e53935;
 }
+
 header .button:not(:first-child) {
   margin-left: 10px;
 }
+
 .grid {
   display: flex;
   /* margin-top: 50px; */
   flex-wrap: wrap;
 }
+
 .grid a {
   color: inherit;
   text-decoration: none;
 }
-.grid > .object {
+
+.grid>.object {
   display: flex;
   position: relative;
   flex-direction: column;
@@ -141,27 +151,34 @@ header .button:not(:first-child) {
   overflow: hidden;
   max-height: 480px;
 }
-.grid > .object > img {
+
+.grid>.object>img {
   /* margin-bottom: 10px; */
 }
-.grid > .object .text {
+
+.grid>.object .text {
   display: flex;
   padding: 15px;
   flex-direction: column;
 }
-.grid > .object a {
+
+.grid>.object a {
   display: flex;
 }
-.grid > .object a:hover {
+
+.grid>.object a:hover {
   color: #42a5f5;
 }
-.grid > .object a:active {
+
+.grid>.object a:active {
   color: #1e88e5;
 }
-.grid > .object a span {
+
+.grid>.object a span {
   margin-right: auto;
 }
-.grid > .object input {
+
+.grid>.object input {
   padding: 5px;
   background-color: #EEE;
   border: 1px solid transparent;
@@ -169,14 +186,17 @@ header .button:not(:first-child) {
   font-family: monospace;
   font-size: inherit;
 }
-.grid > .object input:focus {
+
+.grid>.object input:focus {
   border-color: #000;
   background-color: #FFF;
   outline: none;
 }
+
 canvas {
   outline: none;
 }
+
 .popup {
   position: absolute;
   top: 50px;
@@ -186,13 +206,16 @@ canvas {
   box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
   z-index: 1;
 }
+
 .right {
   margin-left: auto;
 }
+
 .multibutton {
-  display: flex;  
+  display: flex;
   margin-right: 10px;
 }
+
 .multibutton .side {
   margin: 0;
   margin-right: 5px;
@@ -202,21 +225,23 @@ canvas {
   color: #42a5f5;
   cursor: pointer;
 }
-.multibutton .side.selected,
-.multibutton .side:hover
-{
+
+.multibutton .side.selected, .multibutton .side:hover {
   background-color: #42a5f5;
   border-color: transparent;
   color: #FFF;
 }
+
 .multibutton .side:first-child {
   border-top-left-radius: 100px;
   border-bottom-left-radius: 100px;
 }
+
 .multibutton .side:last-child {
   border-top-right-radius: 100px;
   border-bottom-right-radius: 100px;
 }
+
 .buttons {
   padding-right: 10px;
   /* display: flex;
@@ -225,6 +250,7 @@ canvas {
   left: 10px;
   z-index: 1; */
 }
+
 .buttons .button {
   display: flex;
   justify-content: center;
@@ -237,11 +263,13 @@ canvas {
   white-space: nowrap;
   cursor: pointer;
 }
+
 .main {
   display: flex;
   padding-top: 50px;
   min-height: 100vh;
 }
+
 .main .sidebar {
   display: flex;
   width: 200px;
@@ -250,59 +278,85 @@ canvas {
   /* box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08); */
   flex-direction: column;
 }
+
 .main .sidebar .sidebarTextInput {
   padding: 5px 10px 5px 10px;
   margin: 5px 0 5px 0;
   border-color: #42a5f5;
   border-radius: 8px;
 }
+
 .main .sidebar .sidebarSetButton {
-    padding: 5px 10px;
-    background-color: #42a5f5;
-    color: #FFF;
-    border-radius: 8px;
-    white-space: nowrap;
-    cursor: pointer;
-    font-size: 13px;
+  padding: 5px 10px;
+  background-color: #42a5f5;
+  color: #FFF;
+  border-radius: 8px;
+  white-space: nowrap;
+  cursor: pointer;
+  font-size: 13px;
 }
+
 .main .sidebar .sidebarSetButton:hover {
   background-color: #1e88e5;
 }
+
+.main .sidebar .sidebarCreateButton {
+  padding: 5px 10px;
+  background-color: #42a5f5;
+  color: #FFF;
+  border-radius: 8px;
+  white-space: nowrap;
+  cursor: pointer;
+  font-size: 13px;
+  margin: 10px;
+}
+
+.main .sidebar .sidebarCreateButton:hover {
+  background-color: #1e88e5;
+}
+
 .main .grid {
   flex: 1;
 }
+
 .main .blocker {
   width: 100%;
   text-align: center;
   padding-top: 20vh;
 }
-.main .blocker h1{
+
+.main .blocker h1 {
   font-size: 15px;
 }
-.main.unlocked .blocker,
-.main:not(.unlocked) .unblocker
-{
+
+.main.unlocked .blocker, .main:not(.unlocked) .unblocker {
   display: none;
 }
+
 .form {
   display: flex;
   padding: 0 10px;
   flex-direction: column;
 }
+
 .card {
-  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-  transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+  transition: all 0.3s cubic-bezier(.25, .8, .25, 1);
 }
+
 .card:hover {
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1), 0 3px 10px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1), 0 3px 10px rgba(0, 0, 0, 0.2);
 }
+
 .cardTitle {
   font-size: 18px;
 }
-.cardCode { 
+
+.cardCode {
   margin-bottom: 5px;
   margin-top: 5px;
 }
+
 .cardAction {
   padding: 5px;
 }
