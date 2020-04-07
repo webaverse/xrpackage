@@ -1,3 +1,5 @@
+import THREE from './three.module.js';
+
 let renderer = null;
 let camera = null;
 const screenshot = (scene, cameraPosition, cameraTarget, options = {}) => {
