@@ -17,12 +17,130 @@
   <a href="/run.html" class="nav">Run</a>
 </header>
 <div class=main>
-  <form class=form>
+  <form class=form id=form>
     <h1>Input file</h1>
     <h3>.gltf .glb .vox .vrm .html</h3>
-    <input type=file>
-    <input type=submit value="Create package">
+    <input type=file id=input-file>
+    <input type=button value="Create package" id=submit-button>
   </form>
 </div>
+<script type=module>
+import {screenshotObject, exportObject} from './screenshot-object.js';
+import {XRPackage} from './xrpackage.js';
+
+let file = null;
+const _handleUpload = f => {
+  file = f;
+};
+const _bindUploadFileButton = (inputFileEl, handleUpload) => {
+  inputFileEl.addEventListener('change', async e => {
+    const {files} = e.target;
+    if (files.length === 1) {
+      const [file] = files;
+      handleUpload(file)
+    }
+
+    const {parentNode} = inputFileEl;
+    const newInputFileEl = inputFileEl.ownerDocument.createElement('input');
+    newInputFileEl.type = 'file';
+    // newInputFileEl.id = 'upload-file-button';
+    // newInputFileEl.style.display = 'none';
+    parentNode.replaceChild(newInputFileEl, inputFileEl);
+    _bindUploadFileButton(newInputFileEl);
+  });
+};
+_bindUploadFileButton(document.getElementById('input-file'), _handleUpload);
+
+document.getElementById('submit-button').addEventListener('click', async e => {
+  if (file) {
+    let fileInput, xrType, xrMain, mimeType;
+    const xrTypeToMimeType = {
+      'gltf@0.0.1': 'model/gltf+json',
+      'vrm@0.0.1': 'application/octet-stream',
+      'vox@0.0.1': 'application/octet-stream',
+      'webxr-site@0.0.1': 'text/html',
+    };
+    const _detectType = input => {
+      if (/\.gltf$/.test(input)) {
+        fileInput = input;
+        xrType = 'gltf@0.0.1';
+        xrMain = fileInput;
+        mimeType = xrTypeToMimeType[xrType];
+      } else if (/\.glb$/.test(input)) {
+        fileInput = input;
+        xrType = 'gltf@0.0.1';
+        xrMain = fileInput;
+        mimeType = xrTypeToMimeType[xrType];
+      } else if (/\.vrm$/.test(input)) {
+        fileInput = input;
+        xrType = 'vrm@0.0.1';
+        xrMain = fileInput;
+        mimeType = xrTypeToMimeType[xrType];
+      } else if (/\.vox$/.test(input)) {
+        fileInput = input;
+        xrType = 'vox@0.0.1';
+        xrMain = fileInput;
+        mimeType = xrTypeToMimeType[xrType];
+      } else if (/\.html$/.test(input)) {
+        fileInput = input;
+        xrType = 'webxr-site@0.0.1';
+        xrMain = fileInput;
+        mimeType = xrTypeToMimeType[xrType];
+      } else {
+        throw new Error('cannot load this file type');
+      }
+    };
+    _detectType(file.name);
+
+    const fileArrayBuffer = await new Promise((accept, reject) => {
+      const fr = new FileReader();
+      fr.onload = () => {
+        accept(fr.result);
+      };
+      fr.onerror = reject;
+      fr.readAsArrayBuffer(file);
+    });
+    const fileUint8Array = new Uint8Array(fileArrayBuffer);
+    // console.log('got data', data.length);
+
+    const files = [
+      {
+        url: '/' + xrMain,
+        type: mimeType,
+        data: fileUint8Array,
+      },
+      {
+        url: '/manifest.json',
+        type: 'application/json',
+        data: JSON.stringify({
+          xr_type: xrType,
+          xr_main: xrMain,
+        }, null, 2),
+      },
+    ];
+
+    const uint8Array = await XRPackage.compileRaw(files);
+
+    const p = new XRPackage(Uint8Array.from(uint8Array));
+    await new Promise((accept, reject) => {
+      p.addEventListener('load', e => {
+        accept();
+      });
+    });
+
+    const o = p.getObject();
+    const gifBlob = await screenshotObject(o);
+    const glbUint8Array = await exportObject(o);
+
+    const img = new Image();
+    const u = URL.createObjectURL(gifBlob);
+    img.src = u;
+    document.getElementById('form').appendChild(img);
+
+    console.log('got data', gifBlob, glbUint8Array);
+  }
+});
+
+</script>
 </body>
 </html>
