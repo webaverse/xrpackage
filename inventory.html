@@ -173,6 +173,12 @@ contractManager.addEventListener('change', async e => {
     main.classList.remove('unlocked');
   }
 });
+contractManager.addEventListener('error', async e => {
+  const error = e.data;
+  const h1 = document.createElement('h1');
+  h1.innerText = error.message;
+  document.getElementById('main').appendChild(h1);
+});
 
 </script>
 </body>
