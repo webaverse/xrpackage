@@ -1,6 +1,7 @@
 <!doctype html>
 <html>
 <head>
+<title>xrpackage | create</title>
 <link href="index.css" rel=stylesheet>
 <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700&display=swap" rel="stylesheet">
 <script src="https://kit.fontawesome.com/0735724151.js" crossorigin="anonymous"></script>
@@ -49,11 +50,11 @@
   </section>
   <form class="form unblocker" id=form>
     <h1>Object name</h1>
-    <input type=text placeholder=name id=object-name-input>
+    <input type=text placeholder=name id=object-name-input class="sidebarTextInput">
     <h1>Input file</h1>
     <h3>.gltf .glb .vox .vrm .html</h3>
     <input type=file id=input-file>
-    <input type=button value="Create package" id=submit-button>
+    <input type=button value="Create package" id=submit-button class="sidebarCreateButton">
   </form>
 </div>
 <script type=module>
