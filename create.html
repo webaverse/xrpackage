@@ -200,7 +200,7 @@ document.getElementById('submit-button').addEventListener('click', async e => {
         .then(j => j.hash),
       fetch(`${apiHost}/`, {
         method: 'PUT',
-        body: p,
+        body: gifBlob,
       })
         .then(res => res.json())
         .then(j => j.hash),
