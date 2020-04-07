@@ -1,11 +1,12 @@
 <html>
+
 <body>
-<script type=module>
+  <script type=module>
 import THREE from './three.module.js';
 window.THREE = THREE;
 </script>
-<h1 id=text>Screenshotting...</h1>
-<script type=module>
+  <h1 id=text>Screenshotting...</h1>
+  <script type=module>
 import {screenshotObject, exportObject} from './screenshot-object.js';
 import {XRPackage} from './xrpackage.js';
 
@@ -54,4 +55,5 @@ document.getElementById('text').innerText = 'Done. You can close this tab.';
 })();
 </script>
 </body>
+
 </html>

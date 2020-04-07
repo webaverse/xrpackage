@@ -300,7 +300,15 @@ canvas {
   background-color: #1e88e5;
 }
 
-.main .sidebar .sidebarCreateButton {
+.main .createForm .sidebarTextInput {
+  padding: 5px 10px 5px 10px;
+  margin: 5px 0 5px 0;
+  border-color: #42a5f5;
+  border-radius: 8px;
+  width: 100%;
+}
+
+.main .createForm .sidebarCreateButton {
   padding: 5px 10px;
   background-color: #42a5f5;
   color: #FFF;
@@ -308,11 +316,22 @@ canvas {
   white-space: nowrap;
   cursor: pointer;
   font-size: 13px;
-  margin: 10px;
+  margin-top: 30px;
+  width: 100%;
 }
 
-.main .sidebar .sidebarCreateButton:hover {
+.main .createForm .sidebarCreateButton:hover {
   background-color: #1e88e5;
+}
+
+.main #formContainer {
+  width: 100%;
+}
+
+.main .createForm {
+  width: 80%;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 .main .grid {
