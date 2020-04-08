@@ -88,7 +88,7 @@ extensionWalletButton.addEventListener('click', async e => {
     web3 = new window.Web3(window.ethereum);
     try {
       // Request account access if needed
-      await window.ethereum.enable();
+      const accounts = await window.ethereum.enable();
       // Acccounts now exposed
       // web3.eth.sendTransaction({/* ... */});
 
@@ -137,7 +137,7 @@ extensionWalletButton.addEventListener('click', async e => {
           contractManager.dispatchEvent(new MessageEvent('change', {
             data: {
               contract,
-              address: web3.eth.accounts[0],
+              address: accounts[0],
             },
           }));
         } else {
