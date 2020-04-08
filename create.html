@@ -55,7 +55,11 @@
         <h1>Input file</h1>
         <h3>.gltf .glb .vox .vrm .html</h3>
         <input type=file id=input-file style="width: 100%;">
-        <input type=button value="Create package" id=submit-button class="sidebarCreateButton">
+        <nav id=submit-button class="sidebarCreateButton">Create package</nav>
+        <nav class=sidebarProgressButton>
+          <i class="fa fa-spinner-third"></i>
+          <!-- <div class="lds-ring"><div></div><div></div><div></div><div></div></div> -->
+        </nav>
       </div>
     </form>
   </div>
@@ -114,6 +118,9 @@ _bindUploadFileButton(document.getElementById('input-file'), _handleUpload);
 
 document.getElementById('submit-button').addEventListener('click', async e => {
   if (file) {
+    const main = document.getElementById('main');
+    main.classList.add('minting');
+
     let fileInput, xrType, xrMain, mimeType;
     const xrTypeToMimeType = {
       'gltf@0.0.1': 'model/gltf+json',
@@ -247,6 +254,8 @@ document.getElementById('submit-button').addEventListener('click', async e => {
     const a = document.createElement('a');
     a.href = `/run.html?i=${id}`;
     document.getElementById('form').appendChild(a);
+
+    main.classList.remove('minting');
   }
 });
 

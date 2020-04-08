@@ -2,6 +2,47 @@
   box-sizing: border-box;
 }
 
+/* .lds-ring {
+  display: inline-block;
+  position: relative;
+  width: 30px;
+  height: 30px;
+}
+.lds-ring div {
+  box-sizing: border-box;
+  display: block;
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  margin: 3px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  border-color: #fff transparent transparent transparent;
+}
+.lds-ring div:nth-child(1) {
+  animation-delay: -0.45s;
+}
+.lds-ring div:nth-child(2) {
+  animation-delay: -0.3s;
+}
+.lds-ring div:nth-child(3) {
+  animation-delay: -0.15s;
+}
+@keyframes lds-ring {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+} */
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 body {
   margin: 0;
   font-family: 'Open Sans';
@@ -277,20 +318,37 @@ canvas {
   width: 100%;
 }
 
-.main .createForm .sidebarCreateButton {
-  padding: 5px 10px;
+.main .createForm .sidebarCreateButton,
+.main .createForm .sidebarProgressButton
+{
+  padding: 0 10px;
+  display: flex;
+  height: 32px;
   background-color: #42a5f5;
   color: #FFF;
   border-radius: 8px;
   white-space: nowrap;
-  cursor: pointer;
   font-size: 13px;
   margin-top: 30px;
   width: 100%;
+  align-items: center;
 }
 
 .main .createForm .sidebarCreateButton:hover {
   background-color: #1e88e5;
+  cursor: pointer;
+}
+
+.main.minting .createForm .sidebarCreateButton,
+.main:not(.minting) .createForm .sidebarProgressButton
+{
+  display: none;
+}
+
+.main .createForm .sidebarProgressButton i {
+  font-size: 18px;
+  line-height: 1;
+  animation: spin 1s linear infinite;
 }
 
 .main #formContainer {
