@@ -130,7 +130,16 @@ extensionWalletButton.addEventListener('click', async e => {
                   web3.eth.getTransactionReceipt(txHash, (error, result) => {
                     if (!error) {
                       if (result !== null) {
-                        accept(result);
+                        contract.doCall('getNonce').then(nonce => {
+                          accept({
+                            events: {
+                              URI: {
+                                returnValues: [null, nonce],
+                              },
+                            },
+                          });
+                        }).catch(reject);
+                        // accept(result);
                       } else {
                         setTimeout(_recurse, 1000);
                       }
