@@ -50,6 +50,7 @@
     </section>
     <form class="createForm form unblocker" id=form>
       <div class="formContainer">
+        <p>Wallet: <span id=wallet-address></span></p>
         <h1>Object name</h1>
         <input type=text placeholder=name id=object-name-input class="sidebarTextInput">
         <h1>Input file</h1>
@@ -279,6 +280,8 @@ contractManager.addEventListener('change', async e => {
   const main = document.getElementById('main');
   if (contract) {
     main.classList.add('unlocked');
+
+    document.getElementById('wallet-address').innerText = address;
   } else {
     main.classList.remove('unlocked');
   }
