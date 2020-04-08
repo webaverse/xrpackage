@@ -124,13 +124,20 @@ extensionWalletButton.addEventListener('click', async e => {
                 this[method].apply(contract, args);
               });
               const receipt = await new Promise((accept, reject) => {
-                web3.eth.getTransactionReceipt(txHash, (error, result) => {
-                  if (!error) {
-                    accept(result);
-                  } else {
-                    reject(error);
-                  }
-                });
+                const _recurse = () => {
+                  web3.eth.getTransactionReceipt(txHash, (error, result) => {
+                    if (!error) {
+                      if (result !== null) {
+                        accept(result);
+                      } else {
+                        setTimeout(_recurse, 1000);
+                      }
+                    } else {
+                      reject(error);
+                    }
+                  });
+                };
+                _recurse();
               });
               return receipt;
             };
