@@ -61,6 +61,7 @@
           <i class="fa fa-spinner-third"></i>
           <!-- <div class="lds-ring"><div></div><div></div><div></div><div></div></div> -->
         </nav>
+        <div class=error id=file-error></div>
       </div>
     </form>
   </div>
@@ -119,11 +120,8 @@ const _bindUploadFileButton = (inputFileEl, handleUpload) => {
 };
 _bindUploadFileButton(document.getElementById('input-file'), _handleUpload);
 
-document.getElementById('submit-button').addEventListener('click', async e => {
+const _mintFile = async () => {
   if (file) {
-    const main = document.getElementById('main');
-    main.classList.add('minting');
-
     let fileInput, xrType, xrMain, mimeType;
     const xrTypeToMimeType = {
       'gltf@0.0.1': 'model/gltf+json',
@@ -257,9 +255,19 @@ document.getElementById('submit-button').addEventListener('click', async e => {
     const a = document.createElement('a');
     a.href = `/run.html?i=${id}`;
     document.getElementById('form').appendChild(a);
-
-    main.classList.remove('minting');
   }
+};
+document.getElementById('submit-button').addEventListener('click', async e => {
+  const main = document.getElementById('main');
+  main.classList.add('minting');
+
+  try {
+    await _mintFile();
+  } catch(err) {
+    document.getElementById('file-error').innerText = err.stack;
+  }
+
+  main.classList.remove('minting');
 });
 
 contractManager.addEventListener('change', async e => {
