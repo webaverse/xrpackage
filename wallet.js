@@ -114,14 +114,16 @@ extensionWalletButton.addEventListener('click', async e => {
             };
             contract.doSend = async function (method, ...args) {
               const txHash = await new Promise((accept, reject) => {
-                args.push((error, result) => {
+                args.push({
+                  from: accounts[0],
+                }, (error, result) => {
                   if (!error) {
                     accept(result);
                   } else {
                     reject(error);
                   }
                 });
-                this[method].apply(contract, args);
+                this[method].sendTransaction.apply(this[method], args);
               });
               const receipt = await new Promise((accept, reject) => {
                 const _recurse = () => {
