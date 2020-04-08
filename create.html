@@ -255,6 +255,7 @@ const _mintFile = async () => {
 
     const a = document.createElement('a');
     a.href = `/run.html?i=${id}`;
+    a.innerText = `Run new token ${id}`;
     document.getElementById('form').appendChild(a);
   }
 };
