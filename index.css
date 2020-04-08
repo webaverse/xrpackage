@@ -298,7 +298,9 @@ canvas {
   align-items: center;
 }
 
-.main .createForm .sidebarCreateButton:hover {
+.main .createForm .sidebarCreateButton:hover,
+.main .createForm .sidebarProgressButton:hover
+{
   background-color: #1e88e5;
   cursor: pointer;
 }
@@ -307,6 +309,12 @@ canvas {
 .main:not(.minting) .createForm .sidebarProgressButton
 {
   display: none;
+}
+
+.main .createForm .sidebarCreateButton,
+.main .createForm .sidebarProgressButton
+{
+  justify-content: center;
 }
 
 .main .createForm .sidebarProgressButton i {
