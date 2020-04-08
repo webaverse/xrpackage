@@ -35,7 +35,9 @@ const extensionWalletButton = document.getElementById('extension-wallet-button')
 builtinWalletButton.addEventListener('click', async e => {
   // builtinWalletButton.classList.add('selected');
   // extensionWalletButton.classList.remove('selected');
-  document.getElementById('header').classList.add('builtin');
+  const header = document.getElementById('header');
+  header.classList.add('unlocking');
+  header.classList.add('builtin');
 
   await Promise.all([
     `https://rawcdn.githack.com/ethereum/web3.js/a6ddec59e65116853435f203b25cb9c55824d084/dist/web3.min.js`,
@@ -78,7 +80,9 @@ builtinWalletButton.addEventListener('click', async e => {
 extensionWalletButton.addEventListener('click', async e => {
   // builtinWalletButton.classList.remove('selected');
   // extensionWalletButton.classList.add('selected');
-  document.getElementById('header').classList.add('extension');
+  const header = document.getElementById('header');
+  header.classList.add('unlocking');
+  header.classList.add('extension');
 
   if (window.ethereum) {
     web3 = new window.Web3(window.ethereum);

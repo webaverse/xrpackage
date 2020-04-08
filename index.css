@@ -90,7 +90,7 @@ header .wallet {
   align-items: center;
 }
 
-header .wallet.none, header .wallet.import, header .wallet.locked, header .wallet.unlocked, header.builtin .multibutton, header.extension .multibutton {
+header .wallet.none, header .wallet.import, header .wallet.locked, header .wallet.unlocked, header.builtin .blocker .button, header.extension .blocker .button {
   display: none;
 }
 
@@ -211,37 +211,6 @@ canvas {
   margin-left: auto;
 }
 
-.multibutton {
-  display: flex;
-  margin-right: 10px;
-}
-
-.multibutton .side {
-  margin: 0;
-  margin-right: 5px;
-  padding: 5px 10px;
-  border: 2px solid currentColor;
-  border-radius: 0;
-  color: #42a5f5;
-  cursor: pointer;
-}
-
-.multibutton .side.selected, .multibutton .side:hover {
-  background-color: #42a5f5;
-  border-color: transparent;
-  color: #FFF;
-}
-
-.multibutton .side:first-child {
-  border-top-left-radius: 100px;
-  border-bottom-left-radius: 100px;
-}
-
-.multibutton .side:last-child {
-  border-top-right-radius: 100px;
-  border-bottom-right-radius: 100px;
-}
-
 .buttons {
   padding-right: 10px;
   /* display: flex;
@@ -333,23 +302,75 @@ canvas {
   max-width: 600px;
   margin: 0 auto;
 }
+.main .createForm input[type=file] {
+  width: 100%;
+}
 
 .main .grid {
   flex: 1;
 }
 
 .main .blocker {
-  width: 100%;
-  text-align: center;
+  display: flex;
+  width: 300px;
+  margin: 0 auto;
   padding-top: 20vh;
+  font-size: 50px;
+  flex-direction: column;
 }
 
 .main .blocker h1 {
   font-size: 15px;
 }
 
-.main.unlocked .blocker, .main:not(.unlocked) .unblocker {
+.main .blocker > i,
+.main .blocker > h1
+{
+  margin: 0 auto;
+  margin-bottom: 15px;
+}
+.main .blocker > i {
+  font-size: 50px;
+}
+
+.main.unlocked .blocker,
+.main:not(.unlocked) .unblocker,
+header.unlocking + .main .blocker .button
+{
   display: none;
+}
+
+.main .blocker .button {
+  display: flex;
+  margin-bottom: 5px;
+  padding: 5px 10px;
+  border: 2px solid;
+  border-radius: 100px; 
+  font-size: 13px;
+  align-items: center;
+  cursor: pointer;
+}
+
+.main .blocker .button:hover {
+  background-color: #000;
+  border-color: transparent;
+  color: #FFF;
+}
+
+.main .blocker .button i,
+.main .blocker .button img
+{
+  margin-right: 5px;
+}
+
+.main .blocker .button i {
+  font-size: 24px;
+  line-height: 30px;
+}
+
+.main .blocker img {
+  width: 30px;
+  height: 30px;
 }
 
 .form {
