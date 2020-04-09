@@ -10,6 +10,7 @@ const read = require('read');
 const mkdirp = require('mkdirp');
 const yargs = require('yargs');
 const fetch = require('node-fetch');
+const mime = require('mime');
 const wbn = require('wbn');
 const ethereumjs = {
   Tx: require('ethereumjs-tx').Transaction,
@@ -499,7 +500,7 @@ yargs
       argv.output = 'a.wbn';
     }
 
-    let fileInput, xrType, mimeType;
+    let fileInput, xrType, mimeType, directory;
     const xrTypeToMimeType = {
       'gltf@0.0.1': 'model/gltf+json',
       'vrm@0.0.1': 'application/octet-stream',
@@ -512,26 +513,31 @@ yargs
         xrType = 'gltf@0.0.1';
         xrMain = path.basename(fileInput);
         mimeType = xrTypeToMimeType[xrType];
+        directory = null;
       } else if (/\.glb$/.test(input)) {
         fileInput = input;
         xrType = 'gltf@0.0.1';
         xrMain = path.basename(fileInput);
         mimeType = xrTypeToMimeType[xrType];
+        directory = null;
       } else if (/\.vrm$/.test(input)) {
         fileInput = input;
         xrType = 'vrm@0.0.1';
         xrMain = path.basename(fileInput);
         mimeType = xrTypeToMimeType[xrType];
+        directory = null;
       } else if (/\.vox$/.test(input)) {
         fileInput = input;
         xrType = 'vox@0.0.1';
         xrMain = path.basename(fileInput);
         mimeType = xrTypeToMimeType[xrType];
+        directory = null;
       } else if (/\.html$/.test(input)) {
         fileInput = input;
         xrType = 'webxr-site@0.0.1';
         xrMain = path.basename(fileInput);
         mimeType = xrTypeToMimeType[xrType];
+        directory = null;
       } else if (/\.json$/.test(input)) {
         const s = fs.readFileSync(input);
         const j = JSON.parse(s);
@@ -540,6 +546,7 @@ yargs
           xrMain = j.xr_main;
           mimeType = xrTypeToMimeType[xrType];
           fileInput = path.join(path.dirname(input), xrMain);
+          directory = path.dirname(input);
         } else {
           throw new Error(`manifest.json missing xr_type: ${input}`);
         }
@@ -572,6 +579,38 @@ yargs
         }, null, 2),
       },
     ];
+    if (directory) {
+      const _readdirRecursive = rootDirectory => {
+        const result = [];
+        const _recurse = d => {
+          const filenames = fs.readdirSync(d);
+          for (let i = 0; i < filenames.length; i++) {
+            const filename = path.join(d, filenames[i]);
+            const stats = fs.lstatSync(filename);
+            if (stats.isFile()) {
+              result.push(filename.slice(rootDirectory.length));
+            } else if (stats.isDirectory()) {
+              _recurse(filename);
+            }
+          }
+        };
+        _recurse(rootDirectory);
+        return result;
+      };
+      const filenames = _readdirRecursive(directory);
+      for (let i = 0; i < filenames.length; i++) {
+        const f = filenames[i];
+        if (!files.some(({url}) => url === f)) {
+          const type = mime.getType(f);
+          const data = fs.readFileSync(path.join(directory, f));
+          files.push({
+            url: f,
+            type,
+            data,
+          });
+        }
+      }
+    }
 
     const primaryUrl = `https://xrpackage.org`;
     const builder = (new wbn.BundleBuilder(primaryUrl + '/' + xrMain))
