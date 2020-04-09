@@ -24,7 +24,6 @@
     "bignumber.js": "^9.0.0",
     "eth-lightwallet": "^4.0.0",
     "ethereumjs-tx": "^2.1.2",
-    "ethereumjs-util": "^6.2.0",
     "express": "^4.17.1",
     "mime": "^2.4.4",
     "mkdirp": "^1.0.4",
