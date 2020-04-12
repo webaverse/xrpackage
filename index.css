@@ -56,9 +56,30 @@ header .nav i {
   padding-top: 2px;
 }
 
+.pagination {
+  display: none;
+  margin-bottom: 25px;
+  justify-content: center;
+}
+
+.pagination-control {
+  display: flex;
+  position: relative;
+  flex-direction: column;
+  margin: 0 10px 0 10px;
+  cursor: pointer;
+}
+
 .header-gap {
   margin-top: 50px;
 }
+
+.loader {
+  text-align: center;
+  margin-top: 100px;
+  font-size: 2em;
+}
+
 .body {
   background-color: #7986cb;
 }
@@ -381,7 +402,7 @@ header.unlocking + .main .blocker .button
   margin-bottom: 5px;
   padding: 5px 10px;
   border: 2px solid;
-  border-radius: 100px; 
+  border-radius: 100px;
   font-size: 13px;
   align-items: center;
   cursor: pointer;

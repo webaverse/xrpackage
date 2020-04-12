@@ -22,8 +22,21 @@
     <a href="/run.html" class="nav">Run</a>
   </header>
 
+  <div class=loader id=loader>
+    <h1>Loading...</h1>
+  </div>
+
   <div class=main>
     <section class=grid id=grid></section>
+  </div>
+
+  <div class="pagination buttons" id=pagination>
+    <div class="button pagination-control" id=first>First</div>
+    <div class="button pagination-control" id=prev>Prev</div>
+
+    <div class="page-display pagination-control" id=pageNumEl>1</div>
+    <div class="button pagination-control" id=next>Next</div>
+    <div class="button pagination-control" id=last>Last</div>
   </div>
 
   <!-- <script src="https://kit.fontawesome.com/0735724151.js"></script> -->
@@ -40,6 +53,11 @@ const web3 = new Web3(new Web3.providers.HttpProvider(rpcUrl));
 // window.web3 = web3;
 const contract = new web3.eth.Contract(abi, address);
 
+let currentPage = 0;
+const resultsPerPage = 10;
+let pageResults = [];
+const pkgResults = [];
+
 function makePromise() {
   let accept, reject;
   const p = new Promise((a, r) => {
@@ -49,6 +67,55 @@ function makePromise() {
   p.accept = accept;
   p.reject = reject;
   return p;
+}
+
+function drawGrid() {
+  grid.style.display = 'none';
+  loader.style.display = 'block';
+  grid.innerHTML = '';
+  for (let i = 0; i < pageResults.length; i++) {
+    const {index, name, img, metadataHash, dataHash, modelHash} = pageResults[i];
+    const div = document.createElement('div');
+    div.classList.add('object');
+    div.classList.add('card');
+    div.innerHTML = `\
+      <a href="/run.html?i=${i}">
+        <img src="${img}" width=256 height=256>
+      </a>
+      <div class=text>
+        <div class="name cardTitle">${name}</div>
+        <input type=text value="xrpk install ${index}" readonly class="cardCode">
+        <a href="/run.html?i=${i}" class="cardAction"><span>Run</span><i class="fa fa-chevron-right"></i></a>
+        <a href="https://cryptopolys.com/create.html?o=${encodeURIComponent(metadataHash)}" class="cardAction"><span>Edit</span><i class="fa fa-chevron-right"></i></a>
+        <a href="https://ipfs.exokit.org/ipfs/${dataHash}.wbn" class="cardAction"><span>Download package</span><i class="fa fa-chevron-right"></i></a>
+        <a href="https://ipfs.exokit.org/ipfs/${modelHash}.glb" class="cardAction"><span>Download model</span><i class="fa fa-chevron-right"></i></a>
+        <a href="https://${network}.opensea.io/assets/${address}/${index}" class="cardAction"><span>Opensea</span><i class="fa fa-chevron-right"></i></a>
+      </div>
+    `;
+    const input = div.querySelector('input');
+    input.addEventListener('click', e => {
+      input.select();
+    });
+    grid.appendChild(div);
+  }
+
+  loader.style.display = 'none';
+  grid.style.display = 'flex';
+}
+
+function setCurrentPage(pageNum) {
+  const totalPages = Math.ceil(pkgResults.length / resultsPerPage);
+  if (pageNum >= totalPages) pageNum = totalPages - 1;
+  if (pageNum < 0) pageNum = 0;
+  currentPage = pageNum;
+  let startIndex = (pageNum * resultsPerPage) - 1;
+  if (startIndex < 1) startIndex = 0
+  let endIndex = startIndex + resultsPerPage;
+  if (endIndex > pkgResults.length) endIndex = -1;
+  pageResults = pkgResults.slice(startIndex, endIndex);
+  pageNumEl.innerHTML = `Page ${currentPage + 1}/${totalPages}`;
+  pagination.style.display = 'flex';
+  drawGrid();
 }
 
 // contract.init();
@@ -78,29 +145,33 @@ const gridEl = document.getElementById('grid');
         img.onerror = reject;
       }),
     ]); */
-    const div = document.createElement('div');
-    div.classList.add('object');
-    div.classList.add('card');
-    div.innerHTML = `\
-      <a href="/run.html?i=${i}">
-        <img src="${apiHost}/${screenshotHash}" width=256 height=256>
-      </a>
-      <div class=text>
-        <div class="name cardTitle">${metadata.objectName}</div>
-        <input type=text value="xrpk install ${i}" readonly class="cardCode">
-        <a href="/run.html?i=${i}" class="cardAction"><span>Run</span><i class="fa fa-chevron-right"></i></a>
-        <a href="https://cryptopolys.com/create.html?o=${encodeURIComponent(metadataHash)}" class="cardAction"><span>Edit</span><i class="fa fa-chevron-right"></i></a>
-        <a href="https://ipfs.exokit.org/ipfs/${dataHash}.wbn" class="cardAction"><span>Download package</span><i class="fa fa-chevron-right"></i></a>
-        <a href="https://ipfs.exokit.org/ipfs/${modelHash}.glb" class="cardAction"><span>Download model</span><i class="fa fa-chevron-right"></i></a>
-        <a href="https://${network}.opensea.io/assets/${address}/${i}" class="cardAction"><span>Opensea</span><i class="fa fa-chevron-right"></i></a>
-      </div>
-    `;
-    const input = div.querySelector('input');
-    input.addEventListener('click', e => {
-      input.select();
+    pkgResults.push({
+      index: i,
+      name: metadata.objectName,
+      img: `${apiHost}/${screenshotHash}`,
+      metadataHash: metadataHash,
+      dataHash: dataHash,
+      modelHash: modelHash
     });
-    grid.appendChild(div);
   }
+
+  setCurrentPage(currentPage);
+
+  prev.addEventListener('click', e => {
+    setCurrentPage(currentPage - 1)
+  });
+
+  next.addEventListener('click', e => {
+    setCurrentPage(currentPage + 1)
+  });
+
+  first.addEventListener('click', e => {
+    setCurrentPage(0)
+  });
+
+  last.addEventListener('click', e => {
+    setCurrentPage(pkgResults.length)
+  });
 })();
 
 </script>
