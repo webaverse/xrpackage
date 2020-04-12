@@ -56,6 +56,9 @@ header .nav i {
   padding-top: 2px;
 }
 
+.header-gap {
+  margin-top: 50px;
+}
 .body {
   background-color: #7986cb;
 }
