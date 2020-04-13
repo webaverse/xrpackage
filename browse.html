@@ -101,8 +101,9 @@ async function setCurrentPage(pageNum) {
   if (pageNum < 0) pageNum = 0;
 
   let startIndex = pageNum * resultsPerPage;
+  let endIndex = (startIndex + resultsPerPage);
   if (!startIndex) startIndex = 1
-  let endIndex = (startIndex + resultsPerPage) - 1;
+  else startIndex += 1
   if (endIndex >= totalObjects) endIndex = totalObjects;
   currentPage = pageNum;
 
