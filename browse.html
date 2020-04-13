@@ -146,9 +146,9 @@ async function getObjectByIndex(index) {
 
 const gridEl = document.getElementById('grid');
 (async () => {
-  let nonce = await contract.methods.getNonce().call();
-  nonce, totalObjects = parseInt(nonce, 10);
-  totalPages = Math.ceil(nonce / resultsPerPage);
+  totalObjects = await contract.methods.getNonce().call();
+  totalObjects = parseInt(totalObjects, 10);
+  totalPages = Math.ceil(totalObjects / resultsPerPage);
 
   for (let i = 1; i <= resultsPerPage; i++) {
     let object = await getObjectByIndex(i);
