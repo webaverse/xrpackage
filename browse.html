@@ -102,8 +102,8 @@ async function setCurrentPage(pageNum) {
 
   let startIndex = pageNum * resultsPerPage;
   if (!startIndex) startIndex = 1
-  let endIndex = startIndex + resultsPerPage;
-  if (endIndex > totalObjects) endIndex = totalObjects;
+  let endIndex = (startIndex + resultsPerPage) - 1;
+  if (endIndex >= totalObjects) endIndex = totalObjects;
   currentPage = pageNum;
 
   grid.style.display = 'none';
