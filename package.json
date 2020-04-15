@@ -1,6 +1,6 @@
 {
-  "name": "xrpk",
-  "version": "0.0.19",
+  "name": "xrpk-core",
+  "version": "0.0.1",
   "description": "",
   "main": "cli.js",
   "scripts": {
