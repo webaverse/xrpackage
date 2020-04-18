@@ -79,7 +79,7 @@ document.getElementById('text').innerText = 'Done. You can close this tab.';
 
 })().catch(err => {
   console.warn(err.stack);
-  document.getElementById('text').innerText = 'Error';
+  document.getElementById('text').innerText = 'Error screenshotting. You can close this tab.';
   document.getElementById('error').innerText = err.stack;
 });
 </script>
