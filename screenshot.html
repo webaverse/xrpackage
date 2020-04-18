@@ -52,7 +52,9 @@ const data = await exportObject(o);
 
 document.getElementById('text').innerText = 'Done. You can close this tab.';
 
-})();
+})().catch(err => {
+  console.warn(err.stack);
+});
 </script>
 </body>
 
