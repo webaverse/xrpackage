@@ -822,7 +822,7 @@ export class XRPackage extends EventTarget {
           throw new Error(`unknown xr_type: ${xrType}`);
         }
       } else {
-        throw new Error('could not find xr_type string in manifest.json');
+        throw new Error('could not find xr_type and start_url in manifest.json');
       }
     } else {
       throw new Error('no manifest.json in pack');
