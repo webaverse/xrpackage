@@ -798,15 +798,15 @@ export class XRPackage extends EventTarget {
     if (manifestJsonFile) {
       const s = manifestJsonFile.response.body.toString('utf-8');
       const j = JSON.parse(s);
-      if (j && typeof j.xr_type === 'string' && typeof j.xr_main === 'string') {
+      if (j && typeof j.xr_type === 'string' && typeof j.start_url === 'string') {
         const {
           xr_type: xrType,
-          xr_main: xrMain,
+          start_url: startUrl,
         } = j;
         const loader = xrTypeLoaders[xrType];
         if (loader) {
           this.type = xrType;
-          this.main = xrMain;
+          this.main = startUrl;
 
           loader(this)
             .then(o => {
@@ -853,7 +853,7 @@ export class XRPackage extends EventTarget {
             type: 'application/json',
             data: JSON.stringify({
               xr_type: xrType,
-              xr_main: xrMain,
+              start_url: startUrl,
             }, null, 2),
           }
         ]
@@ -875,11 +875,11 @@ export class XRPackage extends EventTarget {
   static compileRaw(files) {
     const manifestFile = files.find(file => file.url === '/manifest.json');
     const j = JSON.parse(manifestFile.data);
-    const {xr_main: xrMain} = j;
+    const {start_url: startUrl} = j;
 
     const primaryUrl = `https://xrpackage.org`;
     // const manifestUrl = primaryUrl + '/manifest.json';
-    const builder = (new wbn.BundleBuilder(primaryUrl + '/' + xrMain))
+    const builder = (new wbn.BundleBuilder(primaryUrl + '/' + startUrl))
       // .setManifestURL(manifestUrl);
     for (let i = 0; i < files.length; i++) {
       const file = files[i];

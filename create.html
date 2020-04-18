@@ -123,7 +123,7 @@ _bindUploadFileButton(document.getElementById('input-file'), _handleUpload);
 
 const _mintFile = async () => {
   if (file) {
-    let fileInput, xrType, xrMain, mimeType;
+    let fileInput, xrType, startUrl, mimeType;
     const xrTypeToMimeType = {
       'gltf@0.0.1': 'model/gltf+json',
       'vrm@0.0.1': 'application/octet-stream',
@@ -134,27 +134,27 @@ const _mintFile = async () => {
       if (/\.gltf$/.test(input)) {
         fileInput = input;
         xrType = 'gltf@0.0.1';
-        xrMain = fileInput;
+        startUrl = fileInput;
         mimeType = xrTypeToMimeType[xrType];
       } else if (/\.glb$/.test(input)) {
         fileInput = input;
         xrType = 'gltf@0.0.1';
-        xrMain = fileInput;
+        startUrl = fileInput;
         mimeType = xrTypeToMimeType[xrType];
       } else if (/\.vrm$/.test(input)) {
         fileInput = input;
         xrType = 'vrm@0.0.1';
-        xrMain = fileInput;
+        startUrl = fileInput;
         mimeType = xrTypeToMimeType[xrType];
       } else if (/\.vox$/.test(input)) {
         fileInput = input;
         xrType = 'vox@0.0.1';
-        xrMain = fileInput;
+        startUrl = fileInput;
         mimeType = xrTypeToMimeType[xrType];
       } else if (/\.html$/.test(input)) {
         fileInput = input;
         xrType = 'webxr-site@0.0.1';
-        xrMain = fileInput;
+        startUrl = fileInput;
         mimeType = xrTypeToMimeType[xrType];
       } else {
         throw new Error('cannot load this file type');
@@ -175,7 +175,7 @@ const _mintFile = async () => {
 
     const files = [
       {
-        url: '/' + xrMain,
+        url: '/' + startUrl,
         type: mimeType,
         data: fileUint8Array,
       },
@@ -184,7 +184,7 @@ const _mintFile = async () => {
         type: 'application/json',
         data: JSON.stringify({
           xr_type: xrType,
-          xr_main: xrMain,
+          start_url: startUrl,
         }, null, 2),
       },
     ];
