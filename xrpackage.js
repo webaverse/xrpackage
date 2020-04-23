@@ -853,7 +853,7 @@ export class XRPackage extends EventTarget {
             type: 'application/json',
             data: JSON.stringify({
               xr_type: xrType,
-              start_url: startUrl,
+              start_url: file.name,
             }, null, 2),
           }
         ]
