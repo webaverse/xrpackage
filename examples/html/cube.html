@@ -5,29 +5,29 @@
 body {
   margin: 0;
 }
-.buttons {
+/* .buttons {
   display: flex;
   position: absolute;
   right: 30px;
   bottom: 30px;
-}
+} */
 </style>
 </head>
 <body>
-<div class=buttons>
+<!-- <div class=buttons>
   <input type=button id=enter-vr-button value="Enter XR">
-</div>
+</div> -->
+<canvas id=canvas></canvas>
 <script type=module>
 import * as THREE from './three.module.js';
 
-console.log('listening');
-window.xrpackage.addEventListener('load', e => {
+console.log('cube listen');
+navigator.xr.addEventListener('sessiongranted', e => {
+console.log('cube got session granted', e);
 
-const {canvas, context, session} = e.data;
-
+const canvas = document.getElementById('canvas');
 const renderer = new THREE.WebGLRenderer({
   canvas,
-  context,
 });
 renderer.autoClear = false;
 renderer.sortObjects = false;
@@ -90,17 +90,12 @@ function onSessionEnded() {
 
   currentSession = null;
 }
-onSessionStarted(session);
-/* if (currentSession === null) {
-  navigator.xr.requestSession('immersive-vr', {
-    optionalFeatures: [
-      'local-floor',
-      'bounded-floor',
-    ],
-  }).then(onSessionStarted);
-} else {
-  currentSession.end();
-} */
+navigator.xr.requestSession('immersive-vr', {
+  optionalFeatures: [
+    'local-floor',
+    'bounded-floor',
+  ],
+}).then(onSessionStarted);
 
 });
 </script>

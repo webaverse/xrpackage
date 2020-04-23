@@ -32,6 +32,7 @@ class XRPackageManager extends EventTarget {
     this.listenedLoad = false;
   }
   async iframeInit({engine, indexHtml, canvas, context, xrState}) {
+    console.log('iframe init');
     document.open();
     document.write(indexHtml);
     document.close();
@@ -58,6 +59,19 @@ class XRPackageManager extends EventTarget {
     delete Navigator.prototype.xr;
     window.navigator.xr = new XR.XR(window);
     window.navigator.xr.onrequestpresent = () => ({session: this.session});
+    const self = this;
+    window.navigator.xr.addEventListener = (_addEventListener => function addEventListener(e, fn, opts) {
+      _addEventListener.apply(this, arguments);
+
+      if (e === 'sessiongranted' && !self.listenedLoad) {
+        self.listenedLoad = true;
+        self.loadPromise.then(data => {
+          this.dispatchEvent(new MessageEvent('sessiongranted', {
+            data,
+          }));
+        });
+      }
+    })(window.navigator.xr.addEventListener);
     
     // window.Gamepad = Gamepad;
     window.XR = XR.XR;
@@ -77,13 +91,9 @@ class XRPackageManager extends EventTarget {
     window.XRReferenceSpace = XR.XRReferenceSpace;
     window.XRBoundedReferenceSpace = XR.XRBoundedReferenceSpace;
 
-    this.loadPromise.resolve({
-      canvas,
-      context,
-      session,
-    });
+    this.loadPromise.resolve({});
   }
-  addEventListener(e, fn, opts) {
+  /* addEventListener(e, fn, opts) {
     super.addEventListener(e, fn, opts);
 
     if (e === 'load' && !this.listenedLoad) {
@@ -94,7 +104,7 @@ class XRPackageManager extends EventTarget {
         }));
       });
     }
-  }
+  } */
   setSession(session) {
     if (session) {
       GlobalContext.xrFramebuffer = session.renderState.baseLayer.framebuffer;

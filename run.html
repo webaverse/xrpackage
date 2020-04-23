@@ -230,6 +230,36 @@ popup.addEventListener('load', e => {
 
     const p = new XRPackage(new Uint8Array(arrayBuffer));
     pe.add(p);
+  } else if (q.h) {
+    (async () => {
+      const [cubeHtml, cubeManifest, modelVrm, catVox]= await Promise.all([
+        (async () => {
+          const res = await fetch('examples/html/cube.html');
+          return await res.text();
+        })(),
+        (async () => {
+          const res = await fetch('examples/html/manifest.json');
+          return await res.text();
+        })(),
+      ]);
+
+      const d = XRPackage.compileRaw(
+        [
+          {
+            url: '/cube.html',
+            type: 'text/html',
+            data: cubeHtml,
+          },
+          {
+            url: '/manifest.json',
+            type: 'application/json',
+            data: cubeManifest,
+          }
+        ]
+      );
+      const p = new XRPackage(d);
+      pe.add(p);
+    })();
   } else {
     (async () => {
       const [cubeHtml, cubeManifest, modelVrm, catVox]= await Promise.all([
