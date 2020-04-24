@@ -91,6 +91,32 @@ class XRPackageManager extends EventTarget {
     window.XRReferenceSpace = XR.XRReferenceSpace;
     window.XRBoundedReferenceSpace = XR.XRBoundedReferenceSpace;
 
+    HTMLCanvasElement.prototype.getContext = function getContext() {
+      if (!this.offscreenCanvas) {
+        this.offscreenCanvas = new OffscreenCanvas(
+          this.getAttribute('width') || GlobalContext.xrState.renderWidth[0],
+          this.getAttribute('height') || GlobalContext.xrState.renderHeight[0]
+        );
+        Object.defineProperty(this, 'width', {
+          get() {
+            return this.offscreenCanvas.width;
+          },
+          set(width) {
+            this.offscreenCanvas.width = width;
+          },
+        });
+        Object.defineProperty(this, 'height', {
+          get() {
+            return this.offscreenCanvas.height;
+          },
+          set(width) {
+            this.offscreenCanvas.height = height;
+          },
+        });
+      }
+      return this.offscreenCanvas.getContext.apply(this.offscreenCanvas, arguments);
+    };
+
     this.loadPromise.resolve({});
   }
   /* addEventListener(e, fn, opts) {
