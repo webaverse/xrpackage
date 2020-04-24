@@ -3,8 +3,11 @@
 <body>
 <script type=module>
 import * as THREE from './three.module.js';
+import {hijackCanvas, CanvasRenderingContext2D, WebGLRenderingContext, WebGL2RenderingContext} from './Graphics.js';
 import * as XR from './XR.js';
 import GlobalContext from './GlobalContext.js';
+
+hijackCanvas();
 
 const xrOffsetMatrix = new THREE.Matrix4();
 GlobalContext.getXrOffsetMatrix = () => xrOffsetMatrix;
@@ -31,7 +34,7 @@ class XRPackageManager extends EventTarget {
     this.loadPromise = makePromise();
     this.listenedLoad = false;
   }
-  async iframeInit({engine, indexHtml, canvas, context, xrState}) {
+  async iframeInit({engine, indexHtml, context, xrState}) {
     console.log('iframe init');
     document.open();
     document.write(indexHtml);
@@ -45,11 +48,17 @@ class XRPackageManager extends EventTarget {
     context.texImage2D(context.TEXTURE_2D, 0, context.RGBA, size, size, 0, context.RGBA, context.UNSIGNED_BYTE, null);
     context.bindFramebuffer(context.FRAMEBUFFER, GlobalContext.xrFramebuffer);
     context.framebufferTexture2D(context.FRAMEBUFFER, context.COLOR_ATTACHMENT0, context.TEXTURE_2D, fboTex, 0); */
+    GlobalContext.proxyContext = context;
+    GlobalContext.contexts = [];
     
     window.requestAnimationFrame = engine.requestAnimationFrame.bind(engine);
     window.cancelAnimationFrame = engine.cancelAnimationFrame.bind(engine);
     // window.innerWidth = canvas.width;
     // window.innerHeight = canvas.height;
+
+    window.CanvasRenderingContext2D = CanvasRenderingContext2D;
+    window.WebGLRenderingContext = WebGLRenderingContext;
+    window.WebGL2RenderingContext = WebGL2RenderingContext;
 
     const session = new XR.XRSession();
     session.onrequestanimationframe = engine.requestAnimationFrame.bind(engine);

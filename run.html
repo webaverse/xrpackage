@@ -66,14 +66,14 @@ const context = canvas.getContext('webgl', {
 }); */
 const renderer = new THREE.WebGLRenderer({
   canvas: pe.domElement,
-  context: pe.context,
+  context: pe.getContext('webgl'),
   antialias: true,
   alpha: true,
   // preserveDrawingBuffer: true,
 });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
-renderer.autoClear = false;
+// renderer.autoClear = false;
 renderer.sortObjects = false;
 renderer.physicallyCorrectLights = true;
 renderer.xr.enabled = true;
@@ -120,7 +120,7 @@ pe.addEventListener('tick', () => {
 });
 
 function animate(timestamp, frame) {
-  renderer.state.reset();
+  // renderer.state.reset();
 
   /* const f = (Date.now()%2000)/2000 * Math.PI*2;
   cubeMesh.rotation.x = f;
@@ -232,7 +232,7 @@ popup.addEventListener('load', e => {
     pe.add(p);
   } else if (q.h) {
     (async () => {
-      const [cubeHtml, cubeManifest, modelVrm, catVox]= await Promise.all([
+      const [cubeHtml, cubeManifest] = await Promise.all([
         (async () => {
           const res = await fetch('examples/html/cube.html');
           return await res.text();

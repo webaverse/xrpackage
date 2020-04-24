@@ -1,6 +1,7 @@
 import * as THREE from './three.module.js';
 import * as XR from './XR.js';
 import symbols from './symbols.js';
+import {getContext, CanvasRenderingContext2D, WebGLRenderingContext, WebGL2RenderingContext} from './Graphics.js';
 import GlobalContext from './GlobalContext.js';
 import wbn from './wbn.js';
 import {GLTFLoader} from './GLTFLoader.js';
@@ -189,8 +190,7 @@ const xrTypeAdders = {
     await p.context.iframe.contentWindow.xrpackage.iframeInit({
       engine: this,
       indexHtml,
-      canvas: this.domElement,
-      context: this.context,
+      context: GlobalContext.proxyContext,
       xrState,
     });
 
@@ -225,11 +225,20 @@ export class XRPackageEngine extends EventTarget {
       xrCompatible: true,
     }); */
 
-    const renderer = new THREE.WebGLRenderer({
-      // canvas: pe.domElement,
-      // context: pe.context,
+    const canvas = document.createElement('canvas');
+    this.domElement = canvas;
+    // this.context = GlobalContext.proxyContext;
+
+    GlobalContext.proxyContext = canvas.getContext('webgl2', {
       antialias: true,
       alpha: true,
+    });
+    GlobalContext.contexts = [];
+
+    const context = this.getContext('webgl2');
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      context,
       // preserveDrawingBuffer: true,
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -296,16 +305,9 @@ export class XRPackageEngine extends EventTarget {
     scene.add(cubeMesh);
     this.cubeMesh = cubeMesh; */
 
-    this.domElement = this.renderer.domElement;
-    this.context = this.renderer.getContext();
-
     this.fakeSession = new XR.XRSession();
     this.fakeSession.onrequestanimationframe = this.requestAnimationFrame.bind(this);
     this.fakeSession.oncancelanimationframe = this.cancelAnimationFrame.bind(this);
-
-    this.externalCanvas = null;
-    this.externalContext = null;
-    this.localRenderTarget = null;
 
     window.OldXR = {
       XR: window.XR,
@@ -363,6 +365,9 @@ export class XRPackageEngine extends EventTarget {
     };
     window.requestAnimationFrame(animate);
   }
+  getContext(type, opts) {
+    return getContext.call(this.domElement, type, opts);
+  }
   async add(p) {
     if (!p.loaded) {
       await new Promise((accept, reject) => {
@@ -379,12 +384,6 @@ export class XRPackageEngine extends EventTarget {
       p.parent = this;
     } else {
       throw new Error(`unknown xr_type: ${type}`);
-    }
-  }
-  setExternalCanvas(canvas, context) {
-    if (canvas !== this.domElement) {
-      this.externalCanvas = canvas;
-      this.externalContext = context;
     }
   }
   async setSession(realSession) {
@@ -416,7 +415,7 @@ export class XRPackageEngine extends EventTarget {
       await _loadReferenceSpace();
       this.loadReferenceSpaceInterval = setInterval(_loadReferenceSpace, 1000);
 
-      const baseLayer = new window.OldXR.XRWebGLLayer(realSession, this.context);
+      const baseLayer = new window.OldXR.XRWebGLLayer(realSession, GlobalContext.proxyContext);
       realSession.updateRenderState({baseLayer});
 
       await new Promise((accept, reject) => {
@@ -591,101 +590,33 @@ export class XRPackageEngine extends EventTarget {
       rig.update();
     }
 
-    this.renderer.state.reset();
-    if (this.externalCanvas) {
-      if (!this.renderState) {
-        // this.localRenderTarget = new THREE.WebGLRenderTarget(this.renderer.domElement.width, this.renderer.domElement.height);
-
-        const gl = this.externalContext;
-
-        this.renderState = {};
-
-        const oldBuffer = gl.getParameter(gl.ARRAY_BUFFER_BINDING);
-        const oldTexture2d = gl.getParameter(gl.TEXTURE_BINDING_2D);
-
-        const positions = Float32Array.from([
-          // First triangle:
-           1.0,  1.0,
-          -1.0,  1.0,
-          -1.0, -1.0,
-          // Second triangle:
-          -1.0, -1.0,
-           1.0, -1.0,
-           1.0,  1.0
-        ]);
-        const vertexBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
-        this.renderState.vertexBuffer = vertexBuffer;
-
-        const vs = gl.createShader(gl.VERTEX_SHADER);
-        const vertexShader = `
-          attribute vec2 position;
-          varying vec2 vUv;
-          const vec2 scale = vec2(0.5, 0.5);
-          void main() {
-            gl_Position = vec4(position, 0.0, 1.0);
-            vUv = position * scale + scale; // scale vertex attribute to [0,1] range
-            vUv.y = 1.0 - vUv.y;
-          }
-        `;
-        gl.shaderSource(vs, vertexShader);
-        gl.compileShader(vs);
-        if (!gl.getShaderParameter(vs, gl.COMPILE_STATUS)) {
-          throw new Error("could not compile shader: " + gl.getShaderInfoLog(vs));
+    /* for (let i = 0; i < GlobalContext.contexts.length; i++) {
+      const context =  GlobalContext.contexts[i];
+      context._exokitClearEnabled && context._exokitClearEnabled(true);
+      if (context._exokitBlendEnabled) {
+        if (highlight) {
+          context._exokitBlendEnabled(false);
+          context._exokitEnable(context.BLEND);
+          context._exokitBlendFuncSeparate(context.CONSTANT_COLOR, context.ONE_MINUS_SRC_ALPHA, context.CONSTANT_COLOR, context.ONE_MINUS_SRC_ALPHA);
+          context._exokitBlendEquationSeparate(context.FUNC_ADD, context.FUNC_ADD);
+          context._exokitBlendColor(highlight[0], highlight[1], highlight[2], highlight[3]);
+        } else {
+          context._exokitBlendEnabled(true);
         }
-
-        const fs = gl.createShader(gl.FRAGMENT_SHADER);
-        const fragmentShader = `
-          precision highp float;
-
-          uniform sampler2D tex;
-          varying vec2 vUv;
-          void main() {
-            gl_FragColor = texture2D(tex, vUv);
-          }
-        `;
-        gl.shaderSource(fs, fragmentShader);
-        gl.compileShader(fs);
-        if (!gl.getShaderParameter(fs, gl.COMPILE_STATUS)) {
-          throw new Error("could not compile shader: " + gl.getShaderInfoLog(fs));
-        }
-
-        const program = gl.createProgram();
-        gl.attachShader(program, vs);
-        gl.attachShader(program, fs);
-        gl.linkProgram(program);
-        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-          throw new Error("program failed to link: " + gl.getProgramInfoLog(program));
-        }
-        this.renderState.program = program;
-        gl.deleteShader(vs);
-        gl.deleteShader(fs);
-
-        this.renderState.positionLocation = gl.getAttribLocation(program, 'position');
-        if (this.renderState.positionLocation === -1) {
-          throw new Error('failed to get location: position');
-        }
-        this.renderState.texLocation = gl.getUniformLocation(program, 'tex');
-        if (this.renderState.texLocation === -1) {
-          throw new Error('failed to get location: tex');
-        }
-
-        const tex = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, tex);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        this.renderState.tex = tex;
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, oldBuffer);
-        gl.bindTexture(gl.TEXTURE_2D, oldTexture2d);
       }
-      // this.renderer.setRenderTarget(this.localRenderTarget);
-    } /* else {
-      this.renderer.setRenderTarget(null);
+    }
+    const layerContext = layered ? vrPresentState.glContext : null;
+    if (layerContext) {
+      layerContext._exokitClearEnabled(false);
     } */
+    for (let i = 0; i < this.packages.length; i++) {
+      const p = this.packages[i];
+      if (p.context.iframe && p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer) {
+        p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer.context._exokitClearEnabled(false);
+        // console.log('got iframe', p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer.context.canvas.transferToImageBitmap());
+        // debugger;
+      }
+    }
 
     // tick rafs
     const _tickRafs = () => {
@@ -697,38 +628,9 @@ export class XRPackageEngine extends EventTarget {
     };
     _tickRafs();
 
+    // console.log('render context 1');
     this.renderer.render(this.scene, this.camera);
-
-    if (this.externalCanvas) {
-      const gl = this.externalContext;
-
-      const oldProgram = gl.getParameter(gl.CURRENT_PROGRAM);
-      const oldArrayBuffer = gl.getParameter(gl.ARRAY_BUFFER_BINDING);
-      const oldActiveTexture = gl.getParameter(gl.ACTIVE_TEXTURE);
-      // console.log('old active texture', oldActiveTexture);
-      const oldTexture2d = gl.getParameter(gl.TEXTURE_BINDING_2D);
-      const oldViewport = gl.getParameter(gl.VIEWPORT);
-      const oldDepthTest = gl.getParameter(gl.DEPTH_TEST);
-
-      gl.useProgram(this.renderState.program);
-      gl.bindBuffer(gl.ARRAY_BUFFER, this.renderState.vertexBuffer);
-      gl.vertexAttribPointer(this.renderState.positionLocation, 2, gl.FLOAT, false, 0, 0);
-      gl.enableVertexAttribArray(this.renderState.positionLocation);
-      gl.uniform1i(this.renderState.texLocation, oldActiveTexture - gl.TEXTURE0);
-      gl.bindTexture(gl.TEXTURE_2D, this.renderState.tex);
-      // console.log('tex image 2d', this.localRenderTarget.texture);
-      // const tex = this.renderer.properties.get(this.localRenderTarget.texture).__webglTexture;
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.renderer.domElement);
-      gl.viewport(0, 0, this.externalCanvas.width, this.externalCanvas.height);
-      gl.disable(gl.DEPTH_TEST);
-      gl.drawArrays(gl.TRIANGLES, 0, 6);
-
-      gl.useProgram(oldProgram);
-      gl.bindBuffer(gl.ARRAY_BUFFER, oldArrayBuffer);
-      gl.bindTexture(gl.TEXTURE_2D, oldTexture2d);
-      gl.viewport(oldViewport[0], oldViewport[1], oldViewport[2], oldViewport[3]);
-      oldDepthTest && gl.enable(gl.DEPTH_TEST);
-    }
+    // console.log('render context 2', GlobalContext.proxyContext.getError());
   }
   requestAnimationFrame(fn) {
     this.rafs.push(fn);

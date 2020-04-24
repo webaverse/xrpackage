@@ -29,7 +29,6 @@ const canvas = document.getElementById('canvas');
 const renderer = new THREE.WebGLRenderer({
   canvas,
 });
-renderer.autoClear = false;
 renderer.sortObjects = false;
 renderer.physicallyCorrectLights = true;
 renderer.xr.enabled = true;
@@ -62,8 +61,6 @@ cubeMesh.rotation.order = 'YXZ';
 scene.add(cubeMesh);
 
 function animate() {
-  renderer.state.reset();
-
   const f = (Date.now()%2000)/2000 * Math.PI*2;
   cubeMesh.rotation.x = f;
   cubeMesh.rotation.y = f;
