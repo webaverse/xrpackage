@@ -32,7 +32,9 @@ $ xrpk build .
 a.wbn
 ```
 
-Note: this might open up your browser to perform screenshotting of the application. It will also output `a.wbn.gif` as a screenshot and `a.wbn.glb` as a 3D model preview.
+Note: this will open up your browser to perform screenshotting of the application; you can close that tab when it completes.
+
+The resulting package is `a.wbn`. It will also output `a.wbn.gif` as a screenshot and `a.wbn.glb` as a 3D model preview -- these are used when publishing your package but are not required to run it.
 
 ## Test the package
 
