@@ -16,6 +16,12 @@ $ cat manifest.json
 }
 ```
 
+`xr_type` can currently be:
+- `webxr-site@0.0.1`
+- `gltf@0.0.1`
+- `vrm@0.0.1`
+- `vox@0.0.1`
+
 See also the [examples](https://github.com/webaverse/xrpackage/tree/master/examples).
 
 Packages are built with the `xrpk` tool which you can get on `npm`:
@@ -43,6 +49,8 @@ Once you have a package (`a.wbn`), you can run it in your browser like so:
 ```
 $ xrpk run ./a.wbn
 ```
+
+This will open up the `xrpackage.js` runtime in your browser and load the given file for viewing.
 
 ## Run XRPackage programmatically
 
