@@ -4,9 +4,11 @@ XRPackage turns 3D apps into a file you can load anywhere.
 
 It uses standards like WebXR, GLTF, and WebBundle to package an app into a `.wbn` file. It provides a runtime to load multiple `.wbn` applications at once into a shared composited world. Finally, XRPackage provides a package registry distributed on IPFS / Ethereum, to easily share your XRPackage applications. The registry follows the ERC1155 standard so packages can be traded on OpenSea.
 
-## Build a WebXR package
+## What's in a package?
 
-An XRPackage needs a `manifest.json` (following the [Web App Manifest](https://developer.mozilla.org/en-US/docs/Web/Manifest) standard), and the source files for the app. The main addition to the specification is the `xr_type` field, which specifies the type of application and the specification version.
+An XRPackage is a bundle of files. The entrypoint is a `manifest.json` (following the [Web App Manifest](https://developer.mozilla.org/en-US/docs/Web/Manifest) standard). The rest of the files in the bundle are the source files for the app.
+
+The main addition to the Web App Manifest specification is the `xr_type` field, which specifies the type of application and the spec version.
 
 ```
 $ cat manifest.json
@@ -24,7 +26,25 @@ $ cat manifest.json
 
 See also the [examples](https://github.com/webaverse/xrpackage/tree/master/examples).
 
-Packages are built with the `xrpk` tool which you can get on `npm`:
+## Asset packages
+
+Asset packages are those with the following types:
+
+- `gltf@0.0.1`
+- `vrm@0.0.1`
+- `vox@0.0.1`
+
+These types of packages represent only a static asset to be loaded. The corresponding asset file is referenced in the `start_url` field of `manifest.json`.
+
+## WebXR packages
+
+A WebXR package references the `index.html` entrypoint for the webXR application in the `start_url` field of the `manifest.json` file. `index.html` should be a regular WebXR application, with its assets referenced using relative paths.
+
+Because XRPackage is a spatial packaging format, the main additional requirement is that the WebXR application autoimatically starts its WebXR session upon receiving the `sessiongranted` event (see the [WebXR Navigation Specification](https://github.com/immersive-web/webxr/blob/master/designdocs/navigation.md) and the [example](https://github.com/webaverse/xrpackage/blob/88a87d296019530f4f76ec18ce64f9397cd4b27d/examples/html/cube.html#L25).
+
+## Building a package
+
+Regardless of package type, packages are built with the `xrpk` tool which you can get on `npm`:
 
 ```
 $ npm install -g xrpk
