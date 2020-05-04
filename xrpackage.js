@@ -15,7 +15,7 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 
 const _initSw = async () => {
-  await navigator.serviceWorker.register('/sw.js', {
+  await navigator.serviceWorker.register('./sw.js', {
     // type: 'module',
   });
   if (!navigator.serviceWorker.controller) {
