@@ -33,7 +33,6 @@ self.addEventListener('install', event => {
   self.skipWaiting();
 });
 self.addEventListener('activate', event => {
-  // console.log('sw activate');
   self.clients.claim();
 });
 
@@ -49,16 +48,17 @@ self.addEventListener('fetch', event => {
       // console.log('got client', event.request.url, !!(client && client.frameType === 'nested'));
       if (client && client.frameType === 'nested') {
         let match;
+        // console.log('hijack file 1', client.url, files);
         if (match = client.url.match(/#id=(.+)$/)) {
           const id = parseInt(match[1], 10);
           const files = hijackedIds[id];
-          // console.log('req match 1', id, files);
+          // console.log('hijack file 2', client.url, files);
           if (files) {
-            // return fetch(event.request.url.replace('0/', '0/noclip.website/dist/'));
-
             const pathname = new URL(event.request.url).pathname;
+            // console.log('hijack file 2', pathname, files);
             if (!/\/xrpackage\//.test(pathname)) {
               const file = files.find(f => f.pathname === pathname);
+              // console.log('hijack file 3', pathname, file);
               if (file) {
                 return new Response(file.body);
               }
