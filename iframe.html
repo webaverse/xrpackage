@@ -6,6 +6,8 @@ import * as THREE from './xrpackage/three.module.js';
 import {hijackCanvas, CanvasRenderingContext2D, WebGLRenderingContext, WebGL2RenderingContext} from './xrpackage/Graphics.js';
 import * as XR from './xrpackage/XR.js';
 import GlobalContext from './xrpackage/GlobalContext.js';
+import utils from './xrpackage/utils.js';
+const {requestSw} = utils;
 
 hijackCanvas();
 
@@ -34,8 +36,19 @@ class XRPackageManager extends EventTarget {
     this.loadPromise = makePromise();
     this.listenedLoad = false;
   }
-  async iframeInit({engine, indexHtml, context, xrState}) {
+  async iframeInit({engine, indexHtml, context, id, xrState}) {
     console.log('iframe init');
+
+    {
+      const res = await fetch('/xrpackage/register', {
+        method: 'POST',
+        body: JSON.stringify({
+          id,
+        }),
+      });
+      await res.blob();
+    }
+
     document.open();
     document.write(indexHtml);
     document.close();

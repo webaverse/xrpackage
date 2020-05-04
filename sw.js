@@ -1,3 +1,4 @@
+const hijackedClientIds = {};
 const hijackedIds = {};
 self.addEventListener('message', e => {
   const {
@@ -12,7 +13,6 @@ self.addEventListener('message', e => {
       id,
       files
     } = data;
-    // console.log('register hijack', files);
     hijackedIds[id] = files;
   } else {
     console.warn('unknown method', method);
@@ -40,27 +40,38 @@ self.addEventListener('fetch', event => {
   const {
     clientId
   } = event;
-  // console.log('got request', event.request.url);
-
   event.respondWith(
     clients.get(clientId)
     .then(client => {
       // console.log('got client', event.request.url, !!(client && client.frameType === 'nested'));
       if (client && client.frameType === 'nested') {
-        let match;
-        // console.log('hijack file 1', client.url, files);
-        if (match = client.url.match(/#id=(.+)$/)) {
-          const id = parseInt(match[1], 10);
-          const files = hijackedIds[id];
-          // console.log('hijack file 2', client.url, files);
-          if (files) {
-            const pathname = new URL(event.request.url).pathname;
-            // console.log('hijack file 2', pathname, files);
-            if (!/\/xrpackage\//.test(pathname)) {
-              const file = files.find(f => f.pathname === pathname);
-              // console.log('hijack file 3', pathname, file);
-              if (file) {
-                return new Response(file.body);
+        const u = new URL(event.request.url);
+        console.log('got client', u.pathname, client, event.request);
+        if (event.request.method === 'POST', u.pathname === '/xrpackage/register') {
+          return event.request.json()
+            .then(j => {
+              const {id} = j;
+              hijackedClientIds[clientId] = id;
+            })
+            .then(() =>
+              new Response(JSON.stringify({
+                ok: true,
+              }))
+            );
+        } else {
+          const id = hijackedClientIds[clientId];
+          if (id) {
+            const files = hijackedIds[id];
+            // console.log('hijack file 2', client.url, files);
+            if (files) {
+              const pathname = new URL(event.request.url).pathname;
+              // console.log('hijack file 2', pathname, files);
+              if (!/\/xrpackage\//.test(pathname)) {
+                const file = files.find(f => f.pathname === pathname);
+                // console.log('hijack file 3', pathname, file);
+                if (file) {
+                  return new Response(file.body);
+                }
               }
             }
           }

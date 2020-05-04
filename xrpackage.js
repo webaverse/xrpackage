@@ -7,6 +7,8 @@ import wbn from './xrpackage/wbn.js';
 import {GLTFLoader} from './xrpackage/GLTFLoader.js';
 import {VOXLoader} from './xrpackage/VOXLoader.js';
 import Avatar from './xrpackage/avatars/avatars.js';
+import utils from './xrpackage/utils.js';
+const {requestSw} = utils;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -36,14 +38,6 @@ const _initSw = async () => {
   }
   console.log('sw registration', window.registration);
 };
-const _requestSw = (m = {}, txs = []) => new Promise((accept, reject) => {
-  const mc = new MessageChannel();
-  txs.push(mc.port2);
-  navigator.serviceWorker.controller.postMessage(m, txs);
-  mc.port1.onmessage = () => {
-    accept();
-  };
-});
 const swLoadPromise = _initSw().then(() => {});
 
 const xrState = (() => {
@@ -157,7 +151,7 @@ GlobalContext.xrFramebuffer = null;
 const xrTypeLoaders = {
   'webxr-site@0.0.1': async function(p) {
     const iframe = document.createElement('iframe');
-    iframe.src = `iframe.html#id=${p.id}`;
+    iframe.src = 'iframe.html';
     iframe.style.position = 'absolute';
     iframe.style.top = '-10000px';
     iframe.style.left = '-10000px';
@@ -226,6 +220,7 @@ const xrTypeAdders = {
       engine: this,
       indexHtml,
       context: GlobalContext.proxyContext,
+      id: p.id,
       xrState,
     });
 
@@ -757,7 +752,7 @@ export class XRPackage extends EventTarget {
           this.main = startUrl;
 
           swLoadPromise
-            .then(() => _requestSw({
+            .then(() => requestSw({
               method: 'hijack',
               id: this.id,
               files: files.map(f => ({

@@ -142,6 +142,16 @@ const _replaceDocument = async htmlString => {
 };
 module.exports._replaceDocument = _replaceDocument;
 
+const requestSw = (m = {}, txs = []) => new Promise((accept, reject) => {
+  const mc = new MessageChannel();
+  txs.push(mc.port2);
+  navigator.serviceWorker.controller.postMessage(m, txs);
+  mc.port1.onmessage = () => {
+    accept();
+  };
+});
+module.exports.requestSw = requestSw;
+
 const hasWebGL2 = !!window.WebGL2RenderingContext;
 module.exports.hasWebGL2 = hasWebGL2;
 class WebGLStateFramebuffer {
