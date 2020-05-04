@@ -57,16 +57,11 @@ self.addEventListener('fetch', event => {
             // return fetch(event.request.url.replace('0/', '0/noclip.website/dist/'));
 
             const pathname = new URL(event.request.url).pathname;
-            const file = files.find(f => f.pathname === pathname);
-            // console.log('req match 2', id, file);
-            if (file) {
-              // console.log('got id', id, event.request.url, file);
-              return new Response(file.body);
-            } else {
-              // return fetch(event.request);
-              /* return new Response('', {
-                  status: 404,
-                }); */
+            if (!/\/xrpackage\//.test(pathname)) {
+              const file = files.find(f => f.pathname === pathname);
+              if (file) {
+                return new Response(file.body);
+              }
             }
           }
         }
