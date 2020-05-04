@@ -14,13 +14,37 @@ const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 
-let hidden = false;
-window.addEventListener('keydown', e => {
-  if (e.which === 79) {
-    hidden = !hidden;
+const _initSw = async () => {
+  await navigator.serviceWorker.register('/sw.js', {
+    // type: 'module',
+  });
+  if (!navigator.serviceWorker.controller) {
+    await new Promise((accept, reject) => {
+      const _controllerchange = () => {
+        if (navigator.serviceWorker.controller) {
+          navigator.serviceWorker.removeEventListener('controllerchange', _controllerchange);
+          clearTimeout(timeout);
+          accept();
+        }
+      };
+      navigator.serviceWorker.addEventListener('controllerchange', _controllerchange);
+      const timeout = setTimeout(() => {
+        console.warn('sw registration timed out');
+        debugger;
+      }, 10 * 1000);
+    });
   }
+  console.log('sw registration', window.registration);
+};
+const _requestSw = (m = {}, txs = []) => new Promise((accept, reject) => {
+  const mc = new MessageChannel();
+  txs.push(mc.port2);
+  navigator.serviceWorker.controller.postMessage(m, txs);
+  mc.port1.onmessage = () => {
+    accept();
+  };
 });
-let oldRafs = [];
+const swLoadPromise = _initSw().then(() => {});
 
 const xrState = (() => {
   const _makeSab = size => {
@@ -223,14 +247,6 @@ const xrTypeAdders = {
     this.packages.push(p);
   },
 };
-
-let tp = false;
-window.addEventListener('keydown', e => {
-  if (e.which === 80) {
-    tp = !tp;
-  }
-  // console.log('got key', e.which);
-});
 
 export class XRPackageEngine extends EventTarget {
   constructor() {
@@ -607,13 +623,6 @@ export class XRPackageEngine extends EventTarget {
         const m = new THREE.Matrix4().fromArray(xrState.leftViewMatrix);
         m.getInverse(m)
         m.decompose(camera.position, camera.quaternion, camera.scale);
-        if (tp) {
-          camera.position.add(new THREE.Vector3(0, 0, -2).applyQuaternion(camera.quaternion));
-          // console.log('got position 2.1', rig.inputs.hmd.position.toArray());
-          rig.undecapitate();
-        } else {
-          rig.decapitate();
-        }
         rig.inputs.hmd.position.copy(camera.position);
         rig.inputs.hmd.quaternion.copy(camera.quaternion);
         rig.inputs.leftGamepad.position.copy(camera.position).add(localVector.set(0.3, -0.15, -0.5).applyQuaternion(camera.quaternion));
@@ -655,14 +664,7 @@ export class XRPackageEngine extends EventTarget {
 
     // tick rafs
     const _tickRafs = () => {
-      let rafs = this.rafs.slice();
-      if (!hidden) {
-        oldRafs.push.apply(oldRafs, rafs.slice(2));
-        rafs = rafs.slice(0, 2);
-      } else {
-        rafs = rafs.concat(oldRafs);
-        oldRafs.length = 0;
-      }
+      const rafs = this.rafs.slice();
       this.rafs.length = 0;
       for (let i = 0; i < rafs.length; i++) {
         rafs[i]();
@@ -754,7 +756,16 @@ export class XRPackage extends EventTarget {
           this.type = xrType;
           this.main = startUrl;
 
-          loader(this)
+          swLoadPromise
+            .then(() => _requestSw({
+              method: 'hijack',
+              id: this.id,
+              files: files.map(f => ({
+                pathname: new URL(f.url).pathname,
+                body: f.response.body,
+              })),
+            }))
+            .then(() => loader(this))
             .then(o => {
               this.loaded = true;
               this.dispatchEvent(new MessageEvent('load', {

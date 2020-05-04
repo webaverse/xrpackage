@@ -53,37 +53,6 @@ function parseQuery(queryString) {
 
 (async () => {
 
-{
-  await navigator.serviceWorker.register('/sw.js', {
-    // type: 'module',
-  });
-  if (!navigator.serviceWorker.controller) {
-    await new Promise((accept, reject) => {
-      const _controllerchange = () => {
-        if (navigator.serviceWorker.controller) {
-          navigator.serviceWorker.removeEventListener('controllerchange', _controllerchange);
-          clearTimeout(timeout);
-          accept();
-        }
-      };
-      navigator.serviceWorker.addEventListener('controllerchange', _controllerchange);
-      const timeout = setTimeout(() => {
-        console.warn('sw registration timed out');
-        debugger;
-      }, 10 * 1000);
-    });
-  }
-  console.log('got registration', window.registration);
-}
-const _requestSw = (m = {}, txs = []) => new Promise((accept, reject) => {
-  const mc = new MessageChannel();
-  txs.push(mc.port2);
-  navigator.serviceWorker.controller.postMessage(m, txs);
-  mc.port1.onmessage = () => {
-    accept();
-  };
-});
-
 let currentSession = null;
 
 const pe = new XRPackageEngine();
