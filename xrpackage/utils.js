@@ -1,11 +1,6 @@
-import path from '../modules/path-browserify.js';
-// const fs = require('fs');
-// const url = require('url');
-
-import parseIntStrict from '../modules/parse-int.js';
-
+import path from './modules/path-browserify.js';
+import parseIntStrict from './modules/parse-int.js';
 import symbols from './symbols.js';
-
 import GlobalContext from './GlobalContext.js';
 
 const module = {exports: {}};
