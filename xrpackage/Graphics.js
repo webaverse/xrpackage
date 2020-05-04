@@ -1,4 +1,4 @@
-import webGlToOpenGl from '../modules/webgl-to-opengl.js';
+import webGlToOpenGl from './modules/webgl-to-opengl.js';
 
 import symbols from './symbols.js';
 import utils from './utils.js';
