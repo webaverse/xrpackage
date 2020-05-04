@@ -1,18 +1,26 @@
-import * as THREE from './three.module.js';
-import * as XR from './XR.js';
-import symbols from './symbols.js';
-import {getContext, CanvasRenderingContext2D, WebGLRenderingContext, WebGL2RenderingContext} from './Graphics.js';
-import GlobalContext from './GlobalContext.js';
-import wbn from './wbn.js';
-import {GLTFLoader} from './GLTFLoader.js';
-import {VOXLoader} from './VOXLoader.js';
-import Avatar from './avatars/avatars.js';
+import * as THREE from './xrpackage/three.module.js';
+import * as XR from './xrpackage/XR.js';
+import symbols from './xrpackage/symbols.js';
+import {getContext, CanvasRenderingContext2D, WebGLRenderingContext, WebGL2RenderingContext} from './xrpackage/Graphics.js';
+import GlobalContext from './xrpackage/GlobalContext.js';
+import wbn from './xrpackage/wbn.js';
+import {GLTFLoader} from './xrpackage/GLTFLoader.js';
+import {VOXLoader} from './xrpackage/VOXLoader.js';
+import Avatar from './xrpackage/avatars/avatars.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
+
+let hidden = false;
+window.addEventListener('keydown', e => {
+  if (e.which === 79) {
+    hidden = !hidden;
+  }
+});
+let oldRafs = [];
 
 const xrState = (() => {
   const _makeSab = size => {
@@ -125,7 +133,7 @@ GlobalContext.xrFramebuffer = null;
 const xrTypeLoaders = {
   'webxr-site@0.0.1': async function(p) {
     const iframe = document.createElement('iframe');
-    iframe.src = 'iframe.html';
+    iframe.src = `iframe.html#id=${p.id}`;
     iframe.style.position = 'absolute';
     iframe.style.top = '-10000px';
     iframe.style.left = '-10000px';
@@ -155,6 +163,9 @@ const xrTypeLoaders = {
     const mainPath = '/' + p.main;
     const indexFile = p.files.find(file => new URL(file.url).pathname === mainPath);
     const indexBlob = new Blob([indexFile.response.body]);
+    // console.log('load blob!');
+    /* const indexBlob = await fetch(`https://raw.githubusercontent.com/exokitxr/avatar-models/master/model17.vrm`)
+      .then(res => res.blob()); */
     const u = URL.createObjectURL(indexBlob);
     const o = await new Promise((accept, reject) => {
       const loader = new GLTFLoader();
@@ -213,6 +224,14 @@ const xrTypeAdders = {
   },
 };
 
+let tp = false;
+window.addEventListener('keydown', e => {
+  if (e.which === 80) {
+    tp = !tp;
+  }
+  // console.log('got key', e.which);
+});
+
 export class XRPackageEngine extends EventTarget {
   constructor() {
     super();
@@ -245,7 +264,7 @@ export class XRPackageEngine extends EventTarget {
     renderer.setPixelRatio(window.devicePixelRatio);
     // renderer.setClearAlpha(0);
     renderer.autoClear = false;
-    renderer.sortObjects = false;
+    // renderer.sortObjects = false;
     renderer.physicallyCorrectLights = true;
     renderer.xr.enabled = true;
     this.renderer = renderer;
@@ -369,6 +388,7 @@ export class XRPackageEngine extends EventTarget {
     return getContext.call(this.domElement, type, opts);
   }
   async add(p) {
+    console.log('add loaded 1', p.loaded);
     if (!p.loaded) {
       await new Promise((accept, reject) => {
         p.addEventListener('load', e => {
@@ -376,9 +396,11 @@ export class XRPackageEngine extends EventTarget {
         }, {once: true});
       });
     }
+    console.log('add loaded 2', p.loaded);
 
     const {type} = p;
     const adder = xrTypeAdders[type];
+    console.log('add loaded 3', !!adder);
     if (adder) {
       await adder.call(this, p);
       p.parent = this;
@@ -578,16 +600,29 @@ export class XRPackageEngine extends EventTarget {
     };
     _computeDerivedGamepadsData();
 
-    const {rig} = this;
-    if (rig) {
-      const m = new THREE.Matrix4().fromArray(xrState.leftViewMatrix);
-      m.getInverse(m);
-      m.decompose(rig.inputs.hmd.position, rig.inputs.hmd.quaternion, new THREE.Vector3(1, 1, 1));
-      rig.inputs.leftGamepad.position.copy(rig.inputs.hmd.position).add(localVector.set(0.3, -0.15, -0.5).applyQuaternion(rig.inputs.hmd.quaternion));
-      rig.inputs.leftGamepad.quaternion.copy(rig.inputs.hmd.quaternion);
-      rig.inputs.rightGamepad.position.copy(rig.inputs.hmd.position).add(localVector.set(-0.3, -0.15, -0.5).applyQuaternion(rig.inputs.hmd.quaternion));
-      rig.inputs.rightGamepad.quaternion.copy(rig.inputs.hmd.quaternion);
-      rig.update();
+    {
+      const {rig, camera} = this;
+      if (rig) {
+        // console.log('update rig', camera.position.toArray());
+        const m = new THREE.Matrix4().fromArray(xrState.leftViewMatrix);
+        m.getInverse(m)
+        m.decompose(camera.position, camera.quaternion, camera.scale);
+        if (tp) {
+          camera.position.add(new THREE.Vector3(0, 0, -2).applyQuaternion(camera.quaternion));
+          // console.log('got position 2.1', rig.inputs.hmd.position.toArray());
+          rig.undecapitate();
+        } else {
+          rig.decapitate();
+        }
+        rig.inputs.hmd.position.copy(camera.position);
+        rig.inputs.hmd.quaternion.copy(camera.quaternion);
+        rig.inputs.leftGamepad.position.copy(camera.position).add(localVector.set(0.3, -0.15, -0.5).applyQuaternion(camera.quaternion));
+        rig.inputs.leftGamepad.quaternion.copy(camera.quaternion);
+        rig.inputs.rightGamepad.position.copy(camera.position).add(localVector.set(-0.3, -0.15, -0.5).applyQuaternion(camera.quaternion));
+        rig.inputs.rightGamepad.quaternion.copy(camera.quaternion);
+
+        rig.update();
+      }
     }
 
     /* for (let i = 0; i < GlobalContext.contexts.length; i++) {
@@ -620,7 +655,14 @@ export class XRPackageEngine extends EventTarget {
 
     // tick rafs
     const _tickRafs = () => {
-      const rafs = this.rafs.slice();
+      let rafs = this.rafs.slice();
+      if (!hidden) {
+        oldRafs.push.apply(oldRafs, rafs.slice(2));
+        rafs = rafs.slice(0, 2);
+      } else {
+        rafs = rafs.concat(oldRafs);
+        oldRafs.length = 0;
+      }
       this.rafs.length = 0;
       for (let i = 0; i < rafs.length; i++) {
         rafs[i]();
@@ -676,10 +718,12 @@ export class XRPackageEngine extends EventTarget {
   }
 }
 
+let packageIds = Date.now();
 export class XRPackage extends EventTarget {
   constructor(d) {
     super();
 
+    this.id = ++packageIds;
     this.loaded = false;
 
     const bundle = new wbn.Bundle(d);
@@ -805,6 +849,7 @@ export class XRPackage extends EventTarget {
     this.context.iframe && this.context.iframe.contentWindow.rs.setSession(session);
   }
   wearAvatar() {
+    console.log('wear ava', this.context.model);
     if (this.context.model) {
       this.parent.setLocalAvatar(this.context.model);
     }
