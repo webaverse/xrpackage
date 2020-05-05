@@ -1,9 +1,14 @@
 <!doctype html>
 <html>
-<head>
-  <base href="https://xrpackage.org/">
-</head>
 <body>
+<script type=module>
+  if (!/^(?:127\.0\.0\.1|localhost)$/.test(window.location.hostname)) {
+    const u = 'https://xrpackage.org/';
+    const base = document.createElement('base');
+    base.href = u;
+    document.head.appendChild(base);
+  }
+</script>
 <script type=module>
 import * as THREE from './xrpackage/three.module.js';
 import {hijackCanvas, CanvasRenderingContext2D, WebGLRenderingContext, WebGL2RenderingContext} from './xrpackage/Graphics.js';
