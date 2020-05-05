@@ -151,7 +151,12 @@ GlobalContext.xrFramebuffer = null;
 const xrTypeLoaders = {
   'webxr-site@0.0.1': async function(p) {
     const iframe = document.createElement('iframe');
-    iframe.src = 'iframe.html';
+    iframe.src = (
+      /^(?:127\.0\.0\.1|localhost)$/.test(window.location.hostname) ?
+        (window.location.protocol + '//' + window.location.host + '/')
+      :
+        'https://xrpackage.org/'
+    ) + 'iframe.html';
     iframe.style.position = 'absolute';
     iframe.style.top = '-10000px';
     iframe.style.left = '-10000px';
