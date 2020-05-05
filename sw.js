@@ -87,10 +87,11 @@ self.addEventListener('fetch', event => {
         pathname = '/xrpackage/iframe.html';
         pathnameChanged = true;
       }
-      if (/\/xrpackage\//.test(pathname)) {
+      let match = pathname.match(/(\/xrpackage\/.*)$/);
+      if (match) {
         const {hostname} = new URL(client ? client.url : event.request.referrer);
         if (hostname !== '127.0.0.1' && hostname !== 'localhost') {
-          pathname = 'https://xrpackage.org' + pathname;
+          pathname = 'https://xrpackage.org' + match[1];
           pathnameChanged = true;
         }
       }
