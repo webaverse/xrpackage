@@ -1,5 +1,6 @@
 const hijackedClientIds = {};
 const hijackedIds = {};
+const startUrls = {};
 self.addEventListener('message', e => {
   const {
     data
@@ -15,10 +16,8 @@ self.addEventListener('message', e => {
       files
     } = data;
     console.log('got hijack', data);
-    hijackedIds[id] = {
-      startUrl,
-      files,
-    };
+    hijackedIds[id] = files;
+    startUrls[startUrl] = true;
   } else {
     console.warn('unknown method', method);
   }
@@ -44,7 +43,7 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   console.log('got fetch', event);
   const {
-    clientId
+    clientId,
   } = event;
   event.respondWith(
     clients.get(clientId)
@@ -58,7 +57,7 @@ self.addEventListener('fetch', event => {
           return event.request.json()
             .then(j => {
               const {id} = j;
-              console.log('got client hijack', clientId, id);
+              // console.log('got client hijack', clientId, id);
               hijackedClientIds[clientId] = id;
             })
             .then(() =>
@@ -69,26 +68,22 @@ self.addEventListener('fetch', event => {
         } else {
           const id = hijackedClientIds[clientId];
           if (id) {
-            const {
-              startUrl,
-              files,
-            } = hijackedIds[id];
+            const files = hijackedIds[id];
             // console.log('hijack file 2', client.url, files);
             if (files) {
               // console.log('hijack file 2', pathname, files);
               if (!/\/xrpackage\//.test(pathname)) {
-                if (pathname.slice(1) === startUrl) {
-                  pathname = '/xrpackage/iframe.html';
-                } else {
-                  const file = files.find(f => f.pathname === pathname);
-                  if (file) {
-                    return new Response(file.body);
-                  }
+                const file = files.find(f => f.pathname === pathname);
+                if (file) {
+                  return new Response(file.body);
                 }
               }
             }
           }
         }
+      }
+      if (startUrls[pathname.slice(1)]) {
+        pathname = '/xrpackage/iframe.html';
       }
       if (client && /\/xrpackage\//.test(pathname)) {
         const {hostname} = new URL(client.url);
