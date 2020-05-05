@@ -2,26 +2,12 @@
 <html>
 <body>
 <script type=module>
-  if (!/^(?:127\.0\.0\.1|localhost)$/.test(window.location.hostname)) {
-    const u = 'https://xrpackage.org/';
-    const base = document.createElement('base');
-    base.href = u;
-    document.head.appendChild(base);
-  }
-</script>
-<script type=module>
-(async () => {
-const [
-  THREE,
-  {hijackCanvas, CanvasRenderingContext2D, WebGLRenderingContext, WebGL2RenderingContext},
-  XR,
-  GlobalContext,
-] = await Promise.all([
-  './xrpackage/three.module.js',
-  './xrpackage/Graphics.js',
-  './xrpackage/XR.js',
-  './xrpackage/GlobalContext.js'
-].map(f => import(f)));
+import * as THREE from './xrpackage/three.module.js';
+import {hijackCanvas, CanvasRenderingContext2D, WebGLRenderingContext, WebGL2RenderingContext} from './xrpackage/Graphics.js';
+import * as XR from './xrpackage/XR.js';
+import GlobalContext from './xrpackage/GlobalContext.js';
+import utils from './xrpackage/utils.js';
+const {requestSw} = utils;
 
 hijackCanvas();
 
@@ -29,6 +15,8 @@ const xrOffsetMatrix = new THREE.Matrix4();
 GlobalContext.getXrOffsetMatrix = () => xrOffsetMatrix;
 GlobalContext.xrFramebuffer = null;
 
+console.log('iframe script');
+(() => {
 function makePromise() {
   let resolve, reject;
   const result = new Promise((a, b) => {
