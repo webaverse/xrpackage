@@ -78,9 +78,8 @@ self.addEventListener('fetch', event => {
           }
         }
       }
-      const cu = new URL(client.url);
-      console.log('got client url', cu);
-      if (/\/xrpackage\//.test(pathname)) {
+      if (client && /\/xrpackage\//.test(pathname)) {
+        console.log('got client', client);
         return fetch('https://xrpackage.org' + pathname);
       } else {
         return fetch(event.request);
