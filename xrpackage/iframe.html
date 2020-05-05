@@ -40,7 +40,7 @@ class XRPackageManager extends EventTarget {
     console.log('iframe init');
 
     {
-      const res = await fetch('/xrpackage/register', {
+      const res = await fetch('/xrpackage/registerClient', {
         method: 'POST',
         body: JSON.stringify({
           id,
