@@ -6,6 +6,7 @@ import GlobalContext from './xrpackage/GlobalContext.js';
 import wbn from './xrpackage/wbn.js';
 import {GLTFLoader} from './xrpackage/GLTFLoader.js';
 import {VOXLoader} from './xrpackage/VOXLoader.js';
+import {OrbitControls} from './xrpackage/OrbitControls.js';
 import Avatar from './xrpackage/avatars/avatars.js';
 import utils from './xrpackage/utils.js';
 const {requestSw} = utils;
@@ -244,16 +245,10 @@ const xrTypeAdders = {
 };
 
 export class XRPackageEngine extends EventTarget {
-  constructor() {
+  constructor(options) {
     super();
 
-    /* const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('webgl', {
-      antialias: true,
-      alpha: true,
-      preserveDrawingBuffer: false,
-      xrCompatible: true,
-    }); */
+    this.options = options || {};
 
     const canvas = document.createElement('canvas');
     this.domElement = canvas;
@@ -287,32 +282,11 @@ export class XRPackageEngine extends EventTarget {
     camera.position.set(0, 0, 1);
     this.camera = camera;
 
-    const ambientLight = new THREE.AmbientLight(0xFFFFFF);
-    scene.add(ambientLight);
-    const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 3);
-    scene.add(directionalLight);
-    const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 3);
-    scene.add(directionalLight2);
-
-    /* const renderer = new THREE.WebGLRenderer({
-      canvas,
-      antialias: true,
-      // preserveDrawingBuffer: true,
-    });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.autoClear = false;
-    renderer.sortObjects = false;
-    renderer.physicallyCorrectLights = true;
-    renderer.xr.enabled = true;
-    this.renderer = renderer;
-
-    const scene = new THREE.Scene();
-    this.scene = scene;
-
-    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 1, 2);
-    this.camera = camera;
+    const orbitControls = new OrbitControls(camera, canvas, document);
+    orbitControls.screenSpacePanning = true;
+    orbitControls.enableMiddleZoom = false;
+    orbitControls.update();
+    this.orbitControls = orbitControls;
 
     const ambientLight = new THREE.AmbientLight(0xFFFFFF);
     scene.add(ambientLight);
@@ -320,20 +294,6 @@ export class XRPackageEngine extends EventTarget {
     scene.add(directionalLight);
     const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 3);
     scene.add(directionalLight2);
-
-    const cubeMesh = (() => {
-      const geometry = new THREE.BoxBufferGeometry(0.1, 0.1, 0.1);
-      const material = new THREE.MeshStandardMaterial({
-        color: 0xFF0000,
-      });
-      const mesh = new THREE.Mesh(geometry, material);  
-      mesh.frustumCulled = false;
-      return mesh;
-    })();
-    cubeMesh.position.set(0, 1.5, 0);
-    cubeMesh.rotation.order = 'YXZ';
-    scene.add(cubeMesh);
-    this.cubeMesh = cubeMesh; */
 
     this.fakeSession = new XR.XRSession();
     this.fakeSession.onrequestanimationframe = this.requestAnimationFrame.bind(this);
@@ -399,7 +359,7 @@ export class XRPackageEngine extends EventTarget {
     return getContext.call(this.domElement, type, opts);
   }
   async add(p) {
-    console.log('add loaded 1', p.loaded);
+    // console.log('add loaded 1', p.loaded);
     if (!p.loaded) {
       await new Promise((accept, reject) => {
         p.addEventListener('load', e => {
@@ -407,11 +367,11 @@ export class XRPackageEngine extends EventTarget {
         }, {once: true});
       });
     }
-    console.log('add loaded 2', p.loaded);
+    // console.log('add loaded 2', p.loaded);
 
     const {type} = p;
     const adder = xrTypeAdders[type];
-    console.log('add loaded 3', !!adder);
+    // console.log('add loaded 3', !!adder);
     if (adder) {
       await adder.call(this, p);
       p.parent = this;
@@ -504,6 +464,11 @@ export class XRPackageEngine extends EventTarget {
   }
   tick(timestamp, frame) {
     this.renderer.clear(true, true, true);
+
+    if (!this.session) {
+      this.orbitControls.update();
+      this.setCamera(this.camera);
+    }
 
     // emit event
     this.dispatchEvent(new CustomEvent('tick'));
