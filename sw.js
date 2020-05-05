@@ -50,6 +50,7 @@ self.addEventListener('fetch', event => {
     .then(client => {
       const u = new URL(event.request.url);
       let {pathname} = u;
+      let pathnameChanged = false;
       // console.log('got client', event.request.url, !!(client && client.frameType === 'nested'));
       if (client && client.frameType === 'nested') {
         // console.log('got client', u.pathname, client, event.request);
@@ -85,14 +86,16 @@ self.addEventListener('fetch', event => {
       console.log('try path', startUrls, pathname.slice(1), startUrls[pathname.slice(1)]);
       if (startUrls[pathname.slice(1)]) {
         pathname = '/xrpackage/iframe.html';
+        pathnameChanged = true;
       }
       if (client && /\/xrpackage\//.test(pathname)) {
         const {hostname} = new URL(client.url);
         if (hostname !== '127.0.0.1' && hostname !== 'localhost') {
-          return fetch('https://xrpackage.org' + pathname);
+          pathname = 'https://xrpackage.org' + pathname;
+          pathnameChanged = true;
         }
       }
-      return fetch(event.request);
+      return pathnameChanged ? fetch(pathname) : fetch(event.request);
     })
   );
 });
