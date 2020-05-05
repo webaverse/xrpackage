@@ -41,7 +41,7 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-  console.log('got fetch', event, {hijackedClientIds, hijackedIds, startUrls});
+  // console.log('got fetch', event, {hijackedClientIds, hijackedIds, startUrls});
   const {
     clientId,
   } = event;
@@ -95,7 +95,6 @@ self.addEventListener('fetch', event => {
           pathnameChanged = true;
         }
       }
-      console.log('default fetch', pathnameChanged, pathname);
       return pathnameChanged ? fetch(pathname) : fetch(event.request);
     })
   );
