@@ -11,9 +11,13 @@ self.addEventListener('message', e => {
   if (method === 'hijack') {
     const {
       id,
+      startUrl,
       files
     } = data;
-    hijackedIds[id] = files;
+    hijackedIds[id] = {
+      startUrl,
+      files,
+    };
   } else {
     console.warn('unknown method', method);
   }
@@ -45,7 +49,7 @@ self.addEventListener('fetch', event => {
     clients.get(clientId)
     .then(client => {
       const u = new URL(event.request.url);
-      const {pathname} = u;
+      let {pathname} = u;
       // console.log('got client', event.request.url, !!(client && client.frameType === 'nested'));
       if (client && client.frameType === 'nested') {
         // console.log('got client', u.pathname, client, event.request);
@@ -63,15 +67,21 @@ self.addEventListener('fetch', event => {
         } else {
           const id = hijackedClientIds[clientId];
           if (id) {
-            const files = hijackedIds[id];
+            const {
+              startUrl,
+              files,
+            } = hijackedIds[id];
             // console.log('hijack file 2', client.url, files);
             if (files) {
               // console.log('hijack file 2', pathname, files);
               if (!/\/xrpackage\//.test(pathname)) {
-                const file = files.find(f => f.pathname === pathname);
-                // console.log('hijack file 3', pathname, file);
-                if (file) {
-                  return new Response(file.body);
+                if (pathname.slice(1) === startUrl) {
+                  pathname = '/xrpackage/iframe.html';
+                } else {
+                  const file = files.find(f => f.pathname === pathname);
+                  if (file) {
+                    return new Response(file.body);
+                  }
                 }
               }
             }
