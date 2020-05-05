@@ -95,6 +95,7 @@ self.addEventListener('fetch', event => {
           pathnameChanged = true;
         }
       }
+      console.log('default fetch', pathnameChanged, pathname);
       return pathnameChanged ? fetch(pathname) : fetch(event.request);
     })
   );
