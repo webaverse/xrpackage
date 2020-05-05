@@ -37,7 +37,7 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-  console.log('got fetch', event);
+  // console.log('got fetch', event);
   const {
     clientId
   } = event;
@@ -78,6 +78,8 @@ self.addEventListener('fetch', event => {
           }
         }
       }
+      const cu = new URL(client.url);
+      console.log('got client url', cu);
       if (/\/xrpackage\//.test(pathname)) {
         return fetch('https://xrpackage.org' + pathname);
       } else {
