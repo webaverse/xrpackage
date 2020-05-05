@@ -47,7 +47,7 @@ self.addEventListener('fetch', event => {
       if (client && client.frameType === 'nested') {
         const u = new URL(event.request.url);
         // console.log('got client', u.pathname, client, event.request);
-        if (event.request.method === 'POST', u.pathname === '/xrpackage/register') {
+        if (event.request.method === 'POST' && u.pathname === '/xrpackage/register') {
           return event.request.json()
             .then(j => {
               const {id} = j;
