@@ -82,6 +82,7 @@ self.addEventListener('fetch', event => {
           }
         }
       }
+      console.log('try path', startUrls, pathname.slice(1), startUrls[pathname.slice(1)]);
       if (startUrls[pathname.slice(1)]) {
         pathname = '/xrpackage/iframe.html';
       }
