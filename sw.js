@@ -79,11 +79,12 @@ self.addEventListener('fetch', event => {
         }
       }
       if (client && /\/xrpackage\//.test(pathname)) {
-        console.log('got client', client);
-        return fetch('https://xrpackage.org' + pathname);
-      } else {
-        return fetch(event.request);
+        const {hostname} = new URL(client.url);
+        if (hostname !== '127.0.0.1' && hostname !== 'localhost') {
+          return fetch('https://xrpackage.org' + pathname);
+        }
       }
+      return fetch(event.request);
     })
   );
 });
