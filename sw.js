@@ -14,6 +14,7 @@ self.addEventListener('message', e => {
       startUrl,
       files
     } = data;
+    console.log('got hijack', data);
     hijackedIds[id] = {
       startUrl,
       files,
@@ -41,7 +42,7 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-  // console.log('got fetch', event);
+  console.log('got fetch', event);
   const {
     clientId
   } = event;
