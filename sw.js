@@ -83,7 +83,6 @@ self.addEventListener('fetch', event => {
           }
         }
       }
-      console.log('try path', startUrls, pathname.slice(1), startUrls[pathname.slice(1)]);
       if (startUrls[pathname.slice(1)]) {
         pathname = '/xrpackage/iframe.html';
         pathnameChanged = true;
@@ -95,7 +94,6 @@ self.addEventListener('fetch', event => {
           pathnameChanged = true;
         }
       }
-      console.log('default fetch', pathnameChanged, pathname);
       return pathnameChanged ? fetch(pathname) : fetch(event.request);
     })
   );
