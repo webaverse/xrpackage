@@ -58,6 +58,7 @@ self.addEventListener('fetch', event => {
           return event.request.json()
             .then(j => {
               const {id} = j;
+              console.log('got client hijack', clientId, id);
               hijackedClientIds[clientId] = id;
             })
             .then(() =>
