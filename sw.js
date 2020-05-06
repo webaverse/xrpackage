@@ -76,7 +76,11 @@ self.addEventListener('fetch', event => {
               if (!/\/xrpackage\//.test(pathname)) {
                 const file = files.find(f => f.pathname === pathname);
                 if (file) {
-                  return new Response(file.body);
+                  return new Response(file.body, {
+                    headers: {
+                      'Content-Type': file.type,
+                    },
+                  });
                 }
               }
             }
