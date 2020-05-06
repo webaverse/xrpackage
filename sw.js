@@ -3,6 +3,7 @@ const LOCAL_DEV = false;
 const hijackedClientIds = {};
 const hijackedIds = {};
 const startUrls = {};
+const scriptUrls = {};
 self.addEventListener('message', e => {
   const {
     data
@@ -85,6 +86,10 @@ self.addEventListener('fetch', event => {
       }
       if (startUrls[pathname.slice(1)]) {
         pathname = '/xrpackage/iframe.html';
+        pathnameChanged = true;
+      }
+      if (scriptUrls[pathname.slice(1)]) {
+        pathname = '/xrpackage/worker.js';
         pathnameChanged = true;
       }
       let match = pathname.match(/(\/xrpackage\/.*)$/);
