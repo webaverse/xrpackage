@@ -656,13 +656,14 @@ export class XRPackageEngine extends EventTarget {
     xrState.rightViewMatrix.set(xrState.leftViewMatrix);
     xrState.rightProjectionMatrix.set(xrState.leftProjectionMatrix);
   }
-  setLocalAvatar(model) {
+  wearAvatar(p) {
     if (this.rig) {
       this.scene.remove(this.rig);
       this.rig.destroy();
       this.rig = null;
     }
 
+    const {model} = p.context;
     if (model) {
       model.scene.traverse(o => {
         o.frustumCulled = false;
@@ -820,11 +821,5 @@ export class XRPackage extends EventTarget {
   }
   setSession(session) {
     this.context.iframe && this.context.iframe.contentWindow.rs.setSession(session);
-  }
-  wearAvatar() {
-    console.log('wear ava', this.context.model);
-    if (this.context.model) {
-      this.parent.setLocalAvatar(this.context.model);
-    }
   }
 }
