@@ -187,10 +187,16 @@ const xrTypeLoaders = {
         type: 'text/javascript',
       });
       const scriptUrl = URL.createObjectURL(scriptBlob);
-      const worker = new Worker(scriptPath);
+      const worker = new Worker(scriptPath, {
+        type: 'module',
+      });
       worker.postMessage({
         method: 'init',
         scriptUrl,
+      });
+      worker.addEventListener('message', e => {
+        const {matrix} = e.data;
+        scene.matrix.fromArray(matrix).decompose(scene.position, scene.quaternion, scene.scale);
       });
       p.context.worker = worker;
     }
@@ -636,6 +642,11 @@ export class XRPackageEngine extends EventTarget {
         p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer.context._exokitClearEnabled(false);
         // console.log('got iframe', p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer.context.canvas.transferToImageBitmap());
         // debugger;
+      }
+      if (p.context.worker) {
+        p.context.worker.postMessage({
+          method: 'tick',
+        });
       }
     }
 

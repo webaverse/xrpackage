@@ -1,4 +1,4 @@
-const LOCAL_DEV = false;
+const LOCAL_DEV = true;
 
 const hijackedClientIds = {};
 const hijackedIds = {};
