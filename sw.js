@@ -15,24 +15,18 @@ self.addEventListener('message', e => {
     const {
       id,
       startUrl,
+      script,
       files
     } = data;
     // console.log('got hijack', data);
     hijackedIds[id] = files;
     startUrls[startUrl] = true;
+    if (script) {
+      scriptUrls[script] = true;
+    }
   } else {
     console.warn('unknown method', method);
   }
-  /* const {method} = data;
-  if (method === 'redirect') {
-    const {src, dst} = data;
-    let redirectsArray = redirects[src];
-    if (!redirectsArray) {
-      redirectsArray = [];
-      redirects[src] = redirectsArray;
-    }
-    redirectsArray.push(dst);
-  } */
   e.ports[0].postMessage({});
 });
 self.addEventListener('install', event => {
