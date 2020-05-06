@@ -195,8 +195,26 @@ const xrTypeLoaders = {
         scriptUrl,
       });
       worker.addEventListener('message', e => {
-        const {matrix} = e.data;
-        scene.matrix.fromArray(matrix).decompose(scene.position, scene.quaternion, scene.scale);
+        const j = e.data;
+        const {method} = j;
+        switch (method) {
+          case 'update': {
+            const {matrix} = j;
+            scene.matrix
+              .fromArray(matrix)
+              .decompose(scene.position, scene.quaternion, scene.scale);
+            break;
+          }
+          case 'message': {
+            const {data} = j;
+            console.log('got message bus payload', data);
+            break;
+          }
+          default: {
+            console.warn('major message debugging');
+            break;
+          }
+        }
       });
       p.context.worker = worker;
     }

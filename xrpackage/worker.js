@@ -13,7 +13,8 @@ globalThis.addEventListener('message', e => {
     case 'tick': {
       object.updateMatrixWorld();
       globalThis.postMessage({
-      	matrix: object.matrixWorld.toArray(),
+        method: 'update',
+        matrix: object.matrixWorld.toArray(),
       });
       break;
     }
