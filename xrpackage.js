@@ -179,6 +179,21 @@ const xrTypeLoaders = {
     URL.revokeObjectURL(u);
 
     p.context.object = scene;
+
+    if (p.details.script) {
+      const scriptPath = '/' + p.details.script;
+      const scriptFile = p.files.find(file => new URL(file.url).pathname === scriptPath);
+      const scriptBlob = new Blob([scriptFile.response.body], {
+        type: 'text/javascript',
+      });
+      const scriptUrl = URL.createObjectURL(scriptBlob);
+      const worker = new Worker(scriptPath);
+      worker.postMessage({
+        method: 'init',
+        scriptUrl,
+      });
+      p.context.worker = worker;
+    }
   },
   'vrm@0.0.1': async function(p) {
     const mainPath = '/' + p.main;
@@ -718,20 +733,28 @@ export class XRPackage extends EventTarget {
       const s = manifestJsonFile.response.body.toString('utf-8');
       const j = JSON.parse(s);
       if (j && typeof j.xr_type === 'string' && typeof j.start_url === 'string') {
-        const {
+        let {
           xr_type: xrType,
           start_url: startUrl,
+          xr_details: xrDetails,
         } = j;
+        if (xrDetails === undefined || (typeof xrDetails === 'object' && !Array.isArray(xrDetails))) {
+          xrDetails = xrDetails || {};
+        } else {
+          throw new Error('invalid xr_details in manifest.json');
+        }
         const loader = xrTypeLoaders[xrType];
         if (loader) {
           this.type = xrType;
           this.main = startUrl;
+          this.details = xrDetails;
 
           swLoadPromise
             .then(() => requestSw({
               method: 'hijack',
               id: this.id,
               startUrl,
+              script: xrDetails ? xrDetails.script : null,
               files: files.map(f => ({
                 pathname: new URL(f.url).pathname,
                 headers: f.response.headers,
