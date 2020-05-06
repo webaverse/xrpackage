@@ -656,7 +656,15 @@ export class XRPackageEngine extends EventTarget {
     xrState.rightViewMatrix.set(xrState.leftViewMatrix);
     xrState.rightProjectionMatrix.set(xrState.leftProjectionMatrix);
   }
-  wearAvatar(p) {
+  async wearAvatar(p) {
+    if (!p.loaded) {
+      await new Promise((accept, reject) => {
+        p.addEventListener('load', e => {
+          accept();
+        }, {once: true});
+      });
+    }
+
     if (this.rig) {
       this.scene.remove(this.rig);
       this.rig.destroy();
