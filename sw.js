@@ -15,7 +15,7 @@ self.addEventListener('message', e => {
       startUrl,
       files
     } = data;
-    console.log('got hijack', data);
+    // console.log('got hijack', data);
     hijackedIds[id] = files;
     startUrls[startUrl] = true;
   } else {
