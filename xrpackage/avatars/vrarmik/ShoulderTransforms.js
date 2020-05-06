@@ -1,7 +1,7 @@
+import THREE from '../../three.module.js';
 import ArmTransforms from './ArmTransforms.js';
 import ShoulderPoser from './ShoulderPoser.js';
 import VRArmIK from './VRArmIK.js';
-
 
 class ShoulderTransforms
 	{
