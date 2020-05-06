@@ -723,6 +723,7 @@ export class XRPackage extends EventTarget {
               startUrl,
               files: files.map(f => ({
                 pathname: new URL(f.url).pathname,
+                headers: f.response.headers,
                 body: f.response.body,
               })),
             }))
