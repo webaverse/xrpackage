@@ -168,7 +168,9 @@ const xrTypeLoaders = {
   'gltf@0.0.1': async function(p) {
     const mainPath = '/' + p.main;
     const indexFile = p.files.find(file => new URL(file.url).pathname === mainPath);
-    const indexBlob = new Blob([indexFile.response.body]);
+    const indexBlob = new Blob([indexFile.response.body], {
+      type: 'application/octet-stream',
+    });
     const u = URL.createObjectURL(indexBlob);
     const {scene} = await new Promise((accept, reject) => {
       const loader = new GLTFLoader();
@@ -181,10 +183,9 @@ const xrTypeLoaders = {
   'vrm@0.0.1': async function(p) {
     const mainPath = '/' + p.main;
     const indexFile = p.files.find(file => new URL(file.url).pathname === mainPath);
-    const indexBlob = new Blob([indexFile.response.body]);
-    // console.log('load blob!');
-    /* const indexBlob = await fetch(`https://raw.githubusercontent.com/exokitxr/avatar-models/master/model17.vrm`)
-      .then(res => res.blob()); */
+    const indexBlob = new Blob([indexFile.response.body], {
+      type: 'application/octet-stream',
+    });
     const u = URL.createObjectURL(indexBlob);
     const o = await new Promise((accept, reject) => {
       const loader = new GLTFLoader();
