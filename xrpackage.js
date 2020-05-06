@@ -251,6 +251,7 @@ export class XRPackageEngine extends EventTarget {
     this.options = options || {};
 
     const canvas = document.createElement('canvas');
+    canvas.style.outline = 'none';
     this.domElement = canvas;
     // this.context = GlobalContext.proxyContext;
 
