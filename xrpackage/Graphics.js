@@ -10,7 +10,7 @@ self.OffscreenCanvasRenderingContext2D = undefined;
 self.WebGLRenderingContext = undefined;
 self.WebGL2RenderingContext = undefined; */
 
-const {/*WebGLRenderingContext, WebGL2RenderingContext,*/ CanvasRenderingContext2D} = self;
+let {WebGLRenderingContext, WebGL2RenderingContext, CanvasRenderingContext2D} = globalThis;
 
 class WebGLState {
   constructor() {
@@ -136,7 +136,7 @@ HTMLCanvasElement.prototype.getBoundingClientRect = function getBoundingClientRe
   return new DOMRect(canvasViewport[0], canvasViewport[1], canvasViewport[2], canvasViewport[3]);
 };
 
-const [WebGLRenderingContext, WebGL2RenderingContext] = [window.WebGLRenderingContext, window.WebGL2RenderingContext].map(WebGLRenderingContext => {
+const gls = [window.WebGLRenderingContext, window.WebGL2RenderingContext].map(WebGLRenderingContext => {
 
 if (!WebGLRenderingContext) {
   return WebGLRenderingContext;
@@ -843,13 +843,19 @@ if (hasWebGL2 && WebGLRenderingContext.name === 'WebGLRenderingContext') {
 return ProxiedWebGLRenderingContext;
 
 });
+WebGLRenderingContext = gls[0];
+WebGL2RenderingContext = gls[1];
 
 };
 
-export {
+const getExports = () => ({
   getContext,
-  hijackCanvas,
   WebGLRenderingContext,
   WebGL2RenderingContext,
   CanvasRenderingContext2D,
+});
+
+export {
+  hijackCanvas,
+  getExports,
 };

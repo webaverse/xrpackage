@@ -3,13 +3,14 @@
 <body>
 <script type=module>
 import * as THREE from './xrpackage/three.module.js';
-import {hijackCanvas, CanvasRenderingContext2D, WebGLRenderingContext, WebGL2RenderingContext} from './xrpackage/Graphics.js';
+import {hijackCanvas, getExports} from './xrpackage/Graphics.js';
 import * as XR from './xrpackage/XR.js';
 import GlobalContext from './xrpackage/GlobalContext.js';
 import utils from './xrpackage/utils.js';
 const {requestSw} = utils;
 
 hijackCanvas();
+const {CanvasRenderingContext2D, WebGLRenderingContext, WebGL2RenderingContext} = getExports();
 
 const xrOffsetMatrix = new THREE.Matrix4();
 GlobalContext.getXrOffsetMatrix = () => xrOffsetMatrix;
