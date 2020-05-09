@@ -136,8 +136,6 @@ HTMLCanvasElement.prototype.getBoundingClientRect = function getBoundingClientRe
   return new DOMRect(canvasViewport[0], canvasViewport[1], canvasViewport[2], canvasViewport[3]);
 };
 
-};
-
 const [WebGLRenderingContext, WebGL2RenderingContext] = [window.WebGLRenderingContext, window.WebGL2RenderingContext].map(WebGLRenderingContext => {
 
 if (!WebGLRenderingContext) {
@@ -845,6 +843,8 @@ if (hasWebGL2 && WebGLRenderingContext.name === 'WebGLRenderingContext') {
 return ProxiedWebGLRenderingContext;
 
 });
+
+};
 
 export {
   getContext,
