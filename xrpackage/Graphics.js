@@ -75,67 +75,6 @@ class WebGLState {
   }
 }
 
-const getContext = (oldGetContext => function getContext(type, init = {}) {
-  // console.log('get context', new Error().stack);
-  const match = type.match(/^(?:experimental-)?(webgl2?)$/);
-  if (match && (hasWebGL2 || match[1] !== 'webgl2')) {
-    // window[symbols.ensureProxyContext]();
-
-    const canvas = this;
-    const gl = match[1] === 'webgl2' ? new WebGL2RenderingContext(canvas) : new WebGLRenderingContext(canvas);
-
-    canvas.getContext = function getContext() {
-      return gl;
-    };
-    canvas.toBlob = function toBlob(cb, type, quality) {
-      const canvas2 = document.createElement('canvas');
-      canvas2.width = canvas.width;
-      canvas2.height = canvas.height;
-      const ctx2 = oldGetContext.call(canvas2, '2d');
-      ctx2.drawImage(
-        GlobalContext.proxyContext.canvas,
-        0, GlobalContext.proxyContext.canvas.height - canvas2.height, canvas.width, canvas.height,
-        0, 0, canvas.width, canvas.height
-      );
-      return canvas2.toBlob(cb, type, quality);
-    };
-
-    /* new MutationObserver(() => {
-      GlobalContext.proxyContext.canvas.width = canvas.width;
-      GlobalContext.proxyContext.canvas.height = canvas.height;
-    }).observe(canvas, {
-      attributes: true,
-      attributeFilter: ['width', 'height'],
-    }); */
-
-    /* setTimeout(() => {
-      window.vrdisplayactivate();
-    }); */
-
-    return gl;
-  } else {
-    return oldGetContext.call(this, type, init);
-  }
-})(HTMLCanvasElement.prototype.getContext);
-
-const hijackCanvas = () => {
-
-HTMLCanvasElement.prototype.getContext = getContext;
-Object.defineProperty(HTMLCanvasElement.prototype, 'clientWidth', {
-  get() {
-    return this.width;
-  },
-});
-Object.defineProperty(HTMLCanvasElement.prototype, 'clientHeight', {
-  get() {
-    return this.height;
-  },
-});
-HTMLCanvasElement.prototype.getBoundingClientRect = function getBoundingClientRect() {
-  const {canvasViewport} = GlobalContext.xrState;
-  return new DOMRect(canvasViewport[0], canvasViewport[1], canvasViewport[2], canvasViewport[3]);
-};
-
 const gls = [window.WebGLRenderingContext, window.WebGL2RenderingContext].map(WebGLRenderingContext => {
 
 if (!WebGLRenderingContext) {
@@ -843,6 +782,69 @@ if (hasWebGL2 && WebGLRenderingContext.name === 'WebGLRenderingContext') {
 return ProxiedWebGLRenderingContext;
 
 });
+
+const getContext = (oldGetContext => function getContext(type, init = {}) {
+  // console.log('get context', new Error().stack);
+  const match = type.match(/^(?:experimental-)?(webgl2?)$/);
+  if (match && (hasWebGL2 || match[1] !== 'webgl2')) {
+    // window[symbols.ensureProxyContext]();
+
+    const canvas = this;
+    const [WebGLRenderingContext, WebGL2RenderingContext] = gls;
+    const gl = match[1] === 'webgl2' ? new WebGL2RenderingContext(canvas) : new WebGLRenderingContext(canvas);
+
+    canvas.getContext = function getContext() {
+      return gl;
+    };
+    canvas.toBlob = function toBlob(cb, type, quality) {
+      const canvas2 = document.createElement('canvas');
+      canvas2.width = canvas.width;
+      canvas2.height = canvas.height;
+      const ctx2 = oldGetContext.call(canvas2, '2d');
+      ctx2.drawImage(
+        GlobalContext.proxyContext.canvas,
+        0, GlobalContext.proxyContext.canvas.height - canvas2.height, canvas.width, canvas.height,
+        0, 0, canvas.width, canvas.height
+      );
+      return canvas2.toBlob(cb, type, quality);
+    };
+
+    /* new MutationObserver(() => {
+      GlobalContext.proxyContext.canvas.width = canvas.width;
+      GlobalContext.proxyContext.canvas.height = canvas.height;
+    }).observe(canvas, {
+      attributes: true,
+      attributeFilter: ['width', 'height'],
+    }); */
+
+    /* setTimeout(() => {
+      window.vrdisplayactivate();
+    }); */
+
+    return gl;
+  } else {
+    return oldGetContext.call(this, type, init);
+  }
+})(HTMLCanvasElement.prototype.getContext);
+
+const hijackCanvas = () => {
+
+HTMLCanvasElement.prototype.getContext = getContext;
+Object.defineProperty(HTMLCanvasElement.prototype, 'clientWidth', {
+  get() {
+    return this.width;
+  },
+});
+Object.defineProperty(HTMLCanvasElement.prototype, 'clientHeight', {
+  get() {
+    return this.height;
+  },
+});
+HTMLCanvasElement.prototype.getBoundingClientRect = function getBoundingClientRect() {
+  const {canvasViewport} = GlobalContext.xrState;
+  return new DOMRect(canvasViewport[0], canvasViewport[1], canvasViewport[2], canvasViewport[3]);
+};
+
 WebGLRenderingContext = gls[0];
 WebGL2RenderingContext = gls[1];
 
