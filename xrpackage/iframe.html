@@ -112,6 +112,10 @@ class XRPackageManager extends EventTarget {
     window.XRReferenceSpace = XR.XRReferenceSpace;
     window.XRBoundedReferenceSpace = XR.XRBoundedReferenceSpace;
 
+    Object.defineProperty(navigator, 'serviceWorker', {
+      get() {},
+    });
+
     this.loadPromise.resolve({});
   }
   /* addEventListener(e, fn, opts) {
