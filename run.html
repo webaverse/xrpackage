@@ -114,7 +114,7 @@ cubeMesh.position.set(0, -1/2, 0);
 // cubeMesh.rotation.order = 'YXZ';
 scene.add(cubeMesh);
 
-const targetMesh = (() => {
+const _makeTargetMesh = () => {
   const targetGeometry = BufferGeometryUtils.mergeBufferGeometries([
     new THREE.BoxBufferGeometry(0.03, 0.2, 0.03)
       .applyMatrix4(new THREE.Matrix4().makeTranslation(0, -0.1, 0)),
@@ -155,26 +155,26 @@ const targetMesh = (() => {
   ]).applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
   const targetVsh = `
     #define M_PI 3.1415926535897932384626433832795
-    uniform vec3 worldPos;
     uniform float uTime;
     varying vec2 vUv;
     void main() {
       float f = 1.0 + pow(sin(uTime * M_PI), 0.5) * 0.2;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4((position + worldPos) * f, 1.);
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position * f, 1.);
     }
   `;
   const targetFsh = `
+    uniform float uHighlight;
     uniform float uTime;
     void main() {
       float f = max(1.0 - pow(uTime, 0.5), 0.1);
-      gl_FragColor = vec4(vec3(f), 1.0);
+      gl_FragColor = vec4(vec3(f * uHighlight), 1.0);
     }
   `;
   const material = new THREE.ShaderMaterial({
     uniforms: {
-      worldPos: {
-        type: 'v3',
-        value: new THREE.Vector3(),
+      uHighlight: {
+        type: 'f',
+        value: 0,
       },
       uTime: {
         type: 'f',
@@ -188,24 +188,14 @@ const targetMesh = (() => {
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
   return mesh;
-})();
-scene.add(targetMesh);
+};
+/* const targetMesh = _makeTargetMesh();
+scene.add(targetMesh); */
 
-const objects = [];
+// const objects = [];
 function animate(timestamp, frame) {
-  // renderer.state.reset();
-
-  /* const f = (Date.now()%2000)/2000 * Math.PI*2;
-  cubeMesh.rotation.x = f;
-  cubeMesh.rotation.y = f;
-  cubeMesh.rotation.z = f; */
-
-  for (let i = 0; i < objects.length; i++) {
-    objects[i].setMatrix(new THREE.Matrix4().compose(new THREE.Vector3(0, Math.sin((Date.now()%2000)/2000 * Math.PI*2), 0), new THREE.Quaternion(), new THREE.Vector3(1, 1, 1)));
-  }
-
-  const timeFactor = 1000;
-  targetMesh.material.uniforms.uTime.value = (Date.now() % timeFactor) / timeFactor;
+  /* const timeFactor = 1000;
+  targetMesh.material.uniforms.uTime.value = (Date.now() % timeFactor) / timeFactor; */
 
   renderer.render(scene, camera);
 }
@@ -219,8 +209,6 @@ const _handleUpload = async file => {
 
   if (/\.vrm$/.test(file.name)) {
     p.wearAvatar();
-  } else {
-    objects.push(p);
   }
 };
 
@@ -243,6 +231,33 @@ const _bindUploadFileButton = (inputFileEl, handleUpload) => {
   });
 };
 _bindUploadFileButton(document.getElementById('load-package-input'), _handleUpload);
+
+document.getElementById('shield-slider').addEventListener('change', e => {
+  const shieldLevel = parseInt(e.target.value, 10);
+  const {packages} = pe;
+  switch (shieldLevel) {
+    case 0: {
+      for (const p of packages) {
+        p.visible = false;
+        if (!p.placeholderBox) {
+          p.placeholderBox = _makeTargetMesh();
+          p.placeholderBox.matrix.copy(p.getMatrix()).decompose(p.position, p.quaternion, p.scale);
+        }
+        scene.add(p.placeholderBox);
+      }
+      break;
+    }
+    case 1: {
+      for (const p of packages) {
+        p.visible = true;
+      }
+      if (p.placeholderBox) {
+        scene.remove(p.placeholderBox);
+      }
+      break;
+    }
+  }
+});
 
 document.addEventListener('dragover', e => {
   e.preventDefault();
