@@ -38,7 +38,7 @@ export async function screenshotObject(o) {
   });
   for (let i = 0; i < Math.PI*2; i += Math.PI*0.05) {
     const position = new THREE.Vector3(0, 1, 0)
-      .add(new THREE.Vector3(Math.cos(i + Math.PI/2), 0, Math.sin(i + Math.PI/2)).multiplyScalar(Math.max(size.x, size.z) * 1.5));
+      .add(new THREE.Vector3(Math.cos(i + Math.PI/2), 0, Math.sin(i + Math.PI/2)).multiplyScalar(Math.max(size.x, size.z) * 1.2));
     const canvas = screenshot(newScene, position, center, {
       width,
       height,
