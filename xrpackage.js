@@ -679,6 +679,8 @@ export class XRPackageEngine extends EventTarget {
         const rafPackage = this.packages.find(p => p.context.iframe && p.context.iframe.contentWindow === rafWindow);
         if (!rafPackage || rafPackage.visible) {
           raf();
+        } else {
+          this.rafs.push(raf);
         }
       }
     };
