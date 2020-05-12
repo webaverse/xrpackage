@@ -811,6 +811,7 @@ export class XRPackage extends EventTarget {
       throw new Error('no manifest.json in pack');
     }
 
+    this.matrix = new THREE.Matrix4();
     this.parent = null;
     this.context = {};
   }
@@ -887,10 +888,11 @@ export class XRPackage extends EventTarget {
   getObject() {
     return this.context.object;
   }
-  setMatrix(matrix) {
+  setMatrix(m) {
+    this.matrix.copy(m);
     this.context.object &&
       this.context.object.matrix
-        .copy(matrix)
+        .copy(m)
         .decompose(this.context.object.position, this.context.object.quaternion, this.context.object.scale);
   }
   setSession(session) {
