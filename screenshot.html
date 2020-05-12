@@ -9,7 +9,6 @@ window.THREE = THREE;
   <pre><code id=error></code></pre>
   <script type=module>
 import {XRPackage} from './xrpackage.js';
-import {GLTFLoader} from './xrpackage/GLTFLoader.js';
 import {screenshotObject, exportObject} from './screenshot-object.js';
 
 (async () => {
@@ -42,30 +41,39 @@ const p = await (async () => {
   }
 })();
 if (p) {
-  let o = p.getObject();
-  if (!o) {
-    o = await new Promise((accept, reject) => {
-      const loader = new GLTFLoader();
-      const u = 'assets/w.glb';
-      loader.load(u, accept, function onProgress() {}, reject);
-    });
-    o = o.scene;
-  }
-  const gifBlob = await screenshotObject(o);
-  const data = await exportObject(o);
-  {
-    const res = await fetch(dstGif, {
-      method: 'PUT',
-      body: gifBlob,
-    });
-    await res.blob();
-  }
-  {
-    const res = await fetch(dstGlb, {
-      method: 'PUT',
-      body: data,
-    });
-    await res.blob();
+  const o = p.getObject();
+  if (o) {
+    const gifBlob = await screenshotObject(o);
+    const data = await exportObject(o);
+    {
+      const res = await fetch(dstGif, {
+        method: 'PUT',
+        body: gifBlob,
+      });
+      await res.blob();
+    }
+    {
+      const res = await fetch(dstGlb, {
+        method: 'PUT',
+        body: data,
+      });
+      await res.blob();
+    }
+  } else {
+    {
+      const res = await fetch(dstGif, {
+        method: 'PUT',
+        body: '',
+      });
+      await res.blob();
+    }
+    {
+      const res = await fetch(dstGlb, {
+        method: 'PUT',
+        body: '',
+      });
+      await res.blob();
+    }
   }
 } else {
   {
