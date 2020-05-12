@@ -851,6 +851,17 @@ export class XRPackage extends EventTarget {
       return await _createFile(file, 'vrm@0.0.1', 'application/octet-stream');
     } else if (/\.html$/.test(file.name)) {
       return await _createFile(file, 'webxr-site@0.0.1', 'text/html');
+    } else if (/\.wbn$/.test(file.name)) {
+      const arrayBuffer = await new Promise((accept, reject) => {
+        const fr = new FileReader();
+        fr.readAsArrayBuffer(file);
+        fr.onload = () => {
+          accept(fr.result);
+        };
+        fr.onerror = reject;
+      });
+      const uint8Array = new Uint8Array(arrayBuffer);
+      return uint8Array;
     } else {
       throw new Error(`unknown file type: ${file.type}`);
     }
