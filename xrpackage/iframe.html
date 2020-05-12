@@ -63,7 +63,7 @@ class XRPackageManager extends EventTarget {
     GlobalContext.proxyContext = context;
     GlobalContext.contexts = [];
     
-    window.requestAnimationFrame = engine.requestAnimationFrame.bind(engine);
+    window.requestAnimationFrame = fn => engine.requestAnimationFrame(fn, globalThis);
     window.cancelAnimationFrame = engine.cancelAnimationFrame.bind(engine);
     // window.innerWidth = canvas.width;
     // window.innerHeight = canvas.height;
@@ -73,7 +73,7 @@ class XRPackageManager extends EventTarget {
     window.WebGL2RenderingContext = WebGL2RenderingContext;
 
     const session = new XR.XRSession();
-    session.onrequestanimationframe = engine.requestAnimationFrame.bind(engine);
+    session.onrequestanimationframe = fn => engine.requestAnimationFrame(fn, globalThis);
     session.oncancelanimationframe = engine.cancelAnimationFrame.bind(engine);
     this.session = session;
 
