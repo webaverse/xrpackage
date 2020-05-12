@@ -32,13 +32,13 @@ export async function screenshotObject(o) {
 
   const width = 256;
   const height = width;
-  const center = new THREE.Vector3(0, 0.5, 0);
   const gif = new GIF({
     workers: 2,
     quality: 10,
   });
   for (let i = 0; i < Math.PI*2; i += Math.PI*0.05) {
     const position = center.clone()
+      .add(new THREE.Vector3(0, size.y / 2, 0))
       .add(new THREE.Vector3(Math.cos(i + Math.PI/2), 0, Math.sin(i + Math.PI/2)).multiplyScalar(Math.max(size.x, size.z) * 1.2));
     const canvas = screenshot(newScene, position, center, {
       width,
