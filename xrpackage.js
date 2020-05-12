@@ -812,8 +812,20 @@ export class XRPackage extends EventTarget {
     }
 
     this.matrix = new THREE.Matrix4();
+    this._visible = true;
     this.parent = null;
     this.context = {};
+  }
+  get visible() {
+    return this._visible;
+  }
+  set visible(visible) {
+    this._visible = visible;
+
+    const o = this.getObject();
+    if (o) {
+      o.visible = visible;
+    }
   }
   static async compileFromFile(file) {
     const _createFile = async (file, xrType, mimeType) => {
