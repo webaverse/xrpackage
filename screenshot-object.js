@@ -46,6 +46,7 @@ export async function screenshotObject(o) {
   const blob = await new Promise((accept, reject) => {
     gif.on('finished', accept);
   });
+  console.log('got gif data', blob);
   return blob;
 }
 export async function exportObject(o) {
@@ -60,5 +61,6 @@ export async function exportObject(o) {
     includeCustomExtensions: true,
   });
   const data = await dataPromise;
+  console.log('got gltf data', data);
   return data;
 }

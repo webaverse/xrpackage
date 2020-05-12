@@ -8,8 +8,9 @@ window.THREE = THREE;
   <h1 id=text>Screenshotting...</h1>
   <pre><code id=error></code></pre>
   <script type=module>
-import {screenshotObject, exportObject} from './screenshot-object.js';
 import {XRPackage} from './xrpackage.js';
+import {GLTFLoader} from './xrpackage/GLTFLoader.js';
+import {screenshotObject, exportObject} from './screenshot-object.js';
 
 (async () => {
 
@@ -41,7 +42,15 @@ const p = await (async () => {
   }
 })();
 if (p) {
-  const o = p.getObject();
+  let o = p.getObject();
+  if (!o) {
+    o = await new Promise((accept, reject) => {
+      const loader = new GLTFLoader();
+      const u = 'assets/w.glb';
+      loader.load(u, accept, function onProgress() {}, reject);
+    });
+    o = o.scene;
+  }
   const gifBlob = await screenshotObject(o);
   const data = await exportObject(o);
   {
