@@ -241,7 +241,7 @@ document.getElementById('shield-slider').addEventListener('change', e => {
         p.visible = false;
         if (!p.placeholderBox) {
           p.placeholderBox = _makeTargetMesh();
-          p.placeholderBox.matrix.copy(p.getMatrix()).decompose(p.position, p.quaternion, p.scale);
+          p.placeholderBox.matrix.copy(p.matrix).decompose(p.position, p.quaternion, p.scale);
         }
         scene.add(p.placeholderBox);
       }
