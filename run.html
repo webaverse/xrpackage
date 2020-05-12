@@ -250,9 +250,9 @@ document.getElementById('shield-slider').addEventListener('change', e => {
     case 1: {
       for (const p of packages) {
         p.visible = true;
-      }
-      if (p.placeholderBox) {
-        scene.remove(p.placeholderBox);
+        if (p.placeholderBox) {
+          scene.remove(p.placeholderBox);
+        }
       }
       break;
     }
