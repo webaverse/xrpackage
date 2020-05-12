@@ -19,6 +19,10 @@
     <a href="https://www.github.com/webaverse/xrpackage-cli" class="nav">CLI</a>
     <a href="/run.html" class="nav open">Run</a>
     <div class="buttons right">
+      <nav class=button id=load-package-button>
+        <input type=file id=load-package-input>
+        <div>Load package...</div>
+      </nav>
       <nav class=button id=enter-xr-button>Enter XR</nav>
     </div>
   </header>
@@ -123,9 +127,7 @@ renderer.setAnimationLoop(animate);
 renderer.xr.setSession(pe.fakeSession);
 
 const objects = [];
-document.addEventListener('dragover', e => {
-  e.preventDefault();
-});
+
 const _handleUpload = async file => {
   const d = await XRPackage.compileFromFile(file);
   const p = new XRPackage(d);
@@ -137,6 +139,30 @@ const _handleUpload = async file => {
     objects.push(p);
   }
 };
+
+const _bindUploadFileButton = (inputFileEl, handleUpload) => {
+  inputFileEl.addEventListener('change', async e => {
+    const {files} = e.target;
+    if (files.length === 1) {
+      const [file] = files;
+      handleUpload(file);
+    }
+
+    const {parentNode} = inputFileEl;
+    parentNode.removeChild(inputFileEl);
+    const newInputFileEl = inputFileEl.ownerDocument.createElement('input');
+    newInputFileEl.type = 'file';
+    // newInputFileEl.id = 'upload-file-button';
+    // newInputFileEl.style.display = 'none';
+    parentNode.appendChild(newInputFileEl);
+    _bindUploadFileButton(newInputFileEl);
+  });
+};
+_bindUploadFileButton(document.getElementById('load-package-input'), _handleUpload);
+
+document.addEventListener('dragover', e => {
+  e.preventDefault();
+});
 document.addEventListener('drop', e => {
   e.preventDefault();
 

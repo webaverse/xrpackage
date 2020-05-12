@@ -241,7 +241,7 @@ canvas {
 }
 
 .buttons {
-  padding-right: 10px;
+  display: flex;
   /* display: flex;
   position: absolute;
   top: 60px;
@@ -251,6 +251,8 @@ canvas {
 
 .buttons .button {
   display: flex;
+  position: relative;
+  margin-right: 10px;
   justify-content: center;
   align-items: center;
   padding: 5px 10px;
@@ -259,6 +261,16 @@ canvas {
   border-radius: 8px;
   font-size: 12px;
   white-space: nowrap;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.buttons .button > input[type=file] {
+  position: absolute;
+  top: 0;
+  left: -300px;
+  width: calc(100% + 300px);
+  height: 100%;
   cursor: pointer;
 }
 
