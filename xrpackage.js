@@ -674,7 +674,12 @@ export class XRPackageEngine extends EventTarget {
       const rafs = this.rafs.slice();
       this.rafs.length = 0;
       for (let i = 0; i < rafs.length; i++) {
-        rafs[i]();
+        const raf = rafs[i];
+        const rafWindow = raf[symbols.windowSymbol];
+        const rafPackage = this.packages.find(p => p.context.iframe && p.context.iframe.contentWindow === rafWindow);
+        if (!rafPackage || rafPackage.visible) {
+          raf();
+        }
       }
     };
     _tickRafs();
@@ -683,11 +688,12 @@ export class XRPackageEngine extends EventTarget {
     this.renderer.render(this.scene, this.camera);
     // console.log('render context 2', GlobalContext.proxyContext.getError());
   }
-  requestAnimationFrame(fn) {
+  requestAnimationFrame(fn, win) {
     this.rafs.push(fn);
 
     const id = ++this.ids;
     fn[symbols.rafCbsSymbol] = id;
+    fn[symbols.windowSymbol] = win;
     return id;
   }
   cancelAnimationFrame(id) {

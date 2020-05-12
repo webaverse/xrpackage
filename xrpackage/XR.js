@@ -118,7 +118,7 @@ class XRSession extends EventTarget {
       const animationFrame = this.onrequestanimationframe(timestamp => {
         this._rafs.splice(animationFrame, 1);
         fn(timestamp, this._frame);
-      });
+      }, globalThis);
       this._rafs.push(animationFrame);
       return animationFrame;
     }
