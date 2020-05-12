@@ -26,6 +26,9 @@ export async function screenshotObject(o) {
   }
   newScene.add(o);
 
+  const boundingBox = new THREE.Box3().setFromObject(o);
+  const size = boundingBox.getSize(new THREE.Vector3());
+
   const width = 256;
   const height = width;
   const center = new THREE.Vector3(0, 0.5, 0);
@@ -34,7 +37,8 @@ export async function screenshotObject(o) {
     quality: 10,
   });
   for (let i = 0; i < Math.PI*2; i += Math.PI*0.05) {
-    const position = new THREE.Vector3(0, 1, 0).add(new THREE.Vector3(Math.cos(i + Math.PI/2), 0, Math.sin(i + Math.PI/2)));
+    const position = new THREE.Vector3(0, 1, 0)
+      .add(new THREE.Vector3(Math.cos(i + Math.PI/2), 0, Math.sin(i + Math.PI/2)).multiplyScalar(Math.max(size.x, size.z) * 1.5));
     const canvas = screenshot(newScene, position, center, {
       width,
       height,
