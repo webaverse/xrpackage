@@ -75,7 +75,7 @@ self.addEventListener('fetch', event => {
                 if (file) {
                   return new Response(file.body, {
                     headers: {
-                      'Content-Type': file.type,
+                      'Content-Type': file.headers['content-type'],
                     },
                   });
                 }
