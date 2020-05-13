@@ -919,6 +919,6 @@ export class XRPackage extends EventTarget {
         .decompose(this.context.object.position, this.context.object.quaternion, this.context.object.scale);
   }
   setSession(session) {
-    this.context.iframe && this.context.iframe.contentWindow.rs.setSession(session);
+    this.context.iframe && this.context.iframe.contentWindow.xrpackage.setSession(session);
   }
 }
