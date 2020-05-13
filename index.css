@@ -82,6 +82,26 @@ body {
   padding-top: 2px;
 }
 
+.header .nav.large {
+  padding-left: 0;
+  cursor: default;
+}
+
+.header .nav.large i {
+  display: flex;
+  height: 100%;
+  margin-right: 5px;
+  padding: 0 10px;
+  padding-top: 3px;
+  align-items: center;
+  cursor: pointer;
+}
+
+.header .nav.large i:hover {
+  background-color: var(--color);
+  color: #FFF;
+}
+
 .subheader .nav + .subbutton {
   margin-left: 10px;
 }
