@@ -793,7 +793,7 @@ export class XRPackage extends EventTarget {
             .then(() => requestSw({
               method: 'hijack',
               id: this.id,
-              startUrl,
+              startUrl: _removeUrlTail(startUrl),
               script: xrDetails ? xrDetails.script : null,
               files: files.map(f => ({
                 pathname: new URL(f.url).pathname,
