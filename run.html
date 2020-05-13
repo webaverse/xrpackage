@@ -234,6 +234,7 @@ const _bindUploadFileButton = (inputFileEl, handleUpload) => {
     newInputFileEl.type = 'file';
     // newInputFileEl.id = 'upload-file-button';
     // newInputFileEl.style.display = 'none';
+    newInputFileEl.classList.add('hidden');
     parentNode.appendChild(newInputFileEl);
     _bindUploadFileButton(newInputFileEl);
   });
