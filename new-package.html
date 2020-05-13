@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <title>xrpackage | browse</title>
+  <title>xrpackage | new package</title>
   <link rel=icon type="image/png" href="favicon.png">
   <link href="index.css" rel=stylesheet>
   <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700&display=swap" rel="stylesheet">
@@ -19,27 +19,29 @@
     <a href="/account.html" class="nav">Account</a>
   </header>
   <header class=subheader>
-    <a href="/browse.html" class="nav open">Everyone's</a>
+    <a href="/browse.html" class="nav">Everyone's</a>
     <a href="/inventory.html" class="nav">Mine</a>
-    <a href="/new-package.html" class=subbutton><i class="fa fa-plus"></i> New Package</a>
+    <a href="/new-package.html" class="subbutton open"><i class="fa fa-plus"></i> New Package</a>
   </header>
-
-  <div class=loader id=loader>
-    <h1>Loading...</h1>
-  </div>
 
   <div class=main>
     <aside class=sidebar></aside>
-    <section class=grid id=grid></section>
-  </div>
-
-  <div class="pagination buttons" id=pagination>
-    <div class="button pagination-control" id=first>First</div>
-    <div class="button pagination-control" id=prev>Prev</div>
-
-    <div class="page-display pagination-control" id=pageNumEl>1</div>
-    <div class="button pagination-control" id=next>Next</div>
-    <div class="button pagination-control" id=last>Last</div>
+    <div class=big-buttons>
+      <div class=big-button>
+        <h1>Upload file...</h1>
+        <p>Create a package from these file types:</p>
+        <ul>
+          <li>.wbn (XRPackage)</li>
+          <li>.gltf/glb</li>
+          <li>.vox</li>
+          <li>.html (WebXR)</li>
+        </ul>
+      </div>
+      <div class=big-button>
+        <h1>Use CLI</h1>
+        <p>Create a package using the <code>xrpk</code> command-line tool.</p>
+      </div>
+    </div>
   </div>
 
   <!-- <script src="https://kit.fontawesome.com/0735724151.js"></script> -->

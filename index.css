@@ -11,9 +11,13 @@ body {
   margin: 0;
   font-family: 'Open Sans';
   font-size: 12px;
+
+  --color: #ec407a;
 }
 
-header {
+.header,
+.subheader
+{
   position: fixed;
   display: flex;
   top: 0;
@@ -21,18 +25,36 @@ header {
   width: 100vw;
   height: 50px;
   background-color: #FFF;
-  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
   align-items: center;
   user-select: none;
   z-index: 1;
 }
 
-header .icon {
-  height: 25px;
-  margin: 0 10px;
+.header {
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
 }
 
-header .nav {
+.subheader {
+  border-bottom: 1px solid #EEE;
+}
+
+.subheader + .subheader {
+  top: 50px;
+  /* width: 300px; */
+  margin-left: 150px;
+}
+
+.header .icon,
+.subheader .icon
+{
+  display: flex;
+  width: 150px;
+  justify-content: center;
+}
+
+.header .nav,
+.subheader .nav
+{
   display: flex;
   height: 100%;
   padding: 0 10px;
@@ -43,17 +65,41 @@ header .nav {
   color: inherit;
   font-size: 14px;
   text-decoration: none;
-  text-transform: uppercase;
+  cursor: pointer;
 }
 
-header .nav:hover, header .nav.open {
-  border-bottom-color: #7986cb;
+.header .nav:hover,
+.header .nav.open,
+.subheader .nav:hover,
+.subheader .nav.open
+{
+  border-bottom-color: var(--color);
 }
 
-header .nav i {
+.subheader .nav i {
   display: inline-block;
   padding: 0 7px;
   padding-top: 2px;
+}
+
+.subheader .nav + .subbutton {
+  margin-left: 10px;
+}
+
+.subbutton {
+  padding: 5px 10px;
+  background-color: transparent;
+  border: 2px solid var(--color);
+  border-radius: 7px;
+  color: var(--color);
+  text-decoration: none;
+  cursor: pointer;
+}
+.subbutton:hover,
+.subbutton.open
+{
+  background-color: var(--color);
+  color: #FFF;
 }
 
 .pagination {
@@ -81,7 +127,7 @@ header .nav i {
 }
 
 .body {
-  background-color: #7986cb;
+  background-color: var(--color);
 }
 
 .hero, .detail {
@@ -159,6 +205,10 @@ header .button:not(:first-child) {
   margin-left: 10px;
 }
 
+.sidebar {
+  width: 150px;
+}
+
 .grid {
   display: flex;
   /* margin-top: 50px; */
@@ -220,6 +270,20 @@ header .button:not(:first-child) {
   border-color: #000;
   background-color: #FFF;
   outline: none;
+}
+
+.big-buttons {
+  display: inline-flex;
+  margin-top: 30px;
+}
+
+.big-buttons .big-button {
+  width: 200px;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 3px solid var(--color);
+  border-radius: 7px;
 }
 
 canvas {
@@ -291,14 +355,14 @@ canvas {
   display: flex;
   padding-top: 50px;
   min-height: 100vh;
+  align-items: flex-start;
 }
 
-.main .sidebar {
+/* .main .sidebar {
   display: flex;
   width: 200px;
   padding: 0 20px;
   background-color: #F8F8F8;
-  /* box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08); */
   flex-direction: column;
 }
 
@@ -321,7 +385,7 @@ canvas {
 
 .main .sidebar .sidebarSetButton:hover {
   background-color: #1e88e5;
-}
+} */
 
 .main .createForm .sidebarTextInput {
   padding: 5px 10px 5px 10px;
