@@ -55,6 +55,7 @@ body {
 .header .nav,
 .subheader .nav
 {
+  position: relative;
   display: flex;
   height: 100%;
   padding: 0 10px;
@@ -66,6 +67,7 @@ body {
   font-size: 14px;
   text-decoration: none;
   cursor: pointer;
+  overflow: hidden;
 }
 
 .header .nav:hover,
@@ -82,12 +84,12 @@ body {
   padding-top: 2px;
 }
 
-.header .nav.large {
+.header .nav.double {
   padding-left: 0;
   cursor: default;
 }
 
-.header .nav.large i {
+.header .nav.double i {
   display: flex;
   height: 100%;
   margin-right: 5px;
@@ -97,7 +99,30 @@ body {
   cursor: pointer;
 }
 
-.header .nav.large i:hover {
+.header .nav.double i:hover {
+  background-color: var(--color);
+  color: #FFF;
+}
+
+.header .nav.full {
+  height: 100%; 
+}
+
+.header .nav.full i {
+  padding-top: 3px;
+}
+
+.header .nav.full i + span {
+  margin-left: 5px;
+}
+
+.header .nav.square {
+  width: 50px;
+}
+
+.header .nav.full:hover,
+.header .nav.full.open
+{
   background-color: var(--color);
   color: #FFF;
 }
@@ -229,6 +254,26 @@ header .button:not(:first-child) {
   width: 150px;
 }
 
+.dropdown {
+  display: flex;
+  position: absolute;
+  top: 50px;
+  right: 0;
+  width: 200px;
+  height: calc(100% - 50px);
+  background-color: #FFF;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
+  flex-direction: column;
+}
+
+.dropdown:not(.open) {
+  display: none;
+}
+
+.dropdown .row {
+  padding: 10px;
+}
+
 .grid {
   display: flex;
   /* margin-top: 50px; */
@@ -331,11 +376,8 @@ canvas {
 
 .buttons {
   display: flex;
-  /* display: flex;
-  position: absolute;
-  top: 60px;
-  left: 10px;
-  z-index: 1; */
+  height: 100%;
+  align-items: center;
 }
 
 .buttons .button {
@@ -354,7 +396,7 @@ canvas {
   overflow: hidden;
 }
 
-.buttons .button > input[type=file] {
+input[type=file].hidden {
   position: absolute;
   top: 0;
   left: -300px;

@@ -13,23 +13,31 @@
 <body>
   <header class=header id=header>
     <a href="/" class="nav icon">メマアムく匕ムウヨ</a>
-    <a href="/scenes.html" class="nav large open">
+    <a href="/scenes.html" class="nav double open">
       <i class="fa fa-chevron-left"></i>
       Scene
     </a>
 
     <div class="buttons right">
+      <nav class=button id=enter-xr-button>Enter XR</nav>
+      <nav class="nav full">
+        <i class="fa fa-plus"></i>
+        <span>Package</span>
+        <input type=file class=hidden id=load-package-input>
+      </nav>
+      <nav class="nav full square" id=dropdown-button>
+        <i class="fa fa-bars"></i>
+      </nav>
+    </div>
+  </header>
+  <aside class="dropdown" id=dropdown>
+    <div class=row>
       <label>
         <span>Shield</span>
         <input type=range min=0 max=1 value=1 id=shield-slider>
       </label>
-      <nav class=button id=load-package-button>
-        <input type=file id=load-package-input>
-        <div>Load package...</div>
-      </nav>
-      <nav class=button id=enter-xr-button>Enter XR</nav>
     </div>
-  </header>
+  </aside>
 <script type=module>
   import THREE from './three.module.js';
   window.THREE = THREE;
@@ -321,6 +329,13 @@ document.getElementById('enter-xr-button').addEventListener('click', e => {
 popup.addEventListener('load', e => {
   popup.contentWindow
 }); */
+
+const dropdownButton = document.getElementById('dropdown-button');
+const dropdown = document.getElementById('dropdown');
+dropdownButton.addEventListener('click', e => {
+  dropdownButton.classList.toggle('open');
+  dropdown.classList.toggle('open');
+});
 
 {
   const q = parseQuery(window.location.search);
