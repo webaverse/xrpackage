@@ -18,6 +18,8 @@ const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 
+const _removeUrlTail = u => u.replace(/(?:\?|\#).*$/, '');
+
 const _initSw = async () => {
   await navigator.serviceWorker.register('/sw.js', {
     // type: 'module',
@@ -255,7 +257,7 @@ const xrTypeLoaders = {
 };
 const xrTypeAdders = {
   'webxr-site@0.0.1': async function(p) {
-    const mainPath = '/' + p.main;
+    const mainPath = '/' + _removeUrlTail(p.main);
     const indexFile = p.files.find(file => new URL(file.url).pathname === mainPath);
     const indexHtml = indexFile.response.body.toString('utf-8');
     await p.context.iframe.contentWindow.xrpackage.iframeInit({
