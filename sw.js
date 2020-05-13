@@ -38,7 +38,7 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-  // console.log('got fetch', event, {hijackedClientIds, hijackedIds, startUrls, scriptUrls});
+  console.log('got fetch', event.request.url);
   const {
     clientId,
   } = event;
