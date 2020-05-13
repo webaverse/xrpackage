@@ -301,6 +301,7 @@ export class XRPackageEngine extends EventTarget {
     GlobalContext.proxyContext = canvas.getContext('webgl2', {
       antialias: true,
       alpha: true,
+      xrCompatible: true,
     });
     GlobalContext.contexts = [];
 
