@@ -72,7 +72,7 @@ self.addEventListener('fetch', event => {
               // console.log('hijack file 2', pathname, files);
               if (!/\/xrpackage\//.test(pathname)) {
                 const file = files.find(f => f.pathname === pathname);
-                console.log('got file 3', files, pathname, file);
+                // console.log('got file 3', files, pathname, file);
                 if (file) {
                   return new Response(file.body, {
                     headers: {
