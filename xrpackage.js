@@ -268,23 +268,35 @@ const xrTypeAdders = {
       id: p.id,
       xrState,
     });
-
-    this.packages.push(p);
   },
   'gltf@0.0.1': async function(p) {
     this.scene.add(p.context.object);
-
-    this.packages.push(p);
   },
   'vrm@0.0.1': async function(p) {
     this.scene.add(p.context.object);
-
-    this.packages.push(p);
   },
   'vox@0.0.1': async function(p) {
     this.scene.add(p.context.object);
+  },
+};
+const xrTypeRemovers = {
+  'webxr-site@0.0.1': function(p) {
+    this.rafs = this.rafs.filter(raf => {
+      const rafWindow = raf[symbols.windowSymbol];
+      const rafPackage = this.packages.find(p => p.context.iframe && p.context.iframe.contentWindow === rafWindow);
+      return rafPackage !== p;
+    });
 
-    this.packages.push(p);
+    p.context.iframe.parentNode.removeChild(p.context.iframe);
+  },
+  'gltf@0.0.1': function(p) {
+    this.scene.remove(p.context.object);
+  },
+  'vrm@0.0.1': function(p) {
+    this.scene.remove(p.context.object);
+  },
+  'vox@0.0.1': function(p) {
+    this.scene.remove(p.context.object);
   },
 };
 
@@ -421,12 +433,26 @@ export class XRPackageEngine extends EventTarget {
     if (adder) {
       await adder.call(this, p);
       p.parent = this;
+
+      this.packages.push(p);
     } else {
       throw new Error(`unknown xr_type: ${type}`);
     }
   }
   remove(p) {
-    console.log('remove package', p);
+    const index = this.packages.indexOf(p);
+    if (index !== -1) {
+      const {type} = p;
+      const remover = xrTypeRemovers[type];
+      if (remover) {
+        remover.call(this, p);
+        p.parent = null;
+
+        this.packages.splice(index, 1);
+      }
+    } else {
+      throw new Error(`unknown xr_type: ${type}`);
+    }
   }
   async setSession(realSession) {
     if (this.loadReferenceSpaceInterval !== 0) {
