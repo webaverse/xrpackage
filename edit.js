@@ -13,6 +13,18 @@ const web3 = new Web3(new Web3.providers.HttpProvider(rpcUrl));
 // window.web3 = web3;
 const contract = new web3.eth.Contract(abi, address);
 
+function downloadFile(file, filename) {
+  const blobURL = URL.createObjectURL(file);
+  const tempLink = document.createElement('a');
+  tempLink.style.display = 'none';
+  tempLink.href = blobURL;
+  tempLink.setAttribute('download', filename);
+
+  document.body.appendChild(tempLink);
+  tempLink.click();
+  document.body.removeChild(tempLink);
+}
+
 const _makeTargetMesh = () => {
   const targetGeometry = BufferGeometryUtils.mergeBufferGeometries([
     new THREE.BoxBufferGeometry(0.03, 0.2, 0.03)
@@ -138,7 +150,10 @@ _bindUploadFileButton(document.getElementById('load-package-input'), file => {
 
 document.getElementById('download-scene-button').addEventListener('click', async e => {
   const uint8Array = await pe.exportScene();
-  console.log('got scene', uint8Array);
+  const blob = new Blob([uint8Array], {
+    type: 'application/webbundle',
+  });
+  downloadFile(blob, 'scene.wbn');
 });
 document.getElementById('shield-slider').addEventListener('change', e => {
   const shieldLevel = parseInt(e.target.value, 10);

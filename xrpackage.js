@@ -746,6 +746,24 @@ export class XRPackageEngine extends EventTarget {
       this.scene.add(this.rig.model);
     }
   }
+  async exportScene() {
+    const primaryUrl = `https://xrpackage.org`;
+    const manifestJsonPath = primaryUrl + '/manifest.json';
+    const builder = new wbn.BundleBuilder(manifestJsonPath);
+    const manifestJson = {
+      name: 'XRPackage Scene',
+      description: 'XRPackage scene exported with the browser frontend.',
+      xr_type: 'xrpackage-scene@0.0.1',
+      start_url: 'manifest.json',
+      xr_package_scene: {
+        children: [],
+      },
+    };
+    builder.addExchange(manifestJsonPath, 200, {
+      'Content-Type': 'application/json',
+    }, JSON.stringify(manifestJson, null, 2));
+    return builder.createBundle();
+  }
 }
 
 let packageIds = Date.now();
@@ -900,7 +918,7 @@ export class XRPackage extends EventTarget {
 
     const primaryUrl = `https://xrpackage.org`;
     // const manifestUrl = primaryUrl + '/manifest.json';
-    const builder = (new wbn.BundleBuilder(primaryUrl + '/' + startUrl))
+    const builder = new wbn.BundleBuilder(primaryUrl + '/' + startUrl);
       // .setManifestURL(manifestUrl);
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
