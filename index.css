@@ -89,17 +89,22 @@ body {
   cursor: default;
 }
 
-.header .nav.double i {
+.header .nav.double > a,
+.header .nav.double > i
+{
   display: flex;
   height: 100%;
   margin-right: 5px;
   padding: 0 10px;
   padding-top: 3px;
   align-items: center;
+  text-decoration: none;
   cursor: pointer;
 }
 
-.header .nav.double i:hover {
+.header .nav.double > i:hover,
+.header .nav.double > a:hover
+{
   background-color: var(--color);
   color: #FFF;
 }
