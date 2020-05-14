@@ -148,12 +148,8 @@ _bindUploadFileButton(document.getElementById('load-package-input'), file => {
   }));
 });
 
-document.getElementById('download-scene-button').addEventListener('click', async e => {
-  const uint8Array = await pe.exportScene();
-  const blob = new Blob([uint8Array], {
-    type: 'application/webbundle',
-  });
-  downloadFile(blob, 'scene.wbn');
+document.getElementById('new-scene-button').addEventListener('click', e => {
+  pe.reset();
 });
 document.getElementById('shield-slider').addEventListener('change', e => {
   const shieldLevel = parseInt(e.target.value, 10);

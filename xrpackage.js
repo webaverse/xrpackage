@@ -425,6 +425,9 @@ export class XRPackageEngine extends EventTarget {
       throw new Error(`unknown xr_type: ${type}`);
     }
   }
+  remove(p) {
+    console.log('remove package', p);
+  }
   async setSession(realSession) {
     if (this.loadReferenceSpaceInterval !== 0) {
       clearInterval(this.loadReferenceSpaceInterval);
@@ -744,6 +747,12 @@ export class XRPackageEngine extends EventTarget {
         // debug: !newModel,
       });
       this.scene.add(this.rig.model);
+    }
+  }
+  reset() {
+    const ps = this.packages.slice();
+    for (let i = 0; i < ps.length; i++) {
+      this.remove(ps[i]);
     }
   }
   async exportScene() {
