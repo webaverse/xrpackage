@@ -31,22 +31,35 @@
     </div>
   </header>
   <aside class="dropdown" id=dropdown>
-    <div class=row>
-      <nav class=button id=new-scene-button>
-        <i class="fa fa-sparkles"></i> New scene
-      </nav>
+    <div class=tabs>
+      <nav class="tab open" id=tab-1>Packages</nav>
+      <nav class=tab id=tab-2>Settings</nav>
     </div>
-    <div class=row>
-      <nav class=button id=download-scene-button>
-        <i class="fa fa-download"></i> Download scene
-      </nav>
-    </div>
-    <div class=row>
-      <label>
-        <span>Shield</span>
-        <input type=range min=0 max=1 value=1 id=shield-slider>
-      </label>
-    </div>
+    <section class="tab-content open" id=tab-1-content>
+      Packages list
+    </section>
+    <section class=tab-content id=tab-2-content>
+      <div class=row>
+        <input type=text placeholder="Room name" id=room-name>
+        <nav class=button id=connect-button>Connect</nav>
+      </div>
+      <div class=row>
+        <nav class=button id=new-scene-button>
+          <i class="fa fa-sparkles"></i> New scene
+        </nav>
+      </div>
+      <div class=row>
+        <nav class=button id=download-scene-button>
+          <i class="fa fa-download"></i> Download scene
+        </nav>
+      </div>
+      <div class=row>
+        <label>
+          <span>Shield</span>
+          <input type=range min=0 max=1 value=1 id=shield-slider>
+        </label>
+      </div>
+    </section>
   </aside>
 <script type=module>
   import THREE from './three.module.js';

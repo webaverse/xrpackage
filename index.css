@@ -247,6 +247,33 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   padding: 10px;
 }
 
+.dropdown .tabs {
+  display: flex;
+}
+
+.dropdown .tabs .tab {
+  display: flex;
+  height: 50px;
+  padding: 0 10px;
+  padding-top: 3px;
+  border-bottom: 3px solid #EEE;
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.dropdown .tabs .tab:hover,
+.dropdown .tabs .tab.open
+{
+  border-color: var(--color);
+}
+
+.dropdown .tab-content:not(.open) {
+  display: none;
+}
+
 .grid {
   display: flex;
   /* margin-top: 50px; */
@@ -369,6 +396,7 @@ canvas {
   font-size: 12px;
   white-space: nowrap;
   cursor: pointer;
+  user-select: none;
   overflow: hidden;
 }
 
@@ -400,9 +428,9 @@ canvas {
   background-color: #e53935;
 }
 
-.button:not(:first-child) {
+/* .button:not(:first-child) {
   margin-left: 10px;
-}
+} */
 
 .button > i {
   margin-right: 5px;

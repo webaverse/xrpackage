@@ -180,7 +180,24 @@ document.getElementById('shield-slider').addEventListener('change', e => {
 
 const dropdownButton = document.getElementById('dropdown-button');
 const dropdown = document.getElementById('dropdown');
+const tabs = Array.from(dropdown.querySelectorAll('.tab'));
+const tabContents = Array.from(dropdown.querySelectorAll('.tab-content'));
 dropdownButton.addEventListener('click', e => {
   dropdownButton.classList.toggle('open');
   dropdown.classList.toggle('open');
 });
+for (let i = 0; i < tabs.length; i++) {
+  const tab = tabs[i];
+  const tabContent = tabContents[i];
+  tab.addEventListener('click', e => {
+    for (let i = 0; i < tabs.length; i++) {
+      const tab = tabs[i];
+      const tabContent = tabContents[i];
+      tab.classList.remove('open');
+      tabContent.classList.remove('open');
+    }
+
+    tab.classList.add('open');
+    tabContent.classList.add('open');
+  });
+}
