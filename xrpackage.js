@@ -435,6 +435,10 @@ export class XRPackageEngine extends EventTarget {
       p.parent = this;
 
       this.packages.push(p);
+
+      this.dispatchEvent(new MessageEvent('packageadd', {
+        data: p,
+      }));
     } else {
       throw new Error(`unknown xr_type: ${type}`);
     }
@@ -449,6 +453,10 @@ export class XRPackageEngine extends EventTarget {
         p.parent = null;
 
         this.packages.splice(index, 1);
+
+        this.dispatchEvent(new MessageEvent('packageremove', {
+          data: p,
+        }));
       }
     } else {
       throw new Error(`unknown xr_type: ${type}`);
