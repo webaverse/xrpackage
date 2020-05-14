@@ -15,22 +15,35 @@
     <a href="/" class="nav icon">メマアムく匕ムウヨ</a>
     <a href="/scenes.html" class="nav double open">
       <i class="fa fa-chevron-left"></i>
-      Run
-    </a>
-    <a href="/edit.html" class="nav full">
-      <i class="fa fa-pencil"></i>
-      <span>Edit</span>
+      Edit
     </a>
 
     <div class="buttons right">
       <nav class=button id=enter-xr-button>Enter XR</nav>
+      <nav class="nav full">
+        <i class="fa fa-plus"></i>
+        <span>Package</span>
+        <input type=file class=hidden id=load-package-input>
+      </nav>
+      <nav class="nav full square" id=dropdown-button>
+        <i class="fa fa-bars"></i>
+      </nav>
     </div>
   </header>
+  <aside class="dropdown" id=dropdown>
+    <div class=row>
+      <label>
+        <span>Shield</span>
+        <input type=range min=0 max=1 value=1 id=shield-slider>
+      </label>
+    </div>
+  </aside>
 <script type=module>
   import THREE from './three.module.js';
   window.THREE = THREE;
 </script>
-<script type="module" src="run.js"></script>
+<script type=module src="run.js"></script>
+<script type=module src="edit.js"></script>
 </body>
 
 </html>
