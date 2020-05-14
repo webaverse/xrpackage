@@ -115,16 +115,6 @@ function animate(timestamp, frame) {
 renderer.setAnimationLoop(animate);
 renderer.xr.setSession(pe.fakeSession);
 
-const _handleUpload = async file => {
-  const d = await XRPackage.compileFromFile(file);
-  const p = new XRPackage(d);
-  await pe.add(p);
-
-  if (/\.vrm$/.test(file.name)) {
-    p.wearAvatar();
-  }
-};
-
 const _bindUploadFileButton = (inputFileEl, handleUpload) => {
   inputFileEl.addEventListener('change', async e => {
     const {files} = e.target;
@@ -307,3 +297,6 @@ const _renderPackages = () => {
   }
   _renderPackages();
 })();
+window.addEventListener('xrpackageload', e => {
+  _renderPackages();
+});
