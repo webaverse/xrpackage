@@ -839,6 +839,7 @@ export class XRPackage extends EventTarget {
       const j = JSON.parse(s);
       if (j && typeof j.xr_type === 'string' && typeof j.start_url === 'string') {
         let {
+          name,
           xr_type: xrType,
           start_url: startUrl,
           xr_details: xrDetails,
@@ -850,6 +851,7 @@ export class XRPackage extends EventTarget {
         }
         const loader = xrTypeLoaders[xrType];
         if (loader) {
+          this.name = name;
           this.type = xrType;
           this.main = startUrl;
           this.details = xrDetails;

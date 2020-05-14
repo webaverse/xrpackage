@@ -274,6 +274,20 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   display: none;
 }
 
+.packages {
+  display: flex;
+  flex-direction: column;
+}
+
+.packages .package {
+  display: flex;
+  align-items: center;
+}
+
+.packages .package > i {
+  margin-left: auto;
+}
+
 .grid {
   display: flex;
   /* margin-top: 50px; */

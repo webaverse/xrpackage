@@ -201,3 +201,32 @@ for (let i = 0; i < tabs.length; i++) {
     tabContent.classList.add('open');
   });
 }
+
+const packagesEl = document.getElementById('packages');
+const _renderPackages = () => {
+  packagesEl.innerHTML = pe.packages.map((p, i) => `
+    <div class=package index=${i}>
+      <span class=name>${p.name}</span>
+      <nav class=close-button><i class="fa fa-times"></i></nav>
+    </div>
+  `).join('\n');
+  Array.from(packagesEl.querySelectorAll('.package')).forEach(packageEl => {
+    const index = parseInt(packageEl.getAttribute('index'), 10);
+    const closeButton = packageEl.querySelector('.close-button');
+    closeButton.addEventListener('click', e => {
+      const p = pe.packages[index];
+      pe.remove(p);
+      _renderPackages();
+    });
+  });
+};
+(async () => {
+  if (!window.xrLoaded) {
+    await new Promise((accept, reject) => {
+      window.addEventListener('xrload', e => {
+        accept();
+      });
+    });
+  }
+  _renderPackages();
+})();
