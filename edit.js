@@ -202,6 +202,14 @@ for (let i = 0; i < tabs.length; i++) {
   });
 }
 
+disconnectButton.addEventListener('click', e => {
+  channelConnection.close();
+  channelConnection = null;
+
+  connectButton.style.display = null;
+  disconnectButton.style.display = 'none';
+});
+
 const packagesEl = document.getElementById('packages');
 const _renderPackages = () => {
   packagesEl.innerHTML = pe.packages.map((p, i) => `
