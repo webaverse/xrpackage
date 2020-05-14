@@ -1,6 +1,8 @@
 import * as THREE from './three.module.js';
 import {XRPackageEngine, XRPackage} from './xrpackage.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
+import {XRChannelConnection} from 'https://raw.githack.com/webaverse/metartc/master/xrrtc.js';
+import {JSONClient} from 'https://grid-presence.exokit.org/sync/sync-client.js';
 import address from 'https://contracts.webaverse.com/address.js';
 import abi from 'https://contracts.webaverse.com/abi.js';
 import {pe, renderer, scene, camera} from './run.js';
@@ -202,12 +204,79 @@ for (let i = 0; i < tabs.length; i++) {
   });
 }
 
+let channelConnection = null;
+const connectButton = document.getElementById('connect-button');
+const disconnectButton = document.getElementById('disconnect-button');
+const roomNameEl = document.getElementById('room-name');
+connectButton.addEventListener('click', e => {
+  const roomName = roomNameEl.value;
+  if (roomName) {
+    channelConnection = new XRChannelConnection(`wss://grid-presence.exokit.org/?c=${encodeURIComponent(roomName)}`);
+    channelConnection.addEventListener('open', e => {
+      // console.log('got open', e);
+    });
+    channelConnection.addEventListener('peerconnection', e => {
+      const peerConnection = e.data;
+      console.log('got peer connection', peerConnection);
+    });
+    channelConnection.addEventListener('message', e => {
+      const m = e.data;
+      const {method} = m;
+      switch (method) {
+        case 'init': {
+          const {json, baseIndex} = m;
+          jsonClient.pullInit(json, baseIndex);
+          break;
+        }
+        case 'ops': {
+          const {ops, baseIndex} = m;
+          jsonClient.pullOps(ops, baseIndex);
+          break;
+        }
+        default: {
+          console.warn('unknown channel connection method: ', JSON.stringify(method), m);
+          break;
+        }
+      }
+      // console.log('xr channel message', m);
+    });
+    channelConnection.addEventListener('close', e => {
+      console.log('channel connection close', e);
+    });
+
+    connectButton.style.display = 'none';
+    disconnectButton.style.display = null;
+  }
+});
 disconnectButton.addEventListener('click', e => {
   channelConnection.close();
   channelConnection = null;
 
   connectButton.style.display = null;
   disconnectButton.style.display = 'none';
+});
+
+const jsonClient = new JSONClient({});
+jsonClient.addEventListener('localUpdate', e => {
+  const j = e.data;
+  console.log('update local json', j);
+  /* const newValue = e.data;
+  if (newValue !== codeInput.value) {
+    codeInput.value = newValue;
+    codeInput.dispatchEvent(new CustomEvent('input'));
+  } */
+});
+jsonClient.addEventListener('message', e => {
+  console.log('send ops 1', e.data);
+  if (channelConnection) {
+    const {ops, baseIndex} = e.data;
+    console.log('send ops 2', {ops, baseIndex});
+    channelConnection.send(JSON.stringify({
+      method: 'ops',
+      ops,
+      baseIndex,
+    }));
+  }
 });
 
 const packagesEl = document.getElementById('packages');
