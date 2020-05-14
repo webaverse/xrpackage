@@ -281,11 +281,19 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 
 .packages .package {
   display: flex;
+  margin-bottom: 2px;
+  padding: 10px;
+  background-color: #F8F8F8;
   align-items: center;
 }
 
-.packages .package > i {
+.packages .package .close-button {
   margin-left: auto;
+  cursor: pointer;
+}
+
+.packages .package .close-button:hover {
+  color: #ef5350;
 }
 
 .grid {
