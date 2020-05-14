@@ -223,38 +223,6 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   display: flex;
 }
 
-header .button {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 5px 10px;
-  background-color: #42a5f5;
-  color: #FFF;
-  border-radius: 8px;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-header .button:hover {
-  background-color: #1e88e5;
-}
-
-h header .button:active {
-  transform: translateY(1px);
-}
-
-header .button.secondary {
-  background-color: #ef5350;
-}
-
-header .button.secondary:hover {
-  background-color: #e53935;
-}
-
-header .button:not(:first-child) {
-  margin-left: 10px;
-}
-
 .sidebar {
   width: 150px;
 }
@@ -386,9 +354,12 @@ canvas {
 }
 
 .buttons .button {
+  margin-right: 10px;
+}
+
+.button {
   display: flex;
   position: relative;
-  margin-right: 10px;
   justify-content: center;
   align-items: center;
   padding: 5px 10px;
@@ -399,6 +370,42 @@ canvas {
   white-space: nowrap;
   cursor: pointer;
   overflow: hidden;
+}
+
+/* .button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 5px 10px;
+  background-color: #42a5f5;
+  color: #FFF;
+  border-radius: 8px;
+  white-space: nowrap;
+  cursor: pointer;
+} */
+
+.button:hover {
+  background-color: #1e88e5;
+}
+
+.button:active {
+  transform: translateY(1px);
+}
+
+.button.secondary {
+  background-color: #ef5350;
+}
+
+.button.secondary:hover {
+  background-color: #e53935;
+}
+
+.button:not(:first-child) {
+  margin-left: 10px;
+}
+
+.button > i {
+  margin-right: 5px;
 }
 
 input[type=file].hidden {

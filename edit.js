@@ -136,6 +136,10 @@ _bindUploadFileButton(document.getElementById('load-package-input'), file => {
   }));
 });
 
+document.getElementById('download-scene-button').addEventListener('click', async e => {
+  const uint8Array = await pe.exportScene();
+  console.log('got scene', uint8Array);
+});
 document.getElementById('shield-slider').addEventListener('change', e => {
   const shieldLevel = parseInt(e.target.value, 10);
   const {packages} = pe;
