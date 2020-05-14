@@ -408,6 +408,7 @@ input[type=file].hidden {
   width: calc(100% + 300px);
   height: 100%;
   cursor: pointer;
+  outline: none;
 }
 
 .buttons label {
