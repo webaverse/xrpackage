@@ -433,8 +433,10 @@ const _renderPackages = () => {
       _renderPackages();
     });
     const wearButton = packagesEl.querySelector('.wear-button');
-    wearButton.addEventListener('click', e => {
-      pe.wearAvatar(p);
+    wearButton.addEventListener('click', async e => {
+      const p2 = p.clone();
+      // await pe.add(p2);
+      await pe.wearAvatar(p2);
     });
     const removeButton = packagesEl.querySelector('.remove-button');
     removeButton.addEventListener('click', e => {

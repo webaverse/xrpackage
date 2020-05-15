@@ -811,29 +811,39 @@ export class XRPackageEngine extends EventTarget {
 
 let packageIds = Date.now();
 export class XRPackage extends EventTarget {
-  constructor(d) {
+  constructor(a) {
     super();
 
     this.id = (packageIds++) + '';
     this.loaded = false;
 
-    this.data = d;
+    this.matrix = a instanceof XRPackage ? a.matrix.clone() : new THREE.Matrix4();
+    this._visible = true;
+    this.parent = null;
+    this.context = {};
 
-    const bundle = new wbn.Bundle(d);
-    const files = [];
-    for (const url of bundle.urls) {
-      const response = bundle.getResponse(url);
-      files.push({
-        url,
-        // status: response.status,
-        // headers: response.headers,
-        response,
-        // body: response.body.toString('utf-8')
-      });
+    if (a instanceof XRPackage) {
+      this.files = a.files.slice();
+    } else {
+      const bundle = new wbn.Bundle(a);
+      const files = [];
+      for (const url of bundle.urls) {
+        const response = bundle.getResponse(url);
+        files.push({
+          url,
+          // status: response.status,
+          // headers: response.headers,
+          response,
+          // body: response.body.toString('utf-8')
+        });
+      }
+      this.files = files;
     }
-    this.files = files;
-    
-    const manifestJsonFile = files.find(file => new URL(file.url).pathname === '/manifest.json');
+
+    this.load();
+  }
+  load() {
+    const manifestJsonFile = this.files.find(file => new URL(file.url).pathname === '/manifest.json');
     if (manifestJsonFile) {
       const s = manifestJsonFile.response.body.toString('utf-8');
       const j = JSON.parse(s);
@@ -862,7 +872,7 @@ export class XRPackage extends EventTarget {
               id: this.id,
               startUrl: _removeUrlTail(startUrl),
               script: xrDetails ? xrDetails.script : null,
-              files: files.map(f => ({
+              files: this.files.map(f => ({
                 pathname: new URL(f.url).pathname,
                 headers: f.response.headers,
                 body: f.response.body,
@@ -887,11 +897,9 @@ export class XRPackage extends EventTarget {
     } else {
       throw new Error('no manifest.json in pack');
     }
-
-    this.matrix = new THREE.Matrix4();
-    this._visible = true;
-    this.parent = null;
-    this.context = {};
+  }
+  clone() {
+    return new XRPackage(this);
   }
   get visible() {
     return this._visible;
