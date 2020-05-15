@@ -109,8 +109,6 @@ window.addEventListener('upload', async e => {
   if (/\.vrm$/.test(file.name)) {
     p.wearAvatar();
   }
-
-  window.dispatchEvent(new MessageEvent('xrpackageload'));
 });
 
 function onSessionStarted(session) {

@@ -184,11 +184,19 @@ document.getElementById('shield-slider').addEventListener('change', e => {
     }
   }
 });
+pe.addEventListener('packageadd', e => {
+  _renderPackages();
+});
 pe.addEventListener('packageremove', e => {
   const p = e.data;
   if (p.placeholderBox) {
     scene.remove(p.placeholderBox);
   }
+
+  if (selectedPackage === p) {
+    selectedPackage = null;
+  }
+  _renderPackages();
 });
 
 let hoverTarget = null;
@@ -443,7 +451,6 @@ const _renderPackages = () => {
     const removeButton = packagesEl.querySelector('.remove-button');
     removeButton.addEventListener('click', e => {
       pe.remove(p);
-      backButton.click();
     });
   } else {
     packagesEl.innerHTML = pe.packages.map((p, i) => `
@@ -468,7 +475,6 @@ const _renderPackages = () => {
         e.stopPropagation();
 
         pe.remove(p);
-        _renderPackages();
       });
     });
   }
@@ -483,6 +489,3 @@ const _renderPackages = () => {
   }
   _renderPackages();
 })();
-window.addEventListener('xrpackageload', e => {
-  _renderPackages();
-});
