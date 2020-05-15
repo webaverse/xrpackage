@@ -232,7 +232,7 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   position: absolute;
   top: 50px;
   right: 0;
-  width: 200px;
+  width: 300px;
   height: calc(100% - 50px);
   background-color: #FFF;
   box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
