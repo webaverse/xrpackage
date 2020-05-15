@@ -192,6 +192,7 @@ document.getElementById('shield-slider').addEventListener('change', e => {
 });
 pe.addEventListener('packageadd', e => {
   const p = e.data;
+
   if (shieldLevel === 0) {
     _placeholdPackage(p);
   }
@@ -363,10 +364,19 @@ disconnectButton.addEventListener('click', e => {
   disconnectButton.style.display = 'none';
 });
 
+const _pullPackages = children => {
+  for (let i = 0; i < children.length; i++) {
+    const child = children[i];
+    const p = pe.packages.find(p => p.id === child.id);
+  }
+};
+
 const jsonClient = new JSONClient({});
 jsonClient.addEventListener('localUpdate', e => {
   const j = e.data;
-  console.log('update local json', j);
+  const {children} = j;
+  _pullPackages(children);
+  // console.log('update local json', j);
   /* const newValue = e.data;
   if (newValue !== codeInput.value) {
     codeInput.value = newValue;
@@ -374,10 +384,10 @@ jsonClient.addEventListener('localUpdate', e => {
   } */
 });
 jsonClient.addEventListener('message', e => {
-  console.log('send ops 1', e.data);
+  // console.log('send ops 1', e.data);
   if (channelConnection) {
     const {ops, baseIndex} = e.data;
-    console.log('send ops 2', {ops, baseIndex});
+    // console.log('send ops 2', {ops, baseIndex});
     channelConnection.send(JSON.stringify({
       method: 'ops',
       ops,
@@ -400,49 +410,49 @@ const _renderPackages = () => {
         <div class=row>
           <label>
             <span>X</span>
-            <input type=number class=position-x value=0>
+            <input type=number class=position-x value=0 step=0.1>
           </label>
           <label>
             <span>Y</span>
-            <input type=number class=position-y value=0>
+            <input type=number class=position-y value=0 step=0.1>
           </label>
           <label>
             <span>Z</span>
-            <input type=number class=position-z value=0>
+            <input type=number class=position-z value=0 step=0.1>
           </label>
         </div>
         <b>Quaternion</b>
         <div class=row>
           <label>
             <span>X</span>
-            <input type=number class=quaternion-x value=0>
+            <input type=number class=quaternion-x value=0 step=0.1>
           </label>
           <label>
             <span>Y</span>
-            <input type=number class=quaternion-y value=0>
+            <input type=number class=quaternion-y value=0 step=0.1>
           </label>
           <label>
             <span>Z</span>
-            <input type=number class=quaternion-z value=0>
+            <input type=number class=quaternion-z value=0 step=0.1>
           </label>
           <label>
             <span>W</span>
-            <input type=number class=quaternion-w value=0>
+            <input type=number class=quaternion-w value=0 step=0.1>
           </label>
         </div>
         <b>Scale</b>
         <div class=row>
           <label>
             <span>X</span>
-            <input type=number class=scale-x value=0>
+            <input type=number class=scale-x value=0 step=0.1>
           </label>
           <label>
             <span>Y</span>
-            <input type=number class=scale-y value=0>
+            <input type=number class=scale-y value=0 step=0.1>
           </label>
           <label>
             <span>Z</span>
-            <input type=number class=scale-z value=0>
+            <input type=number class=scale-z value=0 step=0.1>
           </label>
         </div>
       </div>
@@ -461,6 +471,52 @@ const _renderPackages = () => {
     const removeButton = packagesEl.querySelector('.remove-button');
     removeButton.addEventListener('click', e => {
       pe.remove(p);
+    });
+
+    const _setPosition = (e, key) => {
+      p.matrix.decompose(localVector, localQuaternion, localVector2);
+      localVector[key] = e.target.value;
+      p.setMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
+    };
+    const _setQuaternion = (e, key) => {
+      p.matrix.decompose(localVector, localQuaternion, localVector2);
+      localQuaternion[key] = e.target.value;
+      p.setMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
+    };
+    const _setScale = (e, key) => {
+      p.matrix.decompose(localVector, localQuaternion, localVector2);
+      localVector2[key] = e.target.value;
+      p.setMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
+    };
+    packagesEl.querySelector('.position-x').addEventListener('change', e => {
+      _setPosition(e, 'x');
+    });
+    packagesEl.querySelector('.position-y').addEventListener('change', e => {
+      _setPosition(e, 'y');
+    });
+    packagesEl.querySelector('.position-y').addEventListener('change', e => {
+      _setPosition(e, 'z');
+    });
+    packagesEl.querySelector('.quaternion-x').addEventListener('change', e => {
+      _setQuaternion(e, 'x');
+    });
+    packagesEl.querySelector('.quaternion-y').addEventListener('change', e => {
+      _setQuaternion(e, 'y');
+    });
+    packagesEl.querySelector('.quaternion-z').addEventListener('change', e => {
+      _setQuaternion(e, 'z');
+    });
+    packagesEl.querySelector('.quaternion-w').addEventListener('change', e => {
+      _setQuaternion(e, 'w');
+    });
+    packagesEl.querySelector('.scale-x').addEventListener('change', e => {
+      _setScale(e, 'x');
+    });
+    packagesEl.querySelector('.scale-y').addEventListener('change', e => {
+      _setScale(e, 'y');
+    });
+    packagesEl.querySelector('.scale-z').addEventListener('change', e => {
+      _setScale(e, 'z');
     });
   } else {
     packagesEl.innerHTML = pe.packages.map((p, i) => `
