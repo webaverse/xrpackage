@@ -148,7 +148,7 @@ _bindUploadFileButton(document.getElementById('load-package-input'), file => {
   }));
 });
 
-document.getElementById('new-scene-button').addEventListener('click', e => {
+document.getElementById('reset-scene-button').addEventListener('click', e => {
   pe.reset();
 });
 let shieldLevel = 1;
