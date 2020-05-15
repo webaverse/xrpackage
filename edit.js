@@ -18,6 +18,7 @@ const contract = new web3.eth.Contract(abi, address);
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localBox = new THREE.Box3();
@@ -242,7 +243,7 @@ scene.onAfterRender = () => {
 const raycaster = new THREE.Raycaster();
 const _updateRaycasterFromMouseEvent = (raycaster, e) => {
   const mouse = new THREE.Vector2(( ( e.clientX ) / window.innerWidth ) * 2 - 1, - ( ( e.clientY ) / window.innerHeight ) * 2 + 1);
-  raycaster.setFromCamera(mouse, camera);
+  raycaster.setFromCamera(mouse, pe.camera);
   // raycaster.ray.origin.add(raycaster.ray.direction);
 };
 renderer.domElement.addEventListener('mousemove', e => {
@@ -254,6 +255,7 @@ renderer.domElement.addEventListener('mousemove', e => {
       for (let i = 0; i < pe.packages.length; i++) {
         const p = pe.packages[i];
         p.matrix.decompose(localVector, localQuaternion, localVector2);
+        localVector.add(localVector3.set(0, 1/2, 0));
         localBox.setFromCenterAndSize(localVector, localVector2);
         if (raycaster.ray.intersectsBox(localBox)) {
           hoverTarget = p.placeholderBox;
