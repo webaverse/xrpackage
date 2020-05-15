@@ -374,54 +374,55 @@ const _renderPackages = () => {
     packagesEl.innerHTML = `
       <div class=package-detail>
         <h1><nav class=back-button><i class="fa fa-arrow-left"></i></nav>${p.name}</h1>
+        <nav class="button wear-button">Wear</nav>
         <nav class="button remove-button">Remove</nav>
         <b>Position</b>
         <div class=row>
           <label>
             <span>X</span>
-            <input type=number value=0>
+            <input type=number class=position-x value=0>
           </label>
           <label>
             <span>Y</span>
-            <input type=number value=0>
+            <input type=number class=position-y value=0>
           </label>
           <label>
             <span>Z</span>
-            <input type=number value=0>
+            <input type=number class=position-z value=0>
           </label>
         </div>
         <b>Quaternion</b>
         <div class=row>
           <label>
             <span>X</span>
-            <input type=number value=0>
+            <input type=number class=quaternion-x value=0>
           </label>
           <label>
             <span>Y</span>
-            <input type=number value=0>
+            <input type=number class=quaternion-y value=0>
           </label>
           <label>
             <span>Z</span>
-            <input type=number value=0>
+            <input type=number class=quaternion-z value=0>
           </label>
           <label>
             <span>W</span>
-            <input type=number value=0>
+            <input type=number class=quaternion-w value=0>
           </label>
         </div>
         <b>Scale</b>
         <div class=row>
           <label>
             <span>X</span>
-            <input type=number value=0>
+            <input type=number class=scale-x value=0>
           </label>
           <label>
             <span>Y</span>
-            <input type=number value=0>
+            <input type=number class=scale-y value=0>
           </label>
           <label>
             <span>Z</span>
-            <input type=number value=0>
+            <input type=number class=scale-z value=0>
           </label>
         </div>
       </div>
@@ -430,6 +431,10 @@ const _renderPackages = () => {
     backButton.addEventListener('click', e => {
       selectedPackage = null;
       _renderPackages();
+    });
+    const wearButton = packagesEl.querySelector('.wear-button');
+    wearButton.addEventListener('click', e => {
+      pe.wearAvatar(p);
     });
     const removeButton = packagesEl.querySelector('.remove-button');
     removeButton.addEventListener('click', e => {
