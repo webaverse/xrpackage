@@ -179,6 +179,12 @@ document.getElementById('shield-slider').addEventListener('change', e => {
     }
   }
 });
+pe.addEventListener('packageremove', e => {
+  const p = e.data;
+  if (p.placeholderBox) {
+    scene.remove(p.placeholderBox);
+  }
+});
 
 let hoverTarget = null;
 let selectTargets = [];
