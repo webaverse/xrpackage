@@ -165,6 +165,8 @@ document.getElementById('shield-slider').addEventListener('change', e => {
         scene.add(p.placeholderBox);
       }
       shieldLevel = newShieldLevel;
+      hoverTarget = null;
+      selectTargets = [];
       break;
     }
     case 1: {
@@ -175,6 +177,8 @@ document.getElementById('shield-slider').addEventListener('change', e => {
         }
       }
       shieldLevel = newShieldLevel;
+      hoverTarget = null;
+      selectTargets = [];
       break;
     }
   }
@@ -360,23 +364,96 @@ jsonClient.addEventListener('message', e => {
   }
 });
 
+let selectedPackage = null;
 const packagesEl = document.getElementById('packages');
 const _renderPackages = () => {
-  packagesEl.innerHTML = pe.packages.map((p, i) => `
-    <div class=package index=${i}>
-      <span class=name>${p.name}</span>
-      <nav class=close-button><i class="fa fa-times"></i></nav>
-    </div>
-  `).join('\n');
-  Array.from(packagesEl.querySelectorAll('.package')).forEach(packageEl => {
-    const index = parseInt(packageEl.getAttribute('index'), 10);
-    const closeButton = packageEl.querySelector('.close-button');
-    closeButton.addEventListener('click', e => {
-      const p = pe.packages[index];
-      pe.remove(p);
+  if (selectedPackage) {
+    packagesEl.innerHTML = `
+      <div class=package-detail>
+        <h1><nav class=back-button><i class="fa fa-arrow-left"></i></nav>${selectedPackage.name}</h1>
+        <b>Position</b>
+        <div class=row>
+          <label>
+            <span>X</span>
+            <input type=number value=0>
+          </label>
+          <label>
+            <span>Y</span>
+            <input type=number value=0>
+          </label>
+          <label>
+            <span>Z</span>
+            <input type=number value=0>
+          </label>
+        </div>
+        <b>Quaternion</b>
+        <div class=row>
+          <label>
+            <span>X</span>
+            <input type=number value=0>
+          </label>
+          <label>
+            <span>Y</span>
+            <input type=number value=0>
+          </label>
+          <label>
+            <span>Z</span>
+            <input type=number value=0>
+          </label>
+          <label>
+            <span>W</span>
+            <input type=number value=0>
+          </label>
+        </div>
+        <b>Scale</b>
+        <div class=row>
+          <label>
+            <span>X</span>
+            <input type=number value=0>
+          </label>
+          <label>
+            <span>Y</span>
+            <input type=number value=0>
+          </label>
+          <label>
+            <span>Z</span>
+            <input type=number value=0>
+          </label>
+        </div>
+      </div>
+    `;
+    const backButton = packagesEl.querySelector('.back-button');
+    backButton.addEventListener('click', e => {
+      selectedPackage = null;
       _renderPackages();
     });
-  });
+  } else {
+    packagesEl.innerHTML = pe.packages.map((p, i) => `
+      <div class=package index=${i}>
+        <span class=name>${p.name}</span>
+        <nav class=close-button><i class="fa fa-times"></i></nav>
+      </div>
+    `).join('\n');
+    Array.from(packagesEl.querySelectorAll('.package')).forEach(packageEl => {
+      const index = parseInt(packageEl.getAttribute('index'), 10);
+      const p = pe.packages[index];
+      packageEl.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        selectedPackage = p;
+        _renderPackages();
+      });
+      const closeButton = packageEl.querySelector('.close-button');
+      closeButton.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        pe.remove(p);
+        _renderPackages();
+      });
+    });
+  }
 };
 (async () => {
   if (!window.xrLoaded) {
