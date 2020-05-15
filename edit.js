@@ -223,15 +223,17 @@ scene.onAfterRender = () => {
   }
   hoverOutlineEffect.renderOutline(outlineScene, camera);
   if (oldHoverParent) {
-    container.add(hoverTarget);
+    oldHoverParent.add(hoverTarget);
   }
 
+  const oldSelectParents = selectTargets.map(o => o.parent);
   for (let i = 0; i < selectTargets.length; i++) {
     outlineScene.add(selectTargets[i]);
   }
   selectOutlineEffect.renderOutline(outlineScene, camera);
   for (let i = 0; i < selectTargets.length; i++) {
-    container.add(selectTargets[i]);
+    const oldSelectParent = oldSelectParents[i];
+    oldSelectParent && oldSelectParent.add(selectTargets[i]);
   }
 
   renderingOutline = false;
