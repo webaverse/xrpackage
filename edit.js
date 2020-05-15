@@ -139,7 +139,7 @@ const _bindUploadFileButton = (inputFileEl, handleUpload) => {
     // newInputFileEl.style.display = 'none';
     newInputFileEl.classList.add('hidden');
     parentNode.appendChild(newInputFileEl);
-    _bindUploadFileButton(newInputFileEl);
+    _bindUploadFileButton(newInputFileEl, handleUpload);
   });
 };
 _bindUploadFileButton(document.getElementById('load-package-input'), file => {
@@ -152,18 +152,27 @@ document.getElementById('reset-scene-button').addEventListener('click', e => {
   pe.reset();
 });
 let shieldLevel = 1;
+const _placeholdPackage = p => {
+  p.visible = false;
+  if (!p.placeholderBox) {
+    p.placeholderBox = _makeTargetMesh();
+    p.placeholderBox.matrix.copy(p.matrix).decompose(p.placeholderBox.position, p.placeholderBox.quaternion, p.placeholderBox.scale);
+  }
+  scene.add(p.placeholderBox);
+};
+const _unplaceholdPackage = p => {
+  p.visible = true;
+  if (p.placeholderBox) {
+    scene.remove(p.placeholderBox);
+  }
+};
 document.getElementById('shield-slider').addEventListener('change', e => {
   const newShieldLevel = parseInt(e.target.value, 10);
   const {packages} = pe;
   switch (newShieldLevel) {
     case 0: {
       for (const p of packages) {
-        p.visible = false;
-        if (!p.placeholderBox) {
-          p.placeholderBox = _makeTargetMesh();
-          p.placeholderBox.matrix.copy(p.matrix).decompose(p.placeholderBox.position, p.placeholderBox.quaternion, p.placeholderBox.scale);
-        }
-        scene.add(p.placeholderBox);
+        _placeholdPackage(p);
       }
       shieldLevel = newShieldLevel;
       hoverTarget = null;
@@ -172,10 +181,7 @@ document.getElementById('shield-slider').addEventListener('change', e => {
     }
     case 1: {
       for (const p of packages) {
-        p.visible = true;
-        if (p.placeholderBox) {
-          scene.remove(p.placeholderBox);
-        }
+        _unplaceholdPackage(p);
       }
       shieldLevel = newShieldLevel;
       hoverTarget = null;
@@ -185,6 +191,10 @@ document.getElementById('shield-slider').addEventListener('change', e => {
   }
 });
 pe.addEventListener('packageadd', e => {
+  const p = e.data;
+  if (shieldLevel === 0) {
+    _placeholdPackage(p);
+  }
   _renderPackages();
 });
 pe.addEventListener('packageremove', e => {
