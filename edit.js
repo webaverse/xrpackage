@@ -1,11 +1,12 @@
 import * as THREE from './three.module.js';
 import {XRPackageEngine, XRPackage} from './xrpackage.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
+import {OutlineEffect} from './OutlineEffect.js';
 import {XRChannelConnection} from 'https://raw.githack.com/webaverse/metartc/master/xrrtc.js';
 import {JSONClient} from 'https://grid-presence.exokit.org/sync/sync-client.js';
 import address from 'https://contracts.webaverse.com/address.js';
 import abi from 'https://contracts.webaverse.com/abi.js';
-import {pe, renderer, scene, camera} from './run.js';
+import {pe, renderer, scene, camera, container, getSession} from './run.js';
 
 const apiHost = `https://ipfs.exokit.org/ipfs`;
 const network = 'rinkeby';
@@ -14,6 +15,12 @@ const rpcUrl = `https://${network}.infura.io/v3/${infuraApiKey}`;
 const web3 = new Web3(new Web3.providers.HttpProvider(rpcUrl));
 // window.web3 = web3;
 const contract = new web3.eth.Contract(abi, address);
+
+const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+const localMatrix = new THREE.Matrix4();
+const localBox = new THREE.Box3();
 
 function downloadFile(file, filename) {
   const blobURL = URL.createObjectURL(file);
@@ -143,10 +150,11 @@ _bindUploadFileButton(document.getElementById('load-package-input'), file => {
 document.getElementById('new-scene-button').addEventListener('click', e => {
   pe.reset();
 });
+let shieldLevel = 1;
 document.getElementById('shield-slider').addEventListener('change', e => {
-  const shieldLevel = parseInt(e.target.value, 10);
+  const newShieldLevel = parseInt(e.target.value, 10);
   const {packages} = pe;
-  switch (shieldLevel) {
+  switch (newShieldLevel) {
     case 0: {
       for (const p of packages) {
         p.visible = false;
@@ -156,6 +164,7 @@ document.getElementById('shield-slider').addEventListener('change', e => {
         }
         scene.add(p.placeholderBox);
       }
+      shieldLevel = newShieldLevel;
       break;
     }
     case 1: {
@@ -165,9 +174,85 @@ document.getElementById('shield-slider').addEventListener('change', e => {
           scene.remove(p.placeholderBox);
         }
       }
+      shieldLevel = newShieldLevel;
       break;
     }
   }
+});
+
+let hoverTarget = null;
+let selectTargets = [];
+
+const hoverOutlineEffect = new OutlineEffect(renderer, {
+  defaultThickness: 0.01,
+  defaultColor: new THREE.Color(0x42a5f5).toArray(),
+  defaultAlpha: 0.5,
+  // defaultKeepAlive: false,//true,
+});
+const selectOutlineEffect = new OutlineEffect(renderer, {
+  defaultThickness: 0.01,
+  defaultColor: new THREE.Color(0x66bb6a).toArray(),
+  defaultAlpha: 0.5,
+  // defaultKeepAlive: false,//true,
+});
+
+let renderingOutline = false;
+const outlineScene = new THREE.Scene();
+scene.onAfterRender = () => {
+  if (renderingOutline) return;
+  renderingOutline = true;
+
+  outlineScene.position.copy(container.position);
+  outlineScene.quaternion.copy(container.quaternion);
+  outlineScene.scale.copy(container.scale);
+
+  let oldHoverParent;
+  if (hoverTarget) {
+    oldHoverParent = hoverTarget.parent;
+    outlineScene.add(hoverTarget);
+  }
+  hoverOutlineEffect.renderOutline(outlineScene, camera);
+  if (oldHoverParent) {
+    container.add(hoverTarget);
+  }
+
+  for (let i = 0; i < selectTargets.length; i++) {
+    outlineScene.add(selectTargets[i]);
+  }
+  selectOutlineEffect.renderOutline(outlineScene, camera);
+  for (let i = 0; i < selectTargets.length; i++) {
+    container.add(selectTargets[i]);
+  }
+
+  renderingOutline = false;
+};
+
+const raycaster = new THREE.Raycaster();
+const _updateRaycasterFromMouseEvent = (raycaster, e) => {
+  const mouse = new THREE.Vector2(( ( e.clientX ) / window.innerWidth ) * 2 - 1, - ( ( e.clientY ) / window.innerHeight ) * 2 + 1);
+  raycaster.setFromCamera(mouse, camera);
+  // raycaster.ray.origin.add(raycaster.ray.direction);
+};
+renderer.domElement.addEventListener('mousemove', e => {
+  if (!getSession()) {
+    _updateRaycasterFromMouseEvent(raycaster, e);
+
+    hoverTarget = null;
+    if (shieldLevel === 0) {
+      for (let i = 0; i < pe.packages.length; i++) {
+        const p = pe.packages[i];
+        p.matrix.decompose(localVector, localQuaternion, localVector2);
+        localBox.setFromCenterAndSize(localVector, localVector2);
+        if (raycaster.ray.intersectsBox(localBox)) {
+          hoverTarget = p.placeholderBox;
+          break;
+        }
+      }
+    }
+  }
+});
+renderer.domElement.addEventListener('click', e => {
+  selectTargets = hoverTarget ? [hoverTarget] : [];
 });
 
 const dropdownButton = document.getElementById('dropdown-button');

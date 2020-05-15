@@ -43,12 +43,15 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.set(0, 0.5, 1);
 
+const container = new THREE.Object3D();
+scene.add(container);
+
 const ambientLight = new THREE.AmbientLight(0xFFFFFF);
-scene.add(ambientLight);
+container.add(ambientLight);
 const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 3);
-scene.add(directionalLight);
+container.add(directionalLight);
 const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 3);
-scene.add(directionalLight2);
+container.add(directionalLight2);
 
 const cubeMesh = (() => {
   const geometry = new THREE.BoxBufferGeometry(10, 1, 10);
@@ -62,11 +65,21 @@ const cubeMesh = (() => {
 })();
 cubeMesh.position.set(0, -1/2, 0);
 // cubeMesh.rotation.order = 'YXZ';
-scene.add(cubeMesh);
+container.add(cubeMesh);
 
+/* window.addEventListener('animate', e => {
+  const {timestamp, frame} = e.data;
+}); */
 function animate(timestamp, frame) {
   /* const timeFactor = 1000;
   targetMesh.material.uniforms.uTime.value = (Date.now() % timeFactor) / timeFactor; */
+
+  window.dispatchEvent(new MessageEvent('animate', {
+    data: {
+      timestamp,
+      frame,
+    },
+  }));
 
   renderer.render(scene, camera);
 }
@@ -266,9 +279,15 @@ document.getElementById('enter-xr-button').addEventListener('click', e => {
   window.dispatchEvent(new MessageEvent('xrload'));
 })();
 
+const getSession = () => {
+  return currentSession;
+};
+
 export {
   pe,
   renderer,
   scene,
   camera,
+  container,
+  getSession,
 };
