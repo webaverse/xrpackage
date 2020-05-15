@@ -370,9 +370,11 @@ let selectedPackage = null;
 const packagesEl = document.getElementById('packages');
 const _renderPackages = () => {
   if (selectedPackage) {
+    const p = selectedPackage;
     packagesEl.innerHTML = `
       <div class=package-detail>
-        <h1><nav class=back-button><i class="fa fa-arrow-left"></i></nav>${selectedPackage.name}</h1>
+        <h1><nav class=back-button><i class="fa fa-arrow-left"></i></nav>${p.name}</h1>
+        <nav class="button remove-button">Remove</nav>
         <b>Position</b>
         <div class=row>
           <label>
@@ -428,6 +430,11 @@ const _renderPackages = () => {
     backButton.addEventListener('click', e => {
       selectedPackage = null;
       _renderPackages();
+    });
+    const removeButton = packagesEl.querySelector('.remove-button');
+    removeButton.addEventListener('click', e => {
+      pe.remove(p);
+      backButton.click();
     });
   } else {
     packagesEl.innerHTML = pe.packages.map((p, i) => `
