@@ -187,6 +187,12 @@ document.getElementById('shield-slider').addEventListener('change', e => {
       }
       shieldLevel = newShieldLevel;
       hoverTarget = null;
+      for (let i = 0; i < selectTargets.length; i++) {
+        const selectTarget = selectTargets[i];
+        if (selectTarget.control) {
+          _unbindTransformControls(selectTarget);
+        }
+      }
       selectTargets = [];
       break;
     }
