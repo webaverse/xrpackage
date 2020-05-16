@@ -476,6 +476,10 @@ const _pullPackages = async children => {
       p.id = child.id;
       pe.add(p);
     }
+    localMatrix.fromArray(child.matrix);
+    if (!p.matrix.equals(localMatrix)) {
+      p.setMatrix(localMatrix);
+    }
     keepPackages.push(p);
   }
   const packages = pe.packages.slice();
