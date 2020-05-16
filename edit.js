@@ -444,15 +444,15 @@ const _renderPackages = () => {
         <div class=row>
           <label>
             <span>X</span>
-            <input type=number class=scale-x value=0 step=0.1>
+            <input type=number class=scale-x value=1 step=0.1>
           </label>
           <label>
             <span>Y</span>
-            <input type=number class=scale-y value=0 step=0.1>
+            <input type=number class=scale-y value=1 step=0.1>
           </label>
           <label>
             <span>Z</span>
-            <input type=number class=scale-z value=0 step=0.1>
+            <input type=number class=scale-z value=1 step=0.1>
           </label>
         </div>
       </div>
