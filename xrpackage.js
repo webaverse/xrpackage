@@ -991,6 +991,9 @@ export class XRPackage extends EventTarget {
       this.context.object.matrix
         .copy(m)
         .decompose(this.context.object.position, this.context.object.quaternion, this.context.object.scale);
+    this.dispatchEvent(new MessageEvent('matrixupdate', {
+      data: this.matrix,
+    }));
   }
   setSession(session) {
     this.context.iframe && this.context.iframe.contentWindow.xrpackage.setSession(session);
