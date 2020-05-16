@@ -437,7 +437,7 @@ const _renderPackages = () => {
           </label>
           <label>
             <span>W</span>
-            <input type=number class=quaternion-w value=0 step=0.1>
+            <input type=number class=quaternion-w value=1 step=0.1>
           </label>
         </div>
         <b>Scale</b>
