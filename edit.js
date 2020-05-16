@@ -208,7 +208,7 @@ const _unbindPackage = p => {
 pe.packages.forEach(p => {
   _bindPackage(p);
 });
-pe.addEventListener('packageadd', e => {
+pe.addEventListener('packageadd', async e => {
   const p = e.data;
 
   if (shieldLevel === 0) {
@@ -216,10 +216,17 @@ pe.addEventListener('packageadd', e => {
   }
   _renderPackages();
 
-  jsonClient.setItem(['children', p.id], {
-    matrix: p.matrix.toArray(),
-  });
-  _bindPackage(p);
+  if (channelConnection) {
+    p.hash = await p.upload();
+
+    if (p.parent) {
+      jsonClient.setItem(['children', p.id], {
+        hash: p.hash,
+        matrix: p.matrix.toArray(),
+      });
+      _bindPackage(p);
+    }
+  }
 });
 pe.addEventListener('packageremove', e => {
   const p = e.data;
@@ -232,10 +239,10 @@ pe.addEventListener('packageremove', e => {
   }
   _renderPackages();
 
-  jsonClient.removeItem(['children', p.id], {
-    matrix: p.matrix.toArray(),
-  });
-  _unbindPackage(p);
+  if (p.hash) {
+    jsonClient.removeItem(['children', p.id]);
+    _unbindPackage(p);
+  }
 });
 
 let hoverTarget = null;
@@ -460,11 +467,23 @@ disconnectButton.addEventListener('click', e => {
   disconnectButton.style.display = 'none';
 });
 
-const _pullPackages = children => {
-  pe.reset();
-  for (let i = 0; i < children.length; i++) {
-    const child = children[i];
-    const p = pe.packages.find(p => p.id === child.id);
+const _pullPackages = async children => {
+  const keepPackages = [];
+  for (const id in children) {
+    const child = children[id];
+    let p = pe.packages.find(p => p.id === child.id);
+    if (!p) {
+      p = await XRPackage.download(child.hash);
+      pe.add(p);
+    }
+    keepPackages.push(p);
+  }
+  const packages = pe.packages.slice();
+  for (let i = 0; i < packages.length; i++) {
+    const p = packages[i];
+    if (!keepPackages.includes(p)) {
+      pe.remove(p);
+    }
   }
 };
 
