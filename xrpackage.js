@@ -756,6 +756,8 @@ export class XRPackage extends EventTarget {
     this.id = (packageIds++) + '';
     this.loaded = false;
 
+    this.data = d;
+
     const bundle = new wbn.Bundle(d);
     const files = [];
     for (const url of bundle.urls) {
@@ -936,7 +938,7 @@ export class XRPackage extends EventTarget {
     }
   }
   static async download(hash) {
-    const res = await fetch(`${apiHost}/${hash}`);
+    const res = await fetch(`${apiHost}/${hash}.wbn`);
     if (res.ok) {
       const arrayBuffer = await res.arrayBuffer();
       const uint8Array = new Uint8Array(arrayBuffer);
