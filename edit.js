@@ -1,6 +1,7 @@
 import * as THREE from './three.module.js';
 import {XRPackageEngine, XRPackage} from './xrpackage.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
+import {TransformControls} from './TransformControls.js';
 import {OutlineEffect} from './OutlineEffect.js';
 import {XRChannelConnection} from 'https://raw.githack.com/webaverse/metartc/master/xrrtc.js';
 import {JSONClient} from 'https://grid-presence.exokit.org/sync/sync-client.js';
@@ -156,6 +157,7 @@ const _placeholdPackage = p => {
   p.visible = false;
   if (!p.placeholderBox) {
     p.placeholderBox = _makeTargetMesh();
+    p.placeholderBox.package = p;
     p.placeholderBox.matrix.copy(p.matrix).decompose(p.placeholderBox.position, p.placeholderBox.quaternion, p.placeholderBox.scale);
   }
   scene.add(p.placeholderBox);
@@ -226,6 +228,65 @@ const selectOutlineEffect = new OutlineEffect(renderer, {
   // defaultKeepAlive: false,//true,
 });
 
+let transformControlsHovered = false;
+const _bindTransformControls = o => {
+  const control = new TransformControls(camera, renderer.domElement, document);
+  // control.setMode(transformMode);
+  control.size = 3;
+  // control.visible = toolManager.getSelectedElement() === xrIframe;
+  // control.enabled = control.visible;
+  /* control.addEventListener('dragging-changed', e => {
+    orbitControls.enabled = !e.value;
+  }); */
+  control.addEventListener('mouseEnter', () => {
+    transformControlsHovered = true;
+  });
+  control.addEventListener('mouseLeave', () => {
+    transformControlsHovered = false;
+  });
+  const _snapshotTransform = o => ({
+    position: o.position.clone(),
+    quaternion: o.quaternion.clone(),
+    scale: o.scale.clone(),
+  });
+  let lastTransform = _snapshotTransform(o);
+  let changed = false;
+  control.addEventListener('mouseDown', () => {
+    lastTransform = _snapshotTransform(o);
+  });
+  control.addEventListener('mouseUp', () => {
+    if (changed) {
+      changed = false;
+
+      const newTransform = _snapshotTransform(o);
+      o.position.copy(newTransform.position);
+      o.quaternion.copy(newTransform.quaternion);
+      o.scale.copy(newTransform.scale);
+      o.updateMatrixWorld();
+      o.package.setMatrix(o.matrix);
+      /* const action = createAction('transform', {
+        object: o,
+        oldTransform: lastTransform,
+        newTransform,
+      });
+      execute(action); */
+      lastTransform = newTransform;
+    }
+  });
+  control.addEventListener('objectChange', e => {
+    changed = true;
+  });
+  control.attach(o);
+  scene.add(control);
+  o.control = control;
+};
+const _unbindTransformControls = o => {
+  scene.remove(o.control);
+  o.control.dispose();
+  o.control = null;
+  transformControlsHovered = false;
+};
+
 let renderingOutline = false;
 const outlineScene = new THREE.Scene();
 scene.onAfterRender = () => {
@@ -285,7 +346,16 @@ renderer.domElement.addEventListener('mousemove', e => {
   }
 });
 renderer.domElement.addEventListener('click', e => {
+  for (let i = 0; i < selectTargets.length; i++) {
+    const selectTarget = selectTargets[i];
+    if (selectTarget.control) {
+      _unbindTransformControls(selectTarget);
+    }
+  }
   selectTargets = hoverTarget ? [hoverTarget] : [];
+  for (let i = 0; i < selectTargets.length; i++) {
+    _bindTransformControls(selectTargets[i]);
+  }
 });
 
 const dropdownButton = document.getElementById('dropdown-button');
