@@ -689,7 +689,7 @@ export class XRPackageEngine extends EventTarget {
     } */
     for (let i = 0; i < this.packages.length; i++) {
       const p = this.packages[i];
-      if (p.context.iframe && p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer) {
+      if (p.context.iframe && p.context.iframe.contentWindow.xrpackage.session && p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer) {
         p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer.context._exokitClearEnabled(false);
         // console.log('got iframe', p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer.context.canvas.transferToImageBitmap());
         // debugger;
