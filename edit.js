@@ -192,12 +192,13 @@ document.getElementById('shield-slider').addEventListener('change', e => {
     }
   }
 });
-const _matrixUpdate = p => {
+function _matrixUpdate(e) {
+  const p = this;
   const matrix = e.data;
-  jsonClient.setItem(p.id, {
+  jsonClient.setItem(['children', p.id], {
     matrix: p.matrix.toArray(),
   });
-};
+}
 const _bindPackage = p => {
   p.addEventListener('matrixupdate', _matrixUpdate);
 };
@@ -215,7 +216,7 @@ pe.addEventListener('packageadd', e => {
   }
   _renderPackages();
 
-  jsonClient.setItem(p.id + '', {
+  jsonClient.setItem(['children', p.id], {
     matrix: p.matrix.toArray(),
   });
   _bindPackage(p);
@@ -231,7 +232,7 @@ pe.addEventListener('packageremove', e => {
   }
   _renderPackages();
 
-  jsonClient.removeItem(p.id + '', {
+  jsonClient.removeItem(['children', p.id], {
     matrix: p.matrix.toArray(),
   });
   _unbindPackage(p);
