@@ -417,28 +417,19 @@ export class XRPackageEngine extends EventTarget {
     return getContext.call(this.domElement, type, opts);
   }
   async add(p) {
-    // console.log('add loaded 1', p.loaded);
-    if (!p.loaded) {
-      await new Promise((accept, reject) => {
-        p.addEventListener('load', e => {
-          accept();
-        }, {once: true});
-      });
-    }
-    // console.log('add loaded 2', p.loaded);
+    this.dispatchEvent(new MessageEvent('packageadd', {
+      data: p,
+    }));
+
+    await p.waitForLoad();
 
     const {type} = p;
     const adder = xrTypeAdders[type];
-    // console.log('add loaded 3', !!adder);
     if (adder) {
       await adder.call(this, p);
       p.parent = this;
 
       this.packages.push(p);
-
-      this.dispatchEvent(new MessageEvent('packageadd', {
-        data: p,
-      }));
     } else {
       throw new Error(`unknown xr_type: ${type}`);
     }
@@ -903,6 +894,15 @@ export class XRPackage extends EventTarget {
   }
   clone() {
     return new XRPackage(this);
+  }
+  async waitForLoad() {
+    if (!this.loaded) {
+      await new Promise((accept, reject) => {
+        this.addEventListener('load', e => {
+          accept();
+        }, {once: true});
+      });
+    }
   }
   get visible() {
     return this._visible;
