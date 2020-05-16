@@ -481,6 +481,10 @@ const _renderPackages = () => {
     const _setQuaternion = (e, key) => {
       p.matrix.decompose(localVector, localQuaternion, localVector2);
       localQuaternion[key] = e.target.value;
+      localQuaternion.normalize();
+      ['x', 'y', 'z', 'w'].forEach(k => {
+        packagesEl.querySelector('.quaternion-' + k).value = localQuaternion[k];
+      });
       p.setMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
     };
     const _setScale = (e, key) => {
