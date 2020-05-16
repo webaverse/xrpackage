@@ -936,7 +936,7 @@ export class XRPackage extends EventTarget {
     }
   }
   static async download(hash) {
-    const res = await fetch(`${apiHost}/${metadataHash}`);
+    const res = await fetch(`${apiHost}/${hash}`);
     if (res.ok) {
       const arrayBuffer = await res.arrayBuffer();
       const uint8Array = new Uint8Array(arrayBuffer);
