@@ -11,6 +11,7 @@ import {OrbitControls} from './xrpackage/OrbitControls.js';
 import Avatar from './xrpackage/avatars/avatars.js';
 import utils from './xrpackage/utils.js';
 const {requestSw} = utils;
+export const apiHost = `https://ipfs.exokit.org/ipfs`;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
