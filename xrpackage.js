@@ -417,6 +417,9 @@ export class XRPackageEngine extends EventTarget {
     return getContext.call(this.domElement, type, opts);
   }
   async add(p) {
+    p.parent = this;
+    this.packages.push(p);
+
     this.dispatchEvent(new MessageEvent('packageadd', {
       data: p,
     }));
@@ -427,9 +430,6 @@ export class XRPackageEngine extends EventTarget {
     const adder = xrTypeAdders[type];
     if (adder) {
       await adder.call(this, p);
-      p.parent = this;
-
-      this.packages.push(p);
     } else {
       throw new Error(`unknown xr_type: ${type}`);
     }
