@@ -195,9 +195,7 @@ document.getElementById('shield-slider').addEventListener('change', e => {
 function _matrixUpdate(e) {
   const p = this;
   const matrix = e.data;
-  jsonClient.setItem(['children', p.id], {
-    matrix: p.matrix.toArray(),
-  });
+  jsonClient.setItem(['children', p.id, 'matrix'], p.matrix.toArray());
 }
 const _bindPackage = p => {
   p.addEventListener('matrixupdate', _matrixUpdate);
