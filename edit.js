@@ -219,6 +219,7 @@ pe.addEventListener('packageadd', async e => {
 
     if (p.parent) {
       jsonClient.setItem(['children', p.id], {
+        id: p.id,
         hash: p.hash,
         matrix: p.matrix.toArray(),
       });
