@@ -921,4 +921,31 @@ export class XRPackage extends EventTarget {
   setSession(session) {
     this.context.iframe && this.context.iframe.contentWindow.xrpackage.setSession(session);
   }
+  async upload() {
+    const res = await fetch(`${apiHost}/`, {
+      method: 'PUT',
+      body: this.data,
+    });
+    if (res.ok) {
+      const j = await res.json();
+      const {hash} = j;
+      return hash;
+    } else {
+      throw new Error('upload failed: ' + res.status);
+    }
+  }
+  static async download(hash) {
+    const res = await fetch(`${apiHost}/${metadataHash}`);
+    if (res.ok) {
+      const arrayBuffer = await res.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+      return new XRPackage(uint8Array);
+    } else {
+      if (res.status === 404) {
+        return null;
+      } else {
+        throw new Error('download failed: ' + res.status);
+      }
+    }
+  }
 }
