@@ -752,7 +752,7 @@ export class XRPackage extends EventTarget {
   constructor(d) {
     super();
 
-    this.id = ++packageIds;
+    this.id = (packageIds++) + '';
     this.loaded = false;
 
     const bundle = new wbn.Bundle(d);
