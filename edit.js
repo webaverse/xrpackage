@@ -474,6 +474,7 @@ const _pullPackages = async children => {
     let p = pe.packages.find(p => p.id === child.id);
     if (!p) {
       p = await XRPackage.download(child.hash);
+      p.id = child.id;
       pe.add(p);
     }
     keepPackages.push(p);
