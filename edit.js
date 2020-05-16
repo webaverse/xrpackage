@@ -461,6 +461,7 @@ disconnectButton.addEventListener('click', e => {
 });
 
 const _pullPackages = children => {
+  pe.reset();
   for (let i = 0; i < children.length; i++) {
     const child = children[i];
     const p = pe.packages.find(p => p.id === child.id);
@@ -470,7 +471,7 @@ const _pullPackages = children => {
 const jsonClient = new JSONClient({});
 jsonClient.addEventListener('localUpdate', e => {
   const j = e.data;
-  const {children} = j;
+  const {children = []} = j;
   _pullPackages(children);
   // console.log('update local json', j);
   /* const newValue = e.data;
