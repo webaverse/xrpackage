@@ -823,8 +823,11 @@ export class XRPackage extends EventTarget {
     this.context = {};
 
     if (a instanceof XRPackage) {
+      this.data = a.data;
       this.files = a.files.slice();
     } else {
+      this.data = a;
+
       const bundle = new wbn.Bundle(a);
       const files = [];
       for (const url of bundle.urls) {
