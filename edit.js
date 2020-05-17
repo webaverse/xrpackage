@@ -764,10 +764,12 @@ jsonClient.addEventListener('message', e => {
 const avatarMe = document.getElementById('avatar-me');
 const _renderAvatars = () => {
   const {avatar} = pe;
-  const previewEl = avatarMe.querySelector('.preview');
-  // previewEl.src = avatar.getPreviewUrl();
-  const nameEl = avatarMe.querySelector('.name');
-  nameEl.innerText = avatar.name;
+  if (avatar) {
+    const previewEl = avatarMe.querySelector('.preview');
+    // previewEl.src = avatar.getPreviewUrl();
+    const nameEl = avatarMe.querySelector('.name');
+    nameEl.innerText = avatar.name;
+  }
 };
 pe.addEventListener('avatarchange', e => {
   _renderAvatars();
