@@ -173,20 +173,30 @@ for (let i = 0; i < tools.length; i++) {
     switch (i) {
       case 0: {
         pe.orbitControls.enabled = true;
+        document.exitPointerLock();
         break;
       }
       case 1: {
+        pe.domElement.requestPointerLock();
         break;
       }
       case 2: {
+        pe.domElement.requestPointerLock();
         break;
       }
       case 3: {
+        document.exitPointerLock();
         break;
       }
     }
   });
 }
+document.addEventListener('pointerlockchange', e => {
+  if (!document.pointerLockElement) {
+    tools.find(tool => tool.matches('.tool[tool=camera]')).click();
+  }
+});
+
 const keys = {
   up: false,
   down: false,
@@ -205,13 +215,13 @@ window.addEventListener('keydown', e => {
       break;
     }
     case 87: { // W
-      /* if (!document.pointerLockElement) {
-        selectedObjectMeshes.forEach(selectedObjectMesh => {
+      if (!document.pointerLockElement) {
+        selectTargets.forEach(selectedObjectMesh => {
           selectedObjectMesh.control.setMode('translate');
         });
-      } else { */
+      } else {
         keys.up = true;
-      // }
+      }
       break;
     }
     case 65: { // A
@@ -243,6 +253,18 @@ window.addEventListener('keydown', e => {
       } else { */
         keys.right = true;
       // }
+      break;
+    }
+    case 69: { // E
+      selectTargets.forEach(selectedObjectMesh => {
+        selectedObjectMesh.control.setMode('rotate');
+      });
+      break;
+    }
+    case 82: { // R
+      selectTargets.forEach(selectedObjectMesh => {
+        selectedObjectMesh.control.setMode('scale');
+      });
       break;
     }
     case 16: { // shift
