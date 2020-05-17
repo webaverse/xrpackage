@@ -256,6 +256,13 @@ const xrTypeLoaders = {
 
     p.context.object = o;
   },
+  'xrpackage-scene@0.0.1': async function(p) {
+    const mainPath = '/' + p.main;
+    const indexFile = p.files.find(file => new URL(file.url).pathname === mainPath);
+    const j = JSON.parse(indexFile.response.body.toString('utf8'));
+
+    p.context.json = j;
+  },
 };
 const xrTypeAdders = {
   'webxr-site@0.0.1': async function(p) {
@@ -827,6 +834,17 @@ export class XRPackageEngine extends EventTarget {
       this.remove(ps[i]);
     }
   }
+  async importScene(uint8Array) {
+    const p = new XRPackage(uint8Array);
+    await p.waitForLoad();
+    if (p.type === 'xrpackage-scene@0.0.1') {
+      const j = p.context.json;
+      const {xrpackage_scene: xrPackageScene} = j;
+      console.log('got scene', xrPackageScene);
+    } else {
+      throw new Error('invalid type: ' + p.type);
+    }
+  }
   async exportScene() {
     const primaryUrl = `https://xrpackage.org`;
     const manifestJsonPath = primaryUrl + '/manifest.json';
@@ -836,8 +854,14 @@ export class XRPackageEngine extends EventTarget {
       description: 'XRPackage scene exported with the browser frontend.',
       xr_type: 'xrpackage-scene@0.0.1',
       start_url: 'manifest.json',
-      xr_package_scene: {
-        children: [],
+      xrpackage_scene: {
+        children: this.packages.map(p => {
+          return {
+            id: p.id,
+            // hash: p.hash,
+            matrix: p.matrix.toArray(),
+          };
+        }),
       },
     };
     builder.addExchange(manifestJsonPath, 200, {
