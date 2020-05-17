@@ -838,9 +838,25 @@ export class XRPackageEngine extends EventTarget {
     const p = new XRPackage(uint8Array);
     await p.waitForLoad();
     if (p.type === 'xrpackage-scene@0.0.1') {
+      this.reset();
+
       const j = p.context.json;
       const {xrpackage_scene: xrPackageScene} = j;
-      console.log('got scene', xrPackageScene);
+      const {children} = xrPackageScene;
+      for (let i = 0; i < children.length; i++) {
+        const child = children[i];
+        const {id} = child;
+        const primaryUrl = `https://xrpackage.org`;
+        const idUrl = primaryUrl + '/' + id + '.wbn';
+        const file = p.files.find(f => f.url === idUrl);
+        if (file) {
+          const p = new XRPackage(file.response.body);
+          this.add(p);
+          // console.log('got new package', p);
+        } else {
+          console.warn('unknown file id', id);
+        }
+      }
     } else {
       throw new Error('invalid type: ' + p.type);
     }
@@ -867,6 +883,12 @@ export class XRPackageEngine extends EventTarget {
     builder.addExchange(manifestJsonPath, 200, {
       'Content-Type': 'application/json',
     }, JSON.stringify(manifestJson, null, 2));
+    for (let i = 0; i < this.packages.length; i++) {
+      const p = this.packages[i];
+      builder.addExchange(primaryUrl + '/' + p.id + '.wbn', 200, {
+        'Content-Type': 'application/json',
+      }, p.data);
+    }
     return builder.createBundle();
   }
 }
