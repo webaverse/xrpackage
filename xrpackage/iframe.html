@@ -137,6 +137,9 @@ class XRPackageManager extends EventTarget {
       GlobalContext.xrFramebuffer = null;
     }
   }
+  setMatrix(matrixArray) {
+    xrOffsetMatrix.fromArray(matrixArray);
+  }
 }
 window.xrpackage = new XRPackageManager();
 })();
