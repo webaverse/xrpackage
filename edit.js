@@ -765,13 +765,15 @@ const avatarMe = document.getElementById('avatar-me');
 const unwearButton = avatarMe.querySelector('.unwear-button');
 const _renderAvatars = () => {
   const {avatar} = pe;
+  const previewEl = avatarMe.querySelector('.preview');
+  const nameEl = avatarMe.querySelector('.name');
   if (avatar) {
-    const previewEl = avatarMe.querySelector('.preview');
     // previewEl.src = avatar.getPreviewUrl();
-    const nameEl = avatarMe.querySelector('.name');
     nameEl.innerText = avatar.name;
     unwearButton.style.display = null;
   } else {
+    // previewEl.src = avatar.getPreviewUrl();
+    nameEl.innerText = 'No avatar';
     unwearButton.style.display = 'none';
   }
 };
