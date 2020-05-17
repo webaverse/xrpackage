@@ -227,6 +227,86 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   width: 150px;
 }
 
+.tools > .row > .tool,
+.ops > .op,
+.colors > .row > .color,
+.enters > .enter
+{
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+  cursor: pointer;
+}
+.tools > .row > .tool,
+.ops > .op,
+.colors > .row > .color {
+  width: 30px;
+  height: 30px;
+}
+.tools,
+.colors {
+  flex-direction: column;
+}
+.tools {
+  margin-right: 5px;
+}
+.colors {
+  margin-right: 5px;
+}
+.row {
+  display: flex;
+}
+.tools > .row > .tool {
+  background-color: #FFF;
+}
+.tools > .row > .tool:hover {
+  background-color: #42a5f5;
+  color: #FFF;
+}
+.tools > .row > .tool:active,
+.tools > .row > .tool.selected,
+.tools > .row > .tool.open {
+  background-color: #1e88e5;
+  color: #FFF;
+}
+.tools > .row > .tool.hidden {
+  display: none;
+}
+.tools > .row > .tool > .label,
+.ops > .op > .label
+{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  bottom: -24px;
+  height: 24px;
+  padding: 5px;
+  background-color: #111;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.tools > .row > .tool:not(:hover) > .label,
+.ops > .op:not(:hover) > .label
+{
+  display: none;
+}
+.tools > .row > .tool > .label {
+  left: 0;
+}
+.tools > .row > .tool > .fill,
+.ops > .op > .fill
+{
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  overflow: hidden;
+}
+
 .dropdown {
   display: flex;
   position: absolute;

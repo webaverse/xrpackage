@@ -149,6 +149,163 @@ _bindUploadFileButton(document.getElementById('load-package-input'), file => {
   }));
 });
 
+let selectedTool = 'camera';
+const tools = Array.from(document.querySelectorAll('.tool'));
+for (let i = 0; i < tools.length; i++) {
+  const tool = document.getElementById('tool-' + (i+1));
+  tool.addEventListener('click', e => {
+    for (let i = 0; i < tools.length; i++) {
+      tools[i].classList.remove('selected');
+    }
+    tool.classList.add('selected');
+
+    selectedTool = tool.getAttribute('tool');
+
+    pe.orbitControls.enabled = false;
+
+    hoverTarget = null;
+    for (let i = 0; i < selectTargets.length; i++) {
+      const selectTarget = selectTargets[i];
+      selectTarget.control && _unbindTransformControls(selectTarget);
+    }
+    selectTargets = [];
+
+    switch (i) {
+      case 0: {
+        pe.orbitControls.enabled = true;
+        break;
+      }
+      case 1: {
+        break;
+      }
+      case 2: {
+        break;
+      }
+      case 3: {
+        break;
+      }
+    }
+  });
+}
+const keys = {
+  up: false,
+  down: false,
+  left: false,
+  right: false,
+  shift: false,
+};
+window.addEventListener('keydown', e => {
+  switch (e.which) {
+    case 49: // 1
+    case 50:
+    case 51:
+    case 52: // 4
+    {
+      tools[e.which - 49].click();
+      break;
+    }
+    case 87: { // W
+      /* if (!document.pointerLockElement) {
+        selectedObjectMeshes.forEach(selectedObjectMesh => {
+          selectedObjectMesh.control.setMode('translate');
+        });
+      } else { */
+        keys.up = true;
+      // }
+      break;
+    }
+    case 65: { // A
+      /* if (!document.pointerLockElement) {
+        selectedObjectMeshes.forEach(selectedObjectMesh => {
+          selectedObjectMesh.control.setMode('translate');
+        });
+      } else { */
+        keys.left = true;
+      // }
+      break;
+    }
+    case 83: { // S
+      /* if (!document.pointerLockElement) {
+        if (e.ctrlKey || e.metaKey) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          interfaceDocument.getElementById('save-op').click();
+        }
+      } else { */
+        keys.down = true;
+      // }
+      break;
+    }
+    case 68: { // D
+      /* if (!document.pointerLockElement) {
+        // nothing
+      } else { */
+        keys.right = true;
+      // }
+      break;
+    }
+    case 16: { // shift
+      if (document.pointerLockElement) {
+        keys.shift = true;
+      }
+      break;
+    }
+    case 8: // backspace
+    case 46: // del
+    {
+      /* if (selectedObjectMeshes.length > 0) {
+        const oldSelectedObjectMeshes = selectedObjectMeshes;
+
+        _setHoveredObjectMesh(null);
+        _setSelectedObjectMesh(null, false);
+
+        const action = createAction('removeObjects', {
+          oldObjectMeshes: oldSelectedObjectMeshes,
+          container,
+          objectMeshes,
+        });
+        execute(action);
+      } */
+      break;
+    }
+  }
+});
+window.addEventListener('keyup', e => {
+  switch (e.which) {
+    case 87: { // W
+      if (document.pointerLockElement) {
+        keys.up = false;
+      }
+      break;
+    }
+    case 65: { // A
+      if (document.pointerLockElement) {
+        keys.left = false;
+      }
+      break;
+    }
+    case 83: { // S
+      if (document.pointerLockElement) {
+        keys.down = false;
+      }
+      break;
+    }
+    case 68: { // D
+      if (document.pointerLockElement) {
+        keys.right = false;
+      }
+      break;
+    }
+    case 16: { // shift
+      if (document.pointerLockElement) {
+        keys.shift = false;
+      }
+      break;
+    }
+  }
+});
+
 document.getElementById('reset-scene-button').addEventListener('click', e => {
   pe.reset();
 });
@@ -189,9 +346,7 @@ document.getElementById('shield-slider').addEventListener('change', e => {
       hoverTarget = null;
       for (let i = 0; i < selectTargets.length; i++) {
         const selectTarget = selectTargets[i];
-        if (selectTarget.control) {
-          _unbindTransformControls(selectTarget);
-        }
+        selectTarget.control && _unbindTransformControls(selectTarget);
       }
       selectTargets = [];
       break;
@@ -365,7 +520,7 @@ const _updateRaycasterFromMouseEvent = (raycaster, e) => {
   // raycaster.ray.origin.add(raycaster.ray.direction);
 };
 renderer.domElement.addEventListener('mousemove', e => {
-  if (!getSession()) {
+  if (selectedTool === 'select' && !getSession()) {
     _updateRaycasterFromMouseEvent(raycaster, e);
 
     hoverTarget = null;

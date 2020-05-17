@@ -332,6 +332,7 @@ export class XRPackageEngine extends EventTarget {
     renderer.physicallyCorrectLights = true;
     renderer.xr.enabled = true;
     this.renderer = renderer;
+    window.renderer = renderer;
 
     const scene = new THREE.Scene();
     this.scene = scene;
@@ -349,6 +350,7 @@ export class XRPackageEngine extends EventTarget {
     const ambientLight = new THREE.AmbientLight(0xFFFFFF);
     scene.add(ambientLight);
     const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 3);
+    directionalLight.position.set(10, 10, 10)
     scene.add(directionalLight);
     const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 3);
     scene.add(directionalLight2);
@@ -1029,3 +1031,5 @@ export class XRPackage extends EventTarget {
     }
   }
 }
+
+window.XRPackage = XRPackage;
