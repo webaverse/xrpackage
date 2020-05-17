@@ -150,6 +150,7 @@ function animate(timestamp, frame) {
     }
     velocity.add(extraVelocity);
     pe.camera.position.add(velocity);
+    pe.camera.updateMatrixWorld();
     velocity.multiplyScalar(0.7);
   }
 
