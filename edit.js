@@ -762,6 +762,7 @@ jsonClient.addEventListener('message', e => {
 });
 
 const avatarMe = document.getElementById('avatar-me');
+const unwearButton = avatarMe.querySelector('.unwear-button');
 const _renderAvatars = () => {
   const {avatar} = pe;
   if (avatar) {
@@ -769,10 +770,16 @@ const _renderAvatars = () => {
     // previewEl.src = avatar.getPreviewUrl();
     const nameEl = avatarMe.querySelector('.name');
     nameEl.innerText = avatar.name;
+    unwearButton.style.display = null;
+  } else {
+    unwearButton.style.display = 'none';
   }
 };
 pe.addEventListener('avatarchange', e => {
   _renderAvatars();
+});
+unwearButton.addEventListener('click', e => {
+  pe.defaultAvatar();
 });
 
 let selectedPackage = null;
