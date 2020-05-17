@@ -772,7 +772,7 @@ export class XRPackageEngine extends EventTarget {
     }
 
     if (this.rig) {
-      this.scene.remove(this.rig);
+      this.scene.remove(this.rig.model);
       this.rig.destroy();
       this.rig = null;
     }
@@ -801,7 +801,7 @@ export class XRPackageEngine extends EventTarget {
   }
   defaultAvatar() {
     if (this.rig) {
-      this.scene.remove(this.rig);
+      this.scene.remove(this.rig.model);
       this.rig.destroy();
       this.rig = null;
     }
