@@ -18,6 +18,7 @@ const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
+const localArray = Array(16);
 
 const _removeUrlTail = u => u.replace(/(?:\?|\#).*$/, '');
 
@@ -1041,6 +1042,7 @@ export class XRPackage extends EventTarget {
       this.context.object.matrix
         .copy(m)
         .decompose(this.context.object.position, this.context.object.quaternion, this.context.object.scale);
+    this.context.iframe && this.context.iframe.contentWindow.xrpackage.setMatrix(this.matrix.toArray(localArray));
     this.dispatchEvent(new MessageEvent('matrixupdate', {
       data: this.matrix,
     }));
