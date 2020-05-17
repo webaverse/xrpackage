@@ -404,6 +404,7 @@ export class XRPackageEngine extends EventTarget {
     this.rig = null;
     this.rigMatrix = new THREE.Matrix4();
     this.rigMatrixEnabled = false;
+    this.avatar = null;
     this.realSession = null;
     this.referenceSpace = null;
     this.loadReferenceSpaceInterval = 0;
@@ -790,7 +791,13 @@ export class XRPackageEngine extends EventTarget {
         // debug: !newModel,
       });
       this.scene.add(this.rig.model);
+
+      this.avatar = p;
     }
+
+    this.dispatchEvent(new MessageEvent('avatarchange', {
+      data: this.avatar,
+    }));
   }
   defaultAvatar() {
     if (this.rig) {
@@ -806,6 +813,12 @@ export class XRPackageEngine extends EventTarget {
       debug: true,
     });
     this.scene.add(this.rig.model);
+
+    this.dispatchEvent(new MessageEvent('avatarchange', {
+      data: this.avatar,
+    }));
+
+    this.avatar = null;
   }
   reset() {
     const ps = this.packages.slice();

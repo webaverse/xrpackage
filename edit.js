@@ -651,6 +651,11 @@ for (let i = 0; i < tabs.length; i++) {
 
     tab.classList.add('open');
     tabContent.classList.add('open');
+
+    if (selectedPackage) {
+      selectedPackage = null;
+      _renderPackages();
+    }
   });
 }
 
@@ -754,6 +759,18 @@ jsonClient.addEventListener('message', e => {
       baseIndex,
     }));
   }
+});
+
+const avatarMe = document.getElementById('avatar-me');
+const _renderAvatars = () => {
+  const {avatar} = pe;
+  const previewEl = avatarMe.querySelector('.preview');
+  // previewEl.src = avatar.getPreviewUrl();
+  const nameEl = avatarMe.querySelector('.name');
+  nameEl.innerText = avatar.name;
+};
+pe.addEventListener('avatarchange', e => {
+  _renderAvatars();
 });
 
 let selectedPackage = null;
