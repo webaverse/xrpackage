@@ -658,7 +658,7 @@ export class XRPackageEngine extends EventTarget {
       if (rig) {
         // console.log('update rig', camera.position.toArray());
         const m = new THREE.Matrix4().fromArray(xrState.leftViewMatrix);
-        m.getInverse(m)
+        m.getInverse(m);
         m.decompose(camera.position, camera.quaternion, camera.scale);
         rig.inputs.hmd.position.copy(camera.position);
         rig.inputs.hmd.quaternion.copy(camera.quaternion);
