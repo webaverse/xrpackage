@@ -203,7 +203,7 @@ for (let i = 0; i < tools.length; i++) {
       case 0: {
         pe.orbitControls.enabled = true;
         document.exitPointerLock();
-        pe.orbitControls.target.copy(pe.camera.position).add(new THREE.Vector3(0, 0, -2).applyQuaternion(pe.camera.quaternion));
+        pe.orbitControls.target.copy(pe.camera.position).add(new THREE.Vector3(0, 0, -3).applyQuaternion(pe.camera.quaternion));
         break;
       }
       case 1: {
