@@ -114,10 +114,39 @@ const _makeTargetMesh = () => {
 /* const targetMesh = _makeTargetMesh();
 scene.add(targetMesh); */
 
-// const objects = [];
+const velocity = new THREE.Vector3();
 function animate(timestamp, frame) {
   /* const timeFactor = 1000;
   targetMesh.material.uniforms.uTime.value = (Date.now() % timeFactor) / timeFactor; */
+
+  const currentSession = getSession();
+  if (currentSession) {
+    // XXX
+  } else if (document.pointerLockElement) {
+    const speed = 0.015 * (keys.shift ? 3 : 1);
+    const cameraEuler = pe.camera.rotation.clone();
+    cameraEuler.x = 0;
+    cameraEuler.z = 0;
+    const extraVelocity = new THREE.Vector3();
+    if (keys.left) {
+      extraVelocity.add(new THREE.Vector3(-1, 0, 0).applyEuler(cameraEuler));
+    }
+    if (keys.right) {
+      extraVelocity.add(new THREE.Vector3(1, 0, 0).applyEuler(cameraEuler));
+    }
+    if (keys.up) {
+      extraVelocity.add(new THREE.Vector3(0, 0, -1).applyEuler(cameraEuler));
+    }
+    if (keys.down) {
+      extraVelocity.add(new THREE.Vector3(0, 0, 1).applyEuler(cameraEuler));
+    }
+    if (extraVelocity.length() > 0) {
+      extraVelocity.normalize().multiplyScalar(speed);
+    }
+    velocity.add(extraVelocity);
+    pe.camera.position.add(velocity);
+    velocity.multiplyScalar(0.7);
+  }
 
   renderer.render(scene, camera);
 }
@@ -174,6 +203,7 @@ for (let i = 0; i < tools.length; i++) {
       case 0: {
         pe.orbitControls.enabled = true;
         document.exitPointerLock();
+        pe.orbitControls.target.copy(pe.camera.position).add(new THREE.Vector3(0, 0, -2).applyQuaternion(pe.camera.quaternion));
         break;
       }
       case 1: {
@@ -216,43 +246,34 @@ window.addEventListener('keydown', e => {
     }
     case 87: { // W
       if (!document.pointerLockElement) {
-        selectTargets.forEach(selectedObjectMesh => {
-          selectedObjectMesh.control.setMode('translate');
-        });
+        // nothing
       } else {
         keys.up = true;
       }
       break;
     }
     case 65: { // A
-      /* if (!document.pointerLockElement) {
-        selectedObjectMeshes.forEach(selectedObjectMesh => {
-          selectedObjectMesh.control.setMode('translate');
-        });
-      } else { */
+      if (!document.pointerLockElement) {
+        // nothing
+      } else {
         keys.left = true;
-      // }
+      }
       break;
     }
     case 83: { // S
-      /* if (!document.pointerLockElement) {
-        if (e.ctrlKey || e.metaKey) {
-          e.preventDefault();
-          e.stopPropagation();
-
-          interfaceDocument.getElementById('save-op').click();
-        }
-      } else { */
+      if (!document.pointerLockElement) {
+        // nothing
+      } else {
         keys.down = true;
-      // }
+      }
       break;
     }
     case 68: { // D
-      /* if (!document.pointerLockElement) {
+      if (!document.pointerLockElement) {
         // nothing
-      } else { */
+      } else {
         keys.right = true;
-      // }
+      }
       break;
     }
     case 69: { // E
