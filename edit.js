@@ -899,7 +899,7 @@ const _renderPackages = () => {
     packagesEl.querySelector('.position-y').addEventListener('change', e => {
       _setPosition(e, 'y');
     });
-    packagesEl.querySelector('.position-y').addEventListener('change', e => {
+    packagesEl.querySelector('.position-z').addEventListener('change', e => {
       _setPosition(e, 'z');
     });
     packagesEl.querySelector('.quaternion-x').addEventListener('change', e => {
