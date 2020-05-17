@@ -839,6 +839,7 @@ export class XRPackage extends EventTarget {
     super();
 
     this.id = (packageIds++) + '';
+    this.name = '';
     this.loaded = false;
 
     this.matrix = a instanceof XRPackage ? a.matrix.clone() : new THREE.Matrix4();
