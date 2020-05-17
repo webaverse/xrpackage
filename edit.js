@@ -564,11 +564,16 @@ const _updateRaycasterFromMouseEvent = (raycaster, e) => {
 };
 const _updateMouseMovement = e => {
   const {movementX, movementY} = e;
+  if (selectedTool === 'thirdperson') {
+    pe.camera.position.add(new THREE.Vector3(0, -0.5, -2).applyQuaternion(pe.camera.quaternion));
+  }
   pe.camera.rotation.y -= movementX * Math.PI*2*0.001;
   pe.camera.rotation.x -= movementY * Math.PI*2*0.001;
   pe.camera.rotation.x = Math.min(Math.max(pe.camera.rotation.x, -Math.PI/2), Math.PI/2);
-  // camera.updateMatrixWorld();
-  // pe.setCamera(camera);
+  pe.camera.quaternion.setFromEuler(pe.camera.rotation);
+  if (selectedTool === 'thirdperson') {
+    pe.camera.position.add(new THREE.Vector3(0, 0.5, 2).applyQuaternion(pe.camera.quaternion));
+  }
 };
 renderer.domElement.addEventListener('mousemove', e => {
   if (selectedTool === 'firstperson') {
