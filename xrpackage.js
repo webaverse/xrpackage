@@ -445,6 +445,7 @@ export class XRPackageEngine extends EventTarget {
     if (adder) {
       await adder.call(this, p);
     } else {
+      this.remove(p);
       throw new Error(`unknown xr_type: ${type}`);
     }
   }
