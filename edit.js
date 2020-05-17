@@ -114,6 +114,8 @@ const _makeTargetMesh = () => {
 /* const targetMesh = _makeTargetMesh();
 scene.add(targetMesh); */
 
+pe.defaultAvatar();
+
 const velocity = new THREE.Vector3();
 function animate(timestamp, frame) {
   /* const timeFactor = 1000;
@@ -574,6 +576,8 @@ const _updateMouseMovement = e => {
   if (selectedTool === 'thirdperson') {
     pe.camera.position.add(new THREE.Vector3(0, 0.5, 2).applyQuaternion(pe.camera.quaternion));
   }
+  pe.camera.updateMatrixWorld();
+  pe.setCamera(camera);
 };
 renderer.domElement.addEventListener('mousemove', e => {
   if (selectedTool === 'firstperson') {

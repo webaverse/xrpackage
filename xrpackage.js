@@ -777,6 +777,21 @@ export class XRPackageEngine extends EventTarget {
       this.scene.add(this.rig.model);
     }
   }
+  defaultAvatar() {
+    if (this.rig) {
+      this.scene.remove(this.rig);
+      this.rig.destroy();
+      this.rig = null;
+    }
+
+    this.rig = new Avatar(null, {
+      fingers: true,
+      hair: true,
+      visemes: true,
+      debug: true,
+    });
+    this.scene.add(this.rig.model);
+  }
   reset() {
     const ps = this.packages.slice();
     for (let i = 0; i < ps.length; i++) {
