@@ -845,16 +845,22 @@ export class XRPackageEngine extends EventTarget {
       const {children} = xrPackageScene;
       for (let i = 0; i < children.length; i++) {
         const child = children[i];
-        const {id} = child;
-        const primaryUrl = `https://xrpackage.org`;
-        const idUrl = primaryUrl + '/' + id + '.wbn';
-        const file = p.files.find(f => f.url === idUrl);
-        if (file) {
-          const p = new XRPackage(file.response.body);
+        const {id, hash} = child;
+        if (hash) {
+          const p = await XRPackage.download(hash);
+          p.id = id;
           this.add(p);
-          // console.log('got new package', p);
         } else {
-          console.warn('unknown file id', id);
+          const primaryUrl = `https://xrpackage.org`;
+          const idUrl = primaryUrl + '/' + id + '.wbn';
+          const file = p.files.find(f => f.url === idUrl);
+          if (file) {
+            const p = new XRPackage(file.response.body);
+            p.id = id;
+            this.add(p);
+          } else {
+            console.warn('unknown file id', id);
+          }
         }
       }
     } else {
