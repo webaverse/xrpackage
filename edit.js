@@ -541,8 +541,20 @@ const _updateRaycasterFromMouseEvent = (raycaster, e) => {
   raycaster.setFromCamera(mouse, pe.camera);
   // raycaster.ray.origin.add(raycaster.ray.direction);
 };
+const _updateMouseMovement = e => {
+  const {movementX, movementY} = e;
+  pe.camera.rotation.y -= movementX * Math.PI*2*0.001;
+  pe.camera.rotation.x -= movementY * Math.PI*2*0.001;
+  pe.camera.rotation.x = Math.min(Math.max(pe.camera.rotation.x, -Math.PI/2), Math.PI/2);
+  // camera.updateMatrixWorld();
+  // pe.setCamera(camera);
+};
 renderer.domElement.addEventListener('mousemove', e => {
-  if (selectedTool === 'select' && !getSession()) {
+  if (selectedTool === 'firstperson') {
+    _updateMouseMovement(e);
+  } else if (selectedTool === 'thirdperson') {
+    _updateMouseMovement(e);
+  } else if (selectedTool === 'select' && !getSession()) {
     _updateRaycasterFromMouseEvent(raycaster, e);
 
     hoverTarget = null;

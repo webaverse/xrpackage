@@ -543,7 +543,7 @@ export class XRPackageEngine extends EventTarget {
     this.renderer.clear(true, true, true);
 
     if (!this.session) {
-      this.orbitControls.update();
+      this.orbitControls.enabled && this.orbitControls.update();
       this.setCamera(this.camera);
     }
 
