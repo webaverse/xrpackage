@@ -814,11 +814,11 @@ export class XRPackageEngine extends EventTarget {
     });
     this.scene.add(this.rig.model);
 
+    this.avatar = null;
+
     this.dispatchEvent(new MessageEvent('avatarchange', {
       data: this.avatar,
     }));
-
-    this.avatar = null;
   }
   reset() {
     const ps = this.packages.slice();
