@@ -37,6 +37,14 @@ function downloadFile(file, filename) {
   tempLink.click();
   document.body.removeChild(tempLink);
 }
+const readFile = file => new Promise((accept, reject) => {
+  const fr = new FileReader();
+  fr.onload = () => {
+    accept(new Uint8Array(fr.result));
+  };
+  fr.onerror = reject;
+  fr.readAsArrayBuffer(file);
+});
 
 const _makeTargetMesh = () => {
   const targetGeometry = BufferGeometryUtils.mergeBufferGeometries([
@@ -193,6 +201,10 @@ _bindUploadFileButton(document.getElementById('load-package-input'), file => {
   window.dispatchEvent(new MessageEvent('upload', {
     data: file,
   }));
+});
+_bindUploadFileButton(document.getElementById('import-scene-input'), async file => {
+  const uint8Array = await readFile(file);
+  pe.importScene(uint8Array);
 });
 
 let selectedTool = 'camera';
@@ -368,6 +380,13 @@ window.addEventListener('keyup', e => {
 
 document.getElementById('reset-scene-button').addEventListener('click', e => {
   pe.reset();
+});
+document.getElementById('export-scene-button').addEventListener('click', async e => {
+  const uint8Array = await pe.exportScene();
+  const b = new Blob([uint8Array], {
+    type: 'application/webbundle',
+  });
+  downloadFile(b, 'scene.wbn');
 });
 let shieldLevel = 1;
 const _placeholdPackage = p => {
@@ -741,12 +760,6 @@ jsonClient.addEventListener('localUpdate', e => {
   const j = e.data;
   const {children = []} = j;
   _pullPackages(children);
-  // console.log('update local json', j);
-  /* const newValue = e.data;
-  if (newValue !== codeInput.value) {
-    codeInput.value = newValue;
-    codeInput.dispatchEvent(new CustomEvent('input'));
-  } */
 });
 jsonClient.addEventListener('message', e => {
   // console.log('send ops 1', e.data);
