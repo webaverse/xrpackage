@@ -402,6 +402,8 @@ export class XRPackageEngine extends EventTarget {
     this.ids = 0;
     this.rafs = [];
     this.rig = null;
+    this.rigMatrix = new THREE.Matrix4();
+    this.rigMatrixEnabled = false;
     this.realSession = null;
     this.referenceSpace = null;
     this.loadReferenceSpaceInterval = 0;
@@ -656,16 +658,21 @@ export class XRPackageEngine extends EventTarget {
     {
       const {rig, camera} = this;
       if (rig) {
-        // console.log('update rig', camera.position.toArray());
-        const m = new THREE.Matrix4().fromArray(xrState.leftViewMatrix);
-        m.getInverse(m);
-        m.decompose(camera.position, camera.quaternion, camera.scale);
-        rig.inputs.hmd.position.copy(camera.position);
-        rig.inputs.hmd.quaternion.copy(camera.quaternion);
-        rig.inputs.leftGamepad.position.copy(camera.position).add(localVector.set(0.3, -0.15, -0.5).applyQuaternion(camera.quaternion));
-        rig.inputs.leftGamepad.quaternion.copy(camera.quaternion);
-        rig.inputs.rightGamepad.position.copy(camera.position).add(localVector.set(-0.3, -0.15, -0.5).applyQuaternion(camera.quaternion));
-        rig.inputs.rightGamepad.quaternion.copy(camera.quaternion);
+        if (this.rigMatrixEnabled) {
+          this.rigMatrix.decompose(localVector, localQuaternion, localVector2);
+        } else {
+          const m = new THREE.Matrix4().fromArray(xrState.leftViewMatrix);
+          m.getInverse(m);
+          m.decompose(localVector, localQuaternion, localVector2);
+        }
+        // camera.position.add(localVector2.set(0, -0.5, -2).applyQuaternion(camera.quaternion));
+        rig.inputs.hmd.position.copy(localVector);
+        rig.inputs.hmd.quaternion.copy(localQuaternion);
+        rig.inputs.leftGamepad.position.copy(localVector).add(localVector2.set(0.3, -0.15, -0.5).applyQuaternion(localQuaternion));
+        rig.inputs.leftGamepad.quaternion.copy(localQuaternion);
+        rig.inputs.rightGamepad.position.copy(localVector).add(localVector2.set(-0.3, -0.15, -0.5).applyQuaternion(localQuaternion));
+        rig.inputs.rightGamepad.quaternion.copy(localQuaternion);
+        // camera.position.sub(localVector2);
 
         rig.update();
       }
@@ -745,6 +752,14 @@ export class XRPackageEngine extends EventTarget {
 
     xrState.rightViewMatrix.set(xrState.leftViewMatrix);
     xrState.rightProjectionMatrix.set(xrState.leftProjectionMatrix);
+  }
+  setRigMatrix(rigMatrix) {
+    if (rigMatrix) {
+      this.rigMatrix.copy(rigMatrix);
+      this.rigMatrixEnabled = true;
+    } else {
+      this.rigMatrixEnabled = false;
+    }
   }
   async wearAvatar(p) {
     if (!p.loaded) {

@@ -20,7 +20,9 @@ const contract = new web3.eth.Contract(abi, address);
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
+const localVector4 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
+const localQuaternion2 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localBox = new THREE.Box3();
 
@@ -117,6 +119,7 @@ scene.add(targetMesh); */
 pe.defaultAvatar();
 
 const velocity = new THREE.Vector3();
+const extraVelocity = new THREE.Vector3();
 function animate(timestamp, frame) {
   /* const timeFactor = 1000;
   targetMesh.material.uniforms.uTime.value = (Date.now() % timeFactor) / timeFactor; */
@@ -129,7 +132,7 @@ function animate(timestamp, frame) {
     const cameraEuler = pe.camera.rotation.clone();
     cameraEuler.x = 0;
     cameraEuler.z = 0;
-    const extraVelocity = new THREE.Vector3();
+    extraVelocity.set(0, 0, 0);
     if (keys.left) {
       extraVelocity.add(new THREE.Vector3(-1, 0, 0).applyEuler(cameraEuler));
     }
@@ -148,6 +151,17 @@ function animate(timestamp, frame) {
     velocity.add(extraVelocity);
     pe.camera.position.add(velocity);
     velocity.multiplyScalar(0.7);
+  }
+
+  if (selectedTool === 'thirdperson') {
+    pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+    localVector.add(localVector3.set(0, 0, -1).applyQuaternion(localQuaternion));
+    if (velocity.lengthSq() > 0) {
+      localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.copy(velocity).normalize());
+    }
+    pe.setRigMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
+  } else {
+    pe.setRigMatrix(null);
   }
 
   renderer.render(scene, camera);
@@ -201,22 +215,22 @@ for (let i = 0; i < tools.length; i++) {
     }
     selectTargets = [];
 
-    switch (i) {
-      case 0: {
+    switch (selectedTool) {
+      case 'camera': {
         pe.orbitControls.enabled = true;
         document.exitPointerLock();
         pe.orbitControls.target.copy(pe.camera.position).add(new THREE.Vector3(0, 0, -3).applyQuaternion(pe.camera.quaternion));
         break;
       }
-      case 1: {
+      case 'firstperson': {
         pe.domElement.requestPointerLock();
         break;
       }
-      case 2: {
+      case 'thirdperson': {
         pe.domElement.requestPointerLock();
         break;
       }
-      case 3: {
+      case 'select': {
         document.exitPointerLock();
         break;
       }
