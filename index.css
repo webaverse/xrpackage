@@ -334,7 +334,6 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 .dropdown .tabs .tab {
   display: flex;
   height: 50px;
-  padding: 0 10px;
   padding-top: 3px;
   border-bottom: 3px solid #EEE;
   flex: 1;
@@ -350,8 +349,29 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   border-color: var(--color);
 }
 
+.dropdown .tabs .tab.open {
+  cursor: default;
+}
+
 .dropdown .tab-content:not(.open) {
   display: none;
+}
+
+.dropdown .tabs .tab > span {
+  padding: 0 10px;
+}
+.dropdown .tabs .tab > nav {
+  position: relative;
+  display: flex;
+  width: 30px;
+  height: 50px;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+.dropdown .tabs .tab > nav:hover {
+  background-color: var(--color);
+  color: #FFF;
 }
 
 .packages {

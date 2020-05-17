@@ -66,11 +66,9 @@
           </a> -->
         </div>
       </div>
-      <nav class=button id=enter-xr-button>Enter XR</nav>
-      <nav class="nav full">
-        <i class="fa fa-plus"></i>
-        <span>Package</span>
-        <input type=file class=hidden id=load-package-input>
+      <nav class="nav full" id=enter-xr-button>
+        <i class="fa fa-vr-cardboard"></i>
+        <span>Enter</span>
       </nav>
       <nav class="nav full square" id=dropdown-button>
         <i class="fa fa-bars"></i>
@@ -79,7 +77,13 @@
   </header>
   <aside class="dropdown" id=dropdown>
     <div class=tabs>
-      <nav class="tab open" id=tab-1>Objects</nav>
+      <nav class="tab open" id=tab-1>
+        <span>Objects</span>
+        <nav>
+          <i class="fa fa-plus"></i>
+          <input type=file class=hidden id=load-package-input>
+        </nav>
+      </nav>
       <nav class=tab id=tab-2>Scene</nav>
       <nav class=tab id=tab-3>Social</nav>
       <nav class=tab id=tab-4>Settings</nav>
