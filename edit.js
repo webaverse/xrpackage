@@ -228,10 +228,11 @@ for (let i = 0; i < tools.length; i++) {
     }
     selectTargets = [];
 
+    let decapitate = false;
     switch (selectedTool) {
       case 'camera': {
-        pe.orbitControls.enabled = true;
         document.exitPointerLock();
+        pe.orbitControls.enabled = true;
         pe.orbitControls.target.copy(pe.camera.position).add(new THREE.Vector3(0, 0, -3).applyQuaternion(pe.camera.quaternion));
         break;
       }
@@ -246,6 +247,13 @@ for (let i = 0; i < tools.length; i++) {
       case 'select': {
         document.exitPointerLock();
         break;
+      }
+    }
+    if (pe.rig) {
+      if (decapitate) {
+        pe.rig.decapitate();
+      } else {
+        pe.rig.undecapitate();
       }
     }
   });
