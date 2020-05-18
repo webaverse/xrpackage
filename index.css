@@ -315,7 +315,7 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   width: 300px;
   height: calc(100% - 50px);
   background-color: #FFF;
-  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
+  border-left: 3px solid #EEE;
   flex-direction: column;
 }
 
@@ -380,6 +380,7 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   top: 50px;
   width: calc(100% - 300px - 100px);
   height: calc(100% - 50px);
+  padding: 20px;
   background-color: #FFF;
   box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
 }
@@ -390,7 +391,6 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 
 .subtabs {
   display: flex;
-  padding: 20px;
 }
 
 .subtabs .subtab {
@@ -421,6 +421,14 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 .subtabs .subtab.open {
   background-color: #1e88e5;
   color: #FFF;
+}
+
+.subtab-content {
+  display: flex;
+  flex-direction: column;
+}
+.subtab-content:not(.open) {
+  display: none;
 }
 
 .objects {

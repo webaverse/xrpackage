@@ -10,6 +10,9 @@ import abi from 'https://contracts.webaverse.com/abi.js';
 import {pe, renderer, scene, camera, container, getSession} from './run.js';
 
 const apiHost = `https://ipfs.exokit.org/ipfs`;
+const presenceEndpoint = `wss://grid-presence.exokit.org`;
+const worldsEndpoint = 'https://packages.exokit.org';
+const packagesEndpoint = 'https://packages.exokit.org';
 const network = 'rinkeby';
 const infuraApiKey = '4fb939301ec543a0969f3019d74f80c2';
 const rpcUrl = `https://${network}.infura.io/v3/${infuraApiKey}`;
@@ -709,6 +712,27 @@ for (let i = 0; i < subtabs.length; i++) {
   });
 }
 
+const worlds = document.getElementById('worlds');
+(async () => {
+  const res = await fetch(worldsEndpoint);
+  const children = await res.json();
+  worlds.innerHTML = children.map(child => `
+    <div class=world></div>
+  `).join('\n');
+})();
+const packages = document.getElementById('packages');
+(async () => {
+  const res = await fetch(packagesEndpoint);
+  const children = await res.json();
+  const ps = await Promise.all(children.map(child =>
+    fetch(packagesEndpoint + '/' + child)
+      .then(res => res.json())
+  ));
+  packages.innerHTML = ps.map(p => `
+    <div class=package>${p.name}</div>
+  `).join('\n');
+})();
+
 let channelConnection = null;
 const connectButton = document.getElementById('connect-button');
 const disconnectButton = document.getElementById('disconnect-button');
@@ -716,7 +740,7 @@ const roomNameEl = document.getElementById('room-name');
 connectButton.addEventListener('click', e => {
   const roomName = roomNameEl.value;
   if (roomName) {
-    channelConnection = new XRChannelConnection(`wss://grid-presence.exokit.org/?c=${encodeURIComponent(roomName)}`);
+    channelConnection = new XRChannelConnection(`${presenceEndpoint}/?c=${encodeURIComponent(roomName)}`);
     channelConnection.addEventListener('open', e => {
       // console.log('got open', e);
     });
@@ -837,6 +861,7 @@ const _renderObjects = () => {
       <div class=object-detail>
         <h1><nav class=back-button><i class="fa fa-arrow-left"></i></nav>${p.name}</h1>
         <nav class="button wear-button">Wear</nav>
+        <nav class="button publish-button">Publish</nav>
         <nav class="button remove-button">Remove</nav>
         <b>Position</b>
         <div class=row>
@@ -893,6 +918,22 @@ const _renderObjects = () => {
     backButton.addEventListener('click', e => {
       selectedObject = null;
       _renderObjects();
+    });
+    const publishButton = objectsEl.querySelector('.publish-button');
+    publishButton.addEventListener('click', async e => {
+      const hash = await p.upload();
+      const res = await fetch(packagesEndpoint + '/' + hash, {
+        method: 'PUT',
+        body: JSON.stringify({
+          name: p.name,
+          hash,
+        }),
+      });
+      if (res.ok) {
+        // nothing
+      } else {
+        console.warn('invalid status code: ' + res.status);
+      }
     });
     const wearButton = objectsEl.querySelector('.wear-button');
     wearButton.addEventListener('click', async e => {
