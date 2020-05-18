@@ -11,8 +11,9 @@ import {pe, renderer, scene, camera, container, getSession} from './run.js';
 
 const apiHost = `https://ipfs.exokit.org/ipfs`;
 const presenceEndpoint = `wss://grid-presence.exokit.org`;
-const worldsEndpoint = 'https://packages.exokit.org';
+const worldsEndpoint = 'https://worlds.exokit.org';
 const packagesEndpoint = 'https://packages.exokit.org';
+const scenesEndpoint = 'https://scenes.exokit.org';
 const network = 'rinkeby';
 const infuraApiKey = '4fb939301ec543a0969f3019d74f80c2';
 const rpcUrl = `https://${network}.infura.io/v3/${infuraApiKey}`;
@@ -396,6 +397,21 @@ document.getElementById('world-name').addEventListener('change', e => {
 document.getElementById('reset-scene-button').addEventListener('click', e => {
   pe.reset();
 });
+document.getElementById('publish-scene-button').addEventListener('click', async e => {
+  const hash = await pe.uploadScene();
+  const res = await fetch(scenesEndpoint + '/' + hash, {
+    method: 'PUT',
+    body: JSON.stringify({
+      name: pe.name,
+      hash,
+    }),
+  });
+  if (res.ok) {
+    // nothing
+  } else {
+    console.warn('invalid status code: ' + res.status);
+  }
+});
 document.getElementById('export-scene-button').addEventListener('click', async e => {
   const uint8Array = await pe.exportScene();
   const b = new Blob([uint8Array], {
@@ -730,6 +746,18 @@ const packages = document.getElementById('packages');
   ));
   packages.innerHTML = ps.map(p => `
     <div class=package>${p.name}</div>
+  `).join('\n');
+})();
+const scenes = document.getElementById('scenes');
+(async () => {
+  const res = await fetch(scenesEndpoint);
+  const children = await res.json();
+  const ss = await Promise.all(children.map(child =>
+    fetch(scenesEndpoint + '/' + child)
+      .then(res => res.json())
+  ));
+  scenes.innerHTML = ss.map(s => `
+    <div class=scene>${s.name}</div>
   `).join('\n');
 })();
 
