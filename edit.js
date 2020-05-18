@@ -510,7 +510,7 @@ pe.addEventListener('packageremove', e => {
   }
   _renderObjects();
 
-  if (p.hash) {
+  if (channelConnection) {
     jsonClient.removeItem(['children', p.id]);
   }
   _unbindObject(p);
