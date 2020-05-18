@@ -759,6 +759,13 @@ const scenes = document.getElementById('scenes');
   scenes.innerHTML = ss.map(s => `
     <div class=scene>${s.name}</div>
   `).join('\n');
+  Array.from(scenes.querySelectorAll('.scene')).forEach((scene, i) => {
+    scene.addEventListener('click', e => {
+      const s = ss[i];
+      const {hash} = s;
+      pe.downloadScene(hash);
+    });
+  });
 })();
 
 let channelConnection = null;
