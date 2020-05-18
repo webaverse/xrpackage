@@ -740,17 +740,53 @@ const _makeWorldHtml = w => `
     <nav class=button>Join</nav>
   </div>
 `;
+let channelConnection = null;
 const _bindWorld = w => {
   w.addEventListener('click', async e => {
+    const {hash} = w;
+    const roomName = hash;
+    channelConnection = new XRChannelConnection(`${presenceEndpoint}/?c=${encodeURIComponent(roomName)}`);
+    channelConnection.addEventListener('open', e => {
+      // console.log('got open', e);
+    });
+    channelConnection.addEventListener('peerconnection', e => {
+      const peerConnection = e.data;
+      console.log('got peer connection', peerConnection);
+    });
+    channelConnection.addEventListener('message', e => {
+      const m = e.data;
+      const {method} = m;
+      switch (method) {
+        case 'init': {
+          const {json, baseIndex} = m;
+          console.log('got init', json, baseIndex);
+          jsonClient.pullInit(json, baseIndex);
+          break;
+        }
+        case 'ops': {
+          const {ops, baseIndex} = m;
+          jsonClient.pullOps(ops, baseIndex);
+          break;
+        }
+        default: {
+          console.warn('unknown channel connection method: ', JSON.stringify(method), m);
+          break;
+        }
+      }
+      // console.log('xr channel message', m);
+    });
+    channelConnection.addEventListener('close', e => {
+      console.log('channel connection close', e);
+
+      pe.reset();
+      channelConnection = null;
+    });
+
     singleplayerButton.classList.remove('open');
     Array.from(worlds.querySelectorAll('.world')).forEach(w => {
       w.classList.remove('open');
     });
     w.classList.add('open');
-    /* let p = ps[i];
-    const {hash} = p;
-    p = await XRPackage.download(hash);
-    pe.add(p); */
   });
 };
 (async () => {
@@ -765,6 +801,8 @@ const _bindWorld = w => {
 })();
 const singleplayerButton = document.getElementById('singleplayer-button');
 singleplayerButton.addEventListener('click', e => {
+  channelConnection && channelConnection.close();
+
   singleplayerButton.classList.add('open');
   Array.from(worlds.querySelectorAll('.world')).forEach(w => {
     w.classList.remove('open');
@@ -835,58 +873,6 @@ const scenes = document.getElementById('scenes');
     });
   });
 })();
-
-let channelConnection = null;
-const connectButton = document.getElementById('connect-button');
-const disconnectButton = document.getElementById('disconnect-button');
-const roomNameEl = document.getElementById('room-name');
-connectButton.addEventListener('click', e => {
-  const roomName = roomNameEl.value;
-  if (roomName) {
-    channelConnection = new XRChannelConnection(`${presenceEndpoint}/?c=${encodeURIComponent(roomName)}`);
-    channelConnection.addEventListener('open', e => {
-      // console.log('got open', e);
-    });
-    channelConnection.addEventListener('peerconnection', e => {
-      const peerConnection = e.data;
-      console.log('got peer connection', peerConnection);
-    });
-    channelConnection.addEventListener('message', e => {
-      const m = e.data;
-      const {method} = m;
-      switch (method) {
-        case 'init': {
-          const {json, baseIndex} = m;
-          jsonClient.pullInit(json, baseIndex);
-          break;
-        }
-        case 'ops': {
-          const {ops, baseIndex} = m;
-          jsonClient.pullOps(ops, baseIndex);
-          break;
-        }
-        default: {
-          console.warn('unknown channel connection method: ', JSON.stringify(method), m);
-          break;
-        }
-      }
-      // console.log('xr channel message', m);
-    });
-    channelConnection.addEventListener('close', e => {
-      console.log('channel connection close', e);
-    });
-
-    connectButton.style.display = 'none';
-    disconnectButton.style.display = null;
-  }
-});
-disconnectButton.addEventListener('click', e => {
-  channelConnection.close();
-  channelConnection = null;
-
-  connectButton.style.display = null;
-  disconnectButton.style.display = 'none';
-});
 
 const _pullPackages = async children => {
   const keepPackages = [];
