@@ -406,6 +406,7 @@ export class XRPackageEngine extends EventTarget {
 
     renderer.xr.setSession(this.fakeSession);
 
+    this.name = 'XRPackage Scene';
     this.packages = [];
     this.ids = 0;
     this.rafs = [];
@@ -873,7 +874,7 @@ export class XRPackageEngine extends EventTarget {
     const manifestJsonPath = primaryUrl + '/manifest.json';
     const builder = new wbn.BundleBuilder(manifestJsonPath);
     const manifestJson = {
-      name: 'XRPackage Scene',
+      name: this.name,
       description: 'XRPackage scene exported with the browser frontend.',
       xr_type: 'xrpackage-scene@0.0.1',
       start_url: 'manifest.json',
@@ -946,7 +947,7 @@ export class XRPackage extends EventTarget {
     super();
 
     this.id = (packageIds++) + '';
-    this.name = '';
+    this.name = 'XRPackage';
     this.loaded = false;
 
     this.matrix = a instanceof XRPackage ? a.matrix.clone() : new THREE.Matrix4();
