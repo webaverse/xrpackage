@@ -541,6 +541,7 @@ class Avatar {
     this.hairBones = hairBones;
 
     this.springBoneManager = null;
+    let springBoneManagerPromise = null;
     if (options.hair) {
       new Promise((accept, reject) => {
         if (!object) {
@@ -595,7 +596,7 @@ class Avatar {
           };
         }
 
-        new THREE.VRMSpringBoneImporter().import(object)
+        springBoneManagerPromise = new THREE.VRMSpringBoneImporter().import(object)
           .then(springBoneManager => {
             this.springBoneManager = springBoneManager;
           });
@@ -872,7 +873,13 @@ class Avatar {
 
     this.decapitated = false;
     if (options.decapitate) {
-      this.decapitate();
+      if (springBoneManagerPromise) {
+        springBoneManagerPromise.then(() => {
+          this.decapitate();
+        });
+      } else {
+        this.decapitate();
+      }
     }
 	}
   initializeBonePositions(setups) {
