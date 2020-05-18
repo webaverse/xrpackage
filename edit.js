@@ -747,6 +747,14 @@ const packages = document.getElementById('packages');
   packages.innerHTML = ps.map(p => `
     <div class=package>${p.name}</div>
   `).join('\n');
+  Array.from(packages.querySelectorAll('.package')).forEach((p, i) => {
+    p.addEventListener('click', async e => {
+      let p = ps[i];
+      const {hash} = p;
+      p = await XRPackage.download(hash);
+      pe.add(p);
+    });
+  });
 })();
 const scenes = document.getElementById('scenes');
 (async () => {
