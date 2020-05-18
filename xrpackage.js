@@ -898,6 +898,46 @@ export class XRPackageEngine extends EventTarget {
     }
     return builder.createBundle();
   }
+  async uploadScene() {
+    const primaryUrl = `https://xrpackage.org`;
+    const manifestJsonPath = primaryUrl + '/manifest.json';
+    const builder = new wbn.BundleBuilder(manifestJsonPath);
+    const hashes = await Promise.all(this.packages.map(p => p.upload()));
+    const manifestJson = {
+      name: 'XRPackage Scene',
+      description: 'XRPackage scene exported with the browser frontend.',
+      xr_type: 'xrpackage-scene@0.0.1',
+      start_url: 'manifest.json',
+      xrpackage_scene: {
+        children: this.packages.map((p, i) => {
+          return {
+            id: p.id,
+            hash: hashes[i],
+            matrix: p.matrix.toArray(),
+          };
+        }),
+      },
+    };
+    builder.addExchange(manifestJsonPath, 200, {
+      'Content-Type': 'application/json',
+    }, JSON.stringify(manifestJson, null, 2));
+    return builder.createBundle();
+  }
+  static async downloadScene(hash) {
+    const res = await fetch(`${apiHost}/${hash}.wbn`);
+    if (res.ok) {
+      const arrayBuffer = await res.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+      const p = new XRPackage(uint8Array);
+      await this.importScene(p);
+    } else {
+      if (res.status === 404) {
+        return null;
+      } else {
+        throw new Error('download failed: ' + res.status);
+      }
+    }
+  }
 }
 
 let packageIds = Date.now();
