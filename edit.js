@@ -699,7 +699,7 @@ for (let i = 0; i < subtabs.length; i++) {
   subtab.addEventListener('click', e => {
     for (let i = 0; i < subtabs.length; i++) {
       const subtab = subtabs[i];
-      const subtabContent = tabContents[i];
+      const subtabContent = subtabContents[i];
       subtab.classList.remove('open');
       subtabContent.classList.remove('open');
     }
