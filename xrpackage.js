@@ -936,7 +936,7 @@ export class XRPackageEngine extends EventTarget {
       throw new Error('upload failed: ' + res.status);
     }
   }
-  static async downloadScene(hash) {
+  async downloadScene(hash) {
     const res = await fetch(`${apiHost}/${hash}.wbn`);
     if (res.ok) {
       const arrayBuffer = await res.arrayBuffer();
