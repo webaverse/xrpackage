@@ -663,11 +663,15 @@ renderer.domElement.addEventListener('click', e => {
 
 const dropdownButton = document.getElementById('dropdown-button');
 const dropdown = document.getElementById('dropdown');
+const subpage = document.getElementById('subpage');
 const tabs = Array.from(dropdown.querySelectorAll('.tab'));
 const tabContents = Array.from(dropdown.querySelectorAll('.tab-content'));
+const subtabs = Array.from(subpage.querySelectorAll('.subtab'));
+const subtabContents = Array.from(subpage.querySelectorAll('.subtab-content'));
 dropdownButton.addEventListener('click', e => {
   dropdownButton.classList.toggle('open');
   dropdown.classList.toggle('open');
+  subpage.classList.toggle('open');
 });
 for (let i = 0; i < tabs.length; i++) {
   const tab = tabs[i];
@@ -687,6 +691,21 @@ for (let i = 0; i < tabs.length; i++) {
       selectedObject = null;
       _renderObjects();
     }
+  });
+}
+for (let i = 0; i < subtabs.length; i++) {
+  const subtab = subtabs[i];
+  const subtabContent = subtabContents[i];
+  subtab.addEventListener('click', e => {
+    for (let i = 0; i < subtabs.length; i++) {
+      const subtab = subtabs[i];
+      const subtabContent = tabContents[i];
+      subtab.classList.remove('open');
+      subtabContent.classList.remove('open');
+    }
+
+    subtab.classList.add('open');
+    subtabContent.classList.add('open');
   });
 }
 
