@@ -922,7 +922,19 @@ export class XRPackageEngine extends EventTarget {
     builder.addExchange(manifestJsonPath, 200, {
       'Content-Type': 'application/json',
     }, JSON.stringify(manifestJson, null, 2));
-    return builder.createBundle();
+    const uint8Array = builder.createBundle();
+
+    const res = await fetch(`${apiHost}/`, {
+      method: 'PUT',
+      body: uint8Array,
+    });
+    if (res.ok) {
+      const j = await res.json();
+      const {hash} = j;
+      return hash;
+    } else {
+      throw new Error('upload failed: ' + res.status);
+    }
   }
   static async downloadScene(hash) {
     const res = await fetch(`${apiHost}/${hash}.wbn`);
