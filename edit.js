@@ -729,13 +729,72 @@ for (let i = 0; i < subtabs.length; i++) {
 }
 
 const worlds = document.getElementById('worlds');
+const _makeWorldHtml = w => `
+  <div class="world">
+    <img src=question.png>
+    <div class=wrap>
+      <h1>${w.name}</h1>
+      <p>This is a world description.</p>
+    </div>
+    <nav class=button>Join</nav>
+  </div>
+`;
+const _bindWorld = w => {
+  w.addEventListener('click', async e => {
+    singleplayerButton.classList.remove('open');
+    Array.from(worlds.querySelectorAll('.world')).forEach(w => {
+      w.classList.remove('open');
+    });
+    w.classList.add('open');
+    /* let p = ps[i];
+    const {hash} = p;
+    p = await XRPackage.download(hash);
+    pe.add(p); */
+  });
+};
 (async () => {
   const res = await fetch(worldsEndpoint);
   const children = await res.json();
-  worlds.innerHTML = children.map(child => `
-    <div class=world></div>
-  `).join('\n');
+  const ws = await Promise.all(children.map(child =>
+    fetch(worldsEndpoint + '/' + child)
+      .then(res => res.json())
+  ));
+  worlds.innerHTML = ws.map(w => _makeWorldHtml(w)).join('\n');
+  Array.from(worlds.querySelectorAll('.world')).forEach(w => _bindWorld(w));
 })();
+const singleplayerButton = document.getElementById('singleplayer-button');
+singleplayerButton.addEventListener('click', e => {
+  singleplayerButton.classList.add('open');
+  Array.from(worlds.querySelectorAll('.world')).forEach(w => {
+    w.classList.remove('open');
+  });
+});
+const newMultiplayerButton = document.getElementById('new-multiplayer-button');
+newMultiplayerButton.addEventListener('click', async e => {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  const hash = Array.prototype.map.call(array, x => ('00' + x.toString(16)).slice(-2)).join('');
+  const w = {
+    name: 'WebXR world',
+    description: 'This is a world description',
+    hash,
+  };
+  const res = await fetch(worldsEndpoint + '/' + hash, {
+    method: 'PUT',
+    body: JSON.stringify(w),
+  });
+  if (res.ok) {
+    worlds.innerHTML += '\n' + _makeWorldHtml(w);
+    const ws = Array.from(worlds.querySelectorAll('.world'));
+    Array.from(worlds.querySelectorAll('.world')).forEach(w => _bindWorld(w));
+    const newW = ws[ws.length - 1];
+    newW.click();
+  } else {
+    console.warn('invalid status code: ' + res.status);
+  }
+
+  singleplayerButton.classList.remove('open');
+});
 const packages = document.getElementById('packages');
 (async () => {
   const res = await fetch(packagesEndpoint);

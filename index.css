@@ -391,36 +391,46 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 
 .subtabs {
   display: flex;
+  margin-bottom: 10px;
 }
 
 .subtabs .subtab {
   display: flex;
-  height: 30px;
-  /* margin: 10px 0; */
-  padding: 0 10px;
-  background-color: #EEE;
+  /* height: 30px;
+  margin: 10px 0; */
+  padding: 5px 10px;
+  /* background-color: #EEE; */
+  border-bottom: 3px solid transparent;
+  font-size: 20px;
   justify-content: center;
   align-items: center;
   cursor: pointer;
   user-select: none;
 }
 
-.subtabs .subtab:first-child {
+.subtabs .subtab:hover,
+.subtabs .subtab.open
+{
+  border-bottom-color: #000;
+}
+
+/* .subtabs .subtab:first-child {
   border-top-left-radius: 5px;
   border-bottom-left-radius: 5px;
 }
 .subtabs .subtab:last-child {
   border-top-right-radius: 5px;
   border-bottom-right-radius: 5px;
-}
+} */
 
 .subtabs .subtab:hover {
-  background-color: #000;
-  color: #FFF;
+  border-bottom-color: 3px solid #000;
+  /* background-color: #000;
+  color: #FFF; */
 }
 .subtabs .subtab.open {
-  background-color: #1e88e5;
-  color: #FFF;
+  /* background-color: #1e88e5;
+  color: #FFF; */
 }
 
 .subtab-content {
@@ -429,6 +439,80 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 }
 .subtab-content:not(.open) {
   display: none;
+}
+
+.worlds-wrap {
+  display: flex;
+}
+
+.worlds {
+  margin-right: 10px;
+  flex: 2;
+}
+.world-buttons
+{
+  flex: 1;
+}
+
+.worlds .world,
+.world-buttons .world
+{
+  display: flex;
+  margin-bottom: 10px;
+  padding: 10px;
+  align-items: flex-start;
+  /* border-radius: 5px; */
+  cursor: pointer;
+}
+
+.worlds .world:hover,
+.world-buttons .world:hover
+{
+  background-color: #EEE;
+}
+
+.worlds .world.open,
+.world-buttons .world.open
+{
+  background-color: #000;
+  color: #FFF;
+}
+
+.worlds .world img,
+.world-buttons .world img
+{
+  width: 50px;
+  height: 50px;
+  margin-right: 10px;
+  background-color: #F8F8F8;
+}
+
+.worlds .world .wrap,
+.world-buttons .world .wrap
+{
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.worlds .world .wrap h1,
+.world-buttons .world .wrap h1
+{
+  margin: 0;
+  margin-bottom: 10px;
+}
+
+.worlds .world .wrap p,
+.world-buttons .world .wrap p
+{
+  margin: 0;
+  margin-bottom: 10px;
+}
+
+.worlds .world .button,
+.world-buttons .world .button
+{
+  
 }
 
 .objects {
