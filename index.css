@@ -374,12 +374,61 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   color: #FFF;
 }
 
-.packages {
+.subpage {
+  position: absolute;
+  left: 100px;
+  top: 50px;
+  width: calc(100% - 300px - 100px);
+  height: calc(100% - 50px);
+  background-color: #FFF;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
+}
+
+.subpage:not(.open) {
+  display: none;
+}
+
+.subtabs {
+  display: flex;
+  padding: 20px;
+}
+
+.subtabs .subtab {
+  display: flex;
+  height: 30px;
+  /* margin: 10px 0; */
+  padding: 0 10px;
+  background-color: #EEE;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.subtabs .subtab:first-child {
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+}
+.subtabs .subtab:last-child {
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+}
+
+.subtabs .subtab:hover {
+  background-color: #000;
+  color: #FFF;
+}
+.subtabs .subtab.open {
+  background-color: #1e88e5;
+  color: #FFF;
+}
+
+.objects {
   display: flex;
   flex-direction: column;
 }
 
-.packages .package {
+.objects .object {
   display: flex;
   margin-bottom: 2px;
   padding: 10px;
@@ -387,12 +436,12 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   align-items: center;
 }
 
-.packages .package .close-button {
+.objects .object .close-button {
   margin-left: auto;
   cursor: pointer;
 }
 
-.packages .package .close-button:hover {
+.objects .object .close-button:hover {
   color: #ef5350;
 }
 

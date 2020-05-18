@@ -449,14 +449,14 @@ function _matrixUpdate(e) {
   const matrix = e.data;
   jsonClient.setItem(['children', p.id, 'matrix'], p.matrix.toArray());
 }
-const _bindPackage = p => {
+const _bindObject = p => {
   p.addEventListener('matrixupdate', _matrixUpdate);
 };
-const _unbindPackage = p => {
+const _unbindObject = p => {
   p.removeEventListener('matrixupdate', _matrixUpdate);
 };
 pe.packages.forEach(p => {
-  _bindPackage(p);
+  _bindObject(p);
 });
 pe.addEventListener('packageadd', async e => {
   const p = e.data;
@@ -464,7 +464,7 @@ pe.addEventListener('packageadd', async e => {
   if (shieldLevel === 0) {
     _placeholdPackage(p);
   }
-  _renderPackages();
+  _renderObjects();
 
   if (channelConnection) {
     p.hash = await p.upload();
@@ -475,7 +475,7 @@ pe.addEventListener('packageadd', async e => {
         hash: p.hash,
         matrix: p.matrix.toArray(),
       });
-      _bindPackage(p);
+      _bindObject(p);
     }
   }
 });
@@ -485,10 +485,10 @@ pe.addEventListener('packageremove', e => {
     scene.remove(p.placeholderBox);
   }
 
-  if (selectedPackage === p) {
-    selectedPackage = null;
+  if (selectedObject === p) {
+    selectedObject = null;
   }
-  _renderPackages();
+  _renderObjects();
 
   if (p.hash) {
     jsonClient.removeItem(['children', p.id]);
@@ -683,9 +683,9 @@ for (let i = 0; i < tabs.length; i++) {
     tab.classList.add('open');
     tabContent.classList.add('open');
 
-    if (selectedPackage) {
-      selectedPackage = null;
-      _renderPackages();
+    if (selectedObject) {
+      selectedObject = null;
+      _renderObjects();
     }
   });
 }
@@ -809,13 +809,13 @@ unwearButton.addEventListener('click', e => {
   pe.defaultAvatar();
 });
 
-let selectedPackage = null;
-const packagesEl = document.getElementById('packages');
-const _renderPackages = () => {
-  if (selectedPackage) {
-    const p = selectedPackage;
-    packagesEl.innerHTML = `
-      <div class=package-detail>
+let selectedObject = null;
+const objectsEl = document.getElementById('objects');
+const _renderObjects = () => {
+  if (selectedObject) {
+    const p = selectedObject;
+    objectsEl.innerHTML = `
+      <div class=object-detail>
         <h1><nav class=back-button><i class="fa fa-arrow-left"></i></nav>${p.name}</h1>
         <nav class="button wear-button">Wear</nav>
         <nav class="button remove-button">Remove</nav>
@@ -870,18 +870,18 @@ const _renderPackages = () => {
         </div>
       </div>
     `;
-    const backButton = packagesEl.querySelector('.back-button');
+    const backButton = objectsEl.querySelector('.back-button');
     backButton.addEventListener('click', e => {
-      selectedPackage = null;
-      _renderPackages();
+      selectedObject = null;
+      _renderObjects();
     });
-    const wearButton = packagesEl.querySelector('.wear-button');
+    const wearButton = objectsEl.querySelector('.wear-button');
     wearButton.addEventListener('click', async e => {
       const p2 = p.clone();
       // await pe.add(p2);
       await pe.wearAvatar(p2);
     });
-    const removeButton = packagesEl.querySelector('.remove-button');
+    const removeButton = objectsEl.querySelector('.remove-button');
     removeButton.addEventListener('click', e => {
       pe.remove(p);
     });
@@ -896,7 +896,7 @@ const _renderPackages = () => {
       localQuaternion[key] = e.target.value;
       localQuaternion.normalize();
       ['x', 'y', 'z', 'w'].forEach(k => {
-        packagesEl.querySelector('.quaternion-' + k).value = localQuaternion[k];
+        objectsEl.querySelector('.quaternion-' + k).value = localQuaternion[k];
       });
       p.setMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
     };
@@ -905,52 +905,52 @@ const _renderPackages = () => {
       localVector2[key] = e.target.value;
       p.setMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
     };
-    packagesEl.querySelector('.position-x').addEventListener('change', e => {
+    objectsEl.querySelector('.position-x').addEventListener('change', e => {
       _setPosition(e, 'x');
     });
-    packagesEl.querySelector('.position-y').addEventListener('change', e => {
+    objectsEl.querySelector('.position-y').addEventListener('change', e => {
       _setPosition(e, 'y');
     });
-    packagesEl.querySelector('.position-z').addEventListener('change', e => {
+    objectsEl.querySelector('.position-z').addEventListener('change', e => {
       _setPosition(e, 'z');
     });
-    packagesEl.querySelector('.quaternion-x').addEventListener('change', e => {
+    objectsEl.querySelector('.quaternion-x').addEventListener('change', e => {
       _setQuaternion(e, 'x');
     });
-    packagesEl.querySelector('.quaternion-y').addEventListener('change', e => {
+    objectsEl.querySelector('.quaternion-y').addEventListener('change', e => {
       _setQuaternion(e, 'y');
     });
-    packagesEl.querySelector('.quaternion-z').addEventListener('change', e => {
+    objectsEl.querySelector('.quaternion-z').addEventListener('change', e => {
       _setQuaternion(e, 'z');
     });
-    packagesEl.querySelector('.quaternion-w').addEventListener('change', e => {
+    objectsEl.querySelector('.quaternion-w').addEventListener('change', e => {
       _setQuaternion(e, 'w');
     });
-    packagesEl.querySelector('.scale-x').addEventListener('change', e => {
+    objectsEl.querySelector('.scale-x').addEventListener('change', e => {
       _setScale(e, 'x');
     });
-    packagesEl.querySelector('.scale-y').addEventListener('change', e => {
+    objectsEl.querySelector('.scale-y').addEventListener('change', e => {
       _setScale(e, 'y');
     });
-    packagesEl.querySelector('.scale-z').addEventListener('change', e => {
+    objectsEl.querySelector('.scale-z').addEventListener('change', e => {
       _setScale(e, 'z');
     });
   } else {
-    packagesEl.innerHTML = pe.packages.map((p, i) => `
-      <div class=package index=${i}>
+    objectsEl.innerHTML = pe.packages.map((p, i) => `
+      <div class=object index=${i}>
         <span class=name>${p.name}</span>
         <nav class=close-button><i class="fa fa-times"></i></nav>
       </div>
     `).join('\n');
-    Array.from(packagesEl.querySelectorAll('.package')).forEach(packageEl => {
+    Array.from(objectsEl.querySelectorAll('.object')).forEach(packageEl => {
       const index = parseInt(packageEl.getAttribute('index'), 10);
       const p = pe.packages[index];
       packageEl.addEventListener('click', e => {
         e.preventDefault();
         e.stopPropagation();
 
-        selectedPackage = p;
-        _renderPackages();
+        selectedObject = p;
+        _renderObjects();
       });
       const closeButton = packageEl.querySelector('.close-button');
       closeButton.addEventListener('click', e => {
@@ -970,5 +970,5 @@ const _renderPackages = () => {
       });
     });
   }
-  _renderPackages();
+  _renderObjects();
 })();
