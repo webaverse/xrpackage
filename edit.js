@@ -228,7 +228,7 @@ for (let i = 0; i < tools.length; i++) {
     }
     selectTargets = [];
 
-    let decapitate = false;
+    let decapitate = true;
     switch (selectedTool) {
       case 'camera': {
         document.exitPointerLock();
@@ -242,6 +242,7 @@ for (let i = 0; i < tools.length; i++) {
       }
       case 'thirdperson': {
         pe.domElement.requestPointerLock();
+        decapitate = false;
         break;
       }
       case 'select': {
