@@ -773,13 +773,7 @@ export class XRPackageEngine extends EventTarget {
     }
   }
   async wearAvatar(p) {
-    if (!p.loaded) {
-      await new Promise((accept, reject) => {
-        p.addEventListener('load', e => {
-          accept();
-        }, {once: true});
-      });
-    }
+    await p.waitForLoad();
 
     if (this.rig) {
       this.scene.remove(this.rig.model);
