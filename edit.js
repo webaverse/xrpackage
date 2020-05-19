@@ -852,6 +852,8 @@ const singleplayerButton = document.getElementById('singleplayer-button');
 singleplayerButton.addEventListener('click', e => {
   channelConnection && channelConnection.close();
 
+  pe.reset();
+
   singleplayerButton.classList.add('open');
   multiplayerButton.classList.remove('open');
   Array.from(worlds.querySelectorAll('.world')).forEach(w => {
@@ -863,6 +865,8 @@ singleplayerButton.addEventListener('click', e => {
 const multiplayerButton = document.getElementById('multiplayer-button');
 multiplayerButton.addEventListener('click', async e => {
   channelConnection && channelConnection.close();
+
+  pe.reset();
 
   singleplayerButton.classList.remove('open');
   multiplayerButton.classList.add('open');
