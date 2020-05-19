@@ -30,6 +30,15 @@ const localQuaternion2 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localBox = new THREE.Box3();
 
+function parseQuery(queryString) {
+  var query = {};
+  var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
+  for (var i = 0; i < pairs.length; i++) {
+    var pair = pairs[i].split('=');
+    query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+  }
+  return query;
+}
 function downloadFile(file, filename) {
   const blobURL = URL.createObjectURL(file);
   const tempLink = document.createElement('a');
@@ -750,91 +759,111 @@ const _makeWorldHtml = w => `
 `;
 let channelConnection = null;
 const peerConnections = [];
+const _connect = roomName => {
+  channelConnection = new XRChannelConnection(`${presenceEndpoint}/?c=${encodeURIComponent(roomName)}`);
+  channelConnection.addEventListener('open', e => {
+    // console.log('got open', e);
+  });
+  channelConnection.addEventListener('peerconnection', e => {
+    const peerConnection = e.data;
+    console.log('got peer connection', peerConnection);
+
+    peerConnection.name = 'User';
+    peerConnection.addEventListener('name', async e => {
+      const name = e.data;
+      peerConnection.name = name;
+      _renderAvatars();
+    });
+    peerConnection.avatar = null;
+    peerConnection.addEventListener('pose', e => {
+      const pose = e.data;
+      if (peerConnection.avatar) {
+        peerConnection.avatar.setPose(pose);
+      }
+    });
+    peerConnection.addEventListener('avatar', async e => {
+      const hash = e.data;
+      const p = await XRPackage.download(hash);
+      p.makeAvatar();
+      pe.add(p);
+
+      peerConnection.avatar = p;
+    });
+    peerConnection.addEventListener('close', e => {
+      peerConnections.splice(peerConnections.indexOf(peerConnection), 1);
+    });
+    peerConnections.push(peerConnection);
+  });
+  channelConnection.addEventListener('message', e => {
+    const m = e.data;
+    const {method} = m;
+    switch (method) {
+      case 'init': {
+        const {json, baseIndex} = m;
+        console.log('got init', json, baseIndex);
+        jsonClient.pullInit(json, baseIndex);
+        break;
+      }
+      case 'ops': {
+        const {ops, baseIndex} = m;
+        jsonClient.pullOps(ops, baseIndex);
+        break;
+      }
+      default: {
+        console.warn('unknown channel connection method: ', JSON.stringify(method), m);
+        break;
+      }
+    }
+    // console.log('xr channel message', m);
+  });
+  channelConnection.addEventListener('close', e => {
+    console.log('channel connection close', e);
+
+    pe.reset();
+    channelConnection = null;
+  });
+}
+const _enterWorld = async hash => {
+  if (hash) {
+    const res = await fetch(worldsEndpoint + '/' + hash);
+    if (res.ok) {
+      const j = await res.json();
+      const {type, hash} = j;
+      if (type === 'singleplayer') {
+        // console.log('download scene', hash);
+        pe.downloadScene(hash);
+      } else if (type === 'multiplayer') {
+        channelConnection && channelConnection.close();
+
+        const hash = w.getAttribute('hash');
+        _connect(hash);
+      }
+    } else {
+      console.warn('invalid world status code: ' + w + ' ' + res.status);
+    }
+  } else {
+    pe.reset();
+  }
+
+  singleplayerButton.classList.remove('open');
+  multiplayerButton.classList.remove('open');
+  Array.from(worlds.querySelectorAll('.world')).forEach(w => {
+    w.classList.remove('open');
+  });
+  const w = worlds.querySelector(`[hash=${hash}]`);
+  w && w.classList.add('open');
+
+  worldType = null;
+  publishWorldButton.style.visibility = 'hidden';
+};
+const _pushWorld = hash => {
+  history.pushState({}, '', window.location.protocol + '//' + window.location.host + window.location.pathname + '?w=' + hash);
+  _handleUrl(window.location.href);
+};
 const _bindWorld = w => {
   w.addEventListener('click', async e => {
-    const type = w.getAttribute('type');
-    if (type === 'singleplayer') {
-      const hash = w.getAttribute('hash');
-      console.log('download scene', hash);
-      pe.downloadScene(hash);
-    } else if (type === 'multiplayer') {
-      channelConnection && channelConnection.close();
-
-      const hash = w.getAttribute('hash');
-      const roomName = hash;
-      channelConnection = new XRChannelConnection(`${presenceEndpoint}/?c=${encodeURIComponent(roomName)}`);
-      channelConnection.addEventListener('open', e => {
-        // console.log('got open', e);
-      });
-      channelConnection.addEventListener('peerconnection', e => {
-        const peerConnection = e.data;
-        console.log('got peer connection', peerConnection);
-
-        peerConnection.name = 'User';
-        peerConnection.addEventListener('name', async e => {
-          const name = e.data;
-          peerConnection.name = name;
-          _renderAvatars();
-        });
-        peerConnection.avatar = null;
-        peerConnection.addEventListener('pose', e => {
-          const pose = e.data;
-          if (peerConnection.avatar) {
-            peerConnection.avatar.setPose(pose);
-          }
-        });
-        peerConnection.addEventListener('avatar', async e => {
-          const hash = e.data;
-          const p = await XRPackage.download(hash);
-          p.makeAvatar();
-          pe.add(p);
-
-          peerConnection.avatar = p;
-        });
-        peerConnection.addEventListener('close', e => {
-          peerConnections.splice(peerConnections.indexOf(peerConnection), 1);
-        });
-        peerConnections.push(peerConnection);
-      });
-      channelConnection.addEventListener('message', e => {
-        const m = e.data;
-        const {method} = m;
-        switch (method) {
-          case 'init': {
-            const {json, baseIndex} = m;
-            console.log('got init', json, baseIndex);
-            jsonClient.pullInit(json, baseIndex);
-            break;
-          }
-          case 'ops': {
-            const {ops, baseIndex} = m;
-            jsonClient.pullOps(ops, baseIndex);
-            break;
-          }
-          default: {
-            console.warn('unknown channel connection method: ', JSON.stringify(method), m);
-            break;
-          }
-        }
-        // console.log('xr channel message', m);
-      });
-      channelConnection.addEventListener('close', e => {
-        console.log('channel connection close', e);
-
-        pe.reset();
-        channelConnection = null;
-      });
-    }
-
-    singleplayerButton.classList.remove('open');
-    multiplayerButton.classList.remove('open');
-    Array.from(worlds.querySelectorAll('.world')).forEach(w => {
-      w.classList.remove('open');
-    });
-    w.classList.add('open');
-
-    worldType = null;
-    publishWorldButton.style.visibility = 'hidden';
+    const hash = w.getAttribute('hash');
+    _pushWorld(hash);
   });
 };
 (async () => {
@@ -845,7 +874,7 @@ const _bindWorld = w => {
       .then(res => res.json())
   ));
   worlds.innerHTML = ws.map(w => _makeWorldHtml(w)).join('\n');
-  Array.from(worlds.querySelectorAll('.world')).forEach(w => _bindWorld(w));
+  Array.from(worlds.querySelectorAll('.world')).forEach((w, i) => _bindWorld(w, ws[i]));
 })();
 let worldType = 'singleplayer';
 const singleplayerButton = document.getElementById('singleplayer-button');
@@ -1200,13 +1229,13 @@ const _renderObjects = () => {
     });
   }
 };
-(async () => {
-  if (!window.xrLoaded) {
-    await new Promise((accept, reject) => {
-      window.addEventListener('xrload', e => {
-        accept();
-      });
-    });
-  }
-  _renderObjects();
-})();
+const _handleUrl = u => {
+  const {search} = new URL(u);
+  const q = parseQuery(search);
+  const w = q.w || null;
+  _enterWorld(w);
+};
+window.addEventListener('popstate', e => {
+  _handleUrl(window.location.href);
+});
+_handleUrl(window.location.href);
