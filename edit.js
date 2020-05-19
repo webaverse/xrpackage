@@ -397,7 +397,7 @@ document.getElementById('world-name').addEventListener('change', e => {
 document.getElementById('reset-scene-button').addEventListener('click', e => {
   pe.reset();
 });
-document.getElementById('publish-scene-button').addEventListener('click', async e => {
+/* document.getElementById('publish-scene-button').addEventListener('click', async e => {
   const hash = await pe.uploadScene();
   const res = await fetch(scenesEndpoint + '/' + hash, {
     method: 'PUT',
@@ -411,7 +411,7 @@ document.getElementById('publish-scene-button').addEventListener('click', async 
   } else {
     console.warn('invalid status code: ' + res.status);
   }
-});
+}); */
 document.getElementById('export-scene-button').addEventListener('click', async e => {
   const uint8Array = await pe.exportScene();
   const b = new Blob([uint8Array], {
