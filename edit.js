@@ -824,6 +824,17 @@ const _connect = roomName => {
   });
 }
 const _enterWorld = async hash => {
+  singleplayerButton.classList.remove('open');
+  multiplayerButton.classList.remove('open');
+  Array.from(worlds.querySelectorAll('.world')).forEach(w => {
+    w.classList.remove('open');
+  });
+  const w = worlds.querySelector(`[hash=${hash}]`);
+  w && w.classList.add('open');
+
+  worldType = null;
+  publishWorldButton.style.visibility = 'hidden';
+
   if (hash) {
     const res = await fetch(worldsEndpoint + '/' + hash);
     if (res.ok) {
@@ -844,17 +855,6 @@ const _enterWorld = async hash => {
   } else {
     pe.reset();
   }
-
-  singleplayerButton.classList.remove('open');
-  multiplayerButton.classList.remove('open');
-  Array.from(worlds.querySelectorAll('.world')).forEach(w => {
-    w.classList.remove('open');
-  });
-  const w = worlds.querySelector(`[hash=${hash}]`);
-  w && w.classList.add('open');
-
-  worldType = null;
-  publishWorldButton.style.visibility = 'hidden';
 };
 const _pushWorld = hash => {
   history.pushState({}, '', window.location.protocol + '//' + window.location.host + window.location.pathname + '?w=' + hash);
