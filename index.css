@@ -454,6 +454,11 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   flex: 1;
 }
 
+.world-buttons h1 {
+  margin: 0;
+  margin-bottom: 10px;
+}
+
 .worlds .world,
 .world-buttons .world
 {
