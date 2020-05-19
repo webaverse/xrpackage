@@ -3,7 +3,7 @@ import {XRPackageEngine, XRPackage} from './xrpackage.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import {TransformControls} from './TransformControls.js';
 import {OutlineEffect} from './OutlineEffect.js';
-import {XRChannelConnection} from 'https://raw.githack.com/webaverse/metartc/master/xrrtc.js';
+import {XRChannelConnection} from 'https://metartc.com/xrrtc.js';
 import {JSONClient} from 'https://grid-presence.exokit.org/sync/sync-client.js';
 import address from 'https://contracts.webaverse.com/address.js';
 import abi from 'https://contracts.webaverse.com/abi.js';
@@ -760,6 +760,9 @@ const _makeWorldHtml = w => `
 let channelConnection = null;
 const peerConnections = [];
 const _connect = roomName => {
+  channelConnection && channelConnection.close();
+
+  let name = 'Player';
   channelConnection = new XRChannelConnection(`${presenceEndpoint}/?c=${encodeURIComponent(roomName)}`);
   channelConnection.addEventListener('open', e => {
     // console.log('got open', e);
@@ -774,6 +777,7 @@ const _connect = roomName => {
       peerConnection.name = name;
       _renderAvatars();
     });
+    peerConnection.send('name', name);
     peerConnection.avatar = null;
     peerConnection.addEventListener('pose', e => {
       const pose = e.data;
@@ -788,11 +792,15 @@ const _connect = roomName => {
       pe.add(p);
 
       peerConnection.avatar = p;
+
+      _renderAvatars();
     });
     peerConnection.addEventListener('close', e => {
       peerConnections.splice(peerConnections.indexOf(peerConnection), 1);
+      _renderAvatars();
     });
     peerConnections.push(peerConnection);
+    _renderAvatars();
   });
   channelConnection.addEventListener('message', e => {
     const m = e.data;
@@ -844,9 +852,6 @@ const _enterWorld = async hash => {
         // console.log('download scene', hash);
         pe.downloadScene(hash);
       } else if (type === 'multiplayer') {
-        channelConnection && channelConnection.close();
-
-        const hash = w.getAttribute('hash');
         _connect(hash);
       }
     } else {
@@ -1039,12 +1044,12 @@ const _renderAvatars = () => {
   }
 
   avatars.innerHTML = peerConnections
-    .filter(pc => !!pc.avatar)
+    // .filter(pc => !!pc.avatar)
     .map(pc => `
       <nav class=avatar>
         <img src="question.png">
         <div class=name>${pc.name}</div>
-        <nav class="button unwear-button">Wear</nav>
+        ${pc.avatar ? `<nav class="button unwear-button">Wear</nav>` : ''}
         <!-- <div class=tag>You</div> -->
       </nav>
     `).join('\n');
