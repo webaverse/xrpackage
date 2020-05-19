@@ -857,7 +857,7 @@ const packages = document.getElementById('packages');
     });
   });
 })();
-const scenes = document.getElementById('scenes');
+/* const scenes = document.getElementById('scenes');
 (async () => {
   const res = await fetch(scenesEndpoint);
   const children = await res.json();
@@ -875,7 +875,7 @@ const scenes = document.getElementById('scenes');
       pe.downloadScene(hash);
     });
   });
-})();
+})(); */
 const publishWorldButton = document.getElementById('publish-world-button');
 publishWorldButton.addEventListener('click', async e => {
   let hash;
