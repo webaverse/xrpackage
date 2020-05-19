@@ -837,6 +837,16 @@ multiplayerButton.addEventListener('click', async e => {
   worldType = 'multiplayer';
   publishWorldButton.style.visibility = null;
 });
+const _makePackageHtml = p => `
+  <div class=package>${p.name}</div>
+`;
+const _bindPackage = (pe, pj) => {
+  pe.addEventListener('click', async e => {
+    const {hash} = pj;
+    const p = await XRPackage.download(hash);
+    pe.add(p);
+  });
+};
 const packages = document.getElementById('packages');
 (async () => {
   const res = await fetch(packagesEndpoint);
@@ -845,17 +855,8 @@ const packages = document.getElementById('packages');
     fetch(packagesEndpoint + '/' + child)
       .then(res => res.json())
   ));
-  packages.innerHTML = ps.map(p => `
-    <div class=package>${p.name}</div>
-  `).join('\n');
-  Array.from(packages.querySelectorAll('.package')).forEach((p, i) => {
-    p.addEventListener('click', async e => {
-      let p = ps[i];
-      const {hash} = p;
-      p = await XRPackage.download(hash);
-      pe.add(p);
-    });
-  });
+  packages.innerHTML = ps.map(p => _makePackageHtml(p)).join('\n');
+  Array.from(packages.querySelectorAll('.package')).forEach((pe, i) => _bindPackage(pe, ps[i]));
 })();
 /* const scenes = document.getElementById('scenes');
 (async () => {
@@ -979,7 +980,7 @@ let selectedObject = null;
 const objectsEl = document.getElementById('objects');
 const _renderObjects = () => {
   if (selectedObject) {
-    const p = selectedObject;
+    let p = selectedObject;
     objectsEl.innerHTML = `
       <div class=object-detail>
         <h1><nav class=back-button><i class="fa fa-arrow-left"></i></nav>${p.name}</h1>
@@ -1045,15 +1046,18 @@ const _renderObjects = () => {
     const publishButton = objectsEl.querySelector('.publish-button');
     publishButton.addEventListener('click', async e => {
       const hash = await p.upload();
+      p = {
+        name: p.name,
+        hash,
+      };
       const res = await fetch(packagesEndpoint + '/' + hash, {
         method: 'PUT',
-        body: JSON.stringify({
-          name: p.name,
-          hash,
-        }),
+        body: JSON.stringify(p),
       });
       if (res.ok) {
-        // nothing
+        packages.innerHTML += '\n' + _makePackageHtml(p);
+        const ps = Array.from(packages.querySelectorAll('.package'));
+        Array.from(packages.querySelectorAll('.package')).forEach(p => _bindPackage(p));
       } else {
         console.warn('invalid status code: ' + res.status);
       }
