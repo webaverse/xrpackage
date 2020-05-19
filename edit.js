@@ -178,6 +178,14 @@ function animate(timestamp, frame) {
   }
 
   renderer.render(scene, camera);
+
+  if (pe.avatar) {
+    const {pose} = pe.avatar;
+    for (let i = 0; i < peerConnections.length; i++) {
+      const peerConnection = peerConnections[i];
+      peerConnection.send('pose', pose);
+    }
+  }
 }
 renderer.setAnimationLoop(animate);
 renderer.xr.setSession(pe.fakeSession);
@@ -741,6 +749,7 @@ const _makeWorldHtml = w => `
   </div>
 `;
 let channelConnection = null;
+const peerConnections = [];
 const _bindWorld = w => {
   w.addEventListener('click', async e => {
     const type = w.getAttribute('type');
@@ -760,6 +769,32 @@ const _bindWorld = w => {
       channelConnection.addEventListener('peerconnection', e => {
         const peerConnection = e.data;
         console.log('got peer connection', peerConnection);
+
+        peerConnection.name = 'User';
+        peerConnection.addEventListener('name', async e => {
+          const name = e.data;
+          peerConnection.name = name;
+          _renderAvatars();
+        });
+        peerConnection.avatar = null;
+        peerConnection.addEventListener('pose', e => {
+          const pose = e.data;
+          if (peerConnection.avatar) {
+            peerConnection.avatar.setPose(pose);
+          }
+        });
+        peerConnection.addEventListener('avatar', async e => {
+          const hash = e.data;
+          const p = await XRPackage.download(hash);
+          p.makeAvatar();
+          pe.add(p);
+
+          peerConnection.avatar = p;
+        });
+        peerConnection.addEventListener('close', e => {
+          peerConnections.splice(peerConnections.indexOf(peerConnection), 1);
+        });
+        peerConnections.push(peerConnection);
       });
       channelConnection.addEventListener('message', e => {
         const m = e.data;
@@ -955,6 +990,7 @@ jsonClient.addEventListener('message', e => {
 
 const avatarMe = document.getElementById('avatar-me');
 const unwearButton = avatarMe.querySelector('.unwear-button');
+const avatars = document.getElementById('avatars');
 const _renderAvatars = () => {
   const {avatar} = pe;
   const previewEl = avatarMe.querySelector('.preview');
@@ -968,6 +1004,17 @@ const _renderAvatars = () => {
     nameEl.innerText = 'No avatar';
     unwearButton.style.display = 'none';
   }
+
+  avatars.innerHTML = peerConnections
+    .filter(pc => !!pc.avatar)
+    .map(pc => `
+      <nav class=avatar>
+        <img src="question.png">
+        <div class=name>${pc.name}</div>
+        <nav class="button unwear-button">Wear</nav>
+        <!-- <div class=tag>You</div> -->
+      </nav>
+    `).join('\n');
 };
 pe.addEventListener('avatarchange', e => {
   _renderAvatars();
