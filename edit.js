@@ -743,6 +743,8 @@ const _makeWorldHtml = w => `
 let channelConnection = null;
 const _bindWorld = w => {
   w.addEventListener('click', async e => {
+    channelConnection && channelConnection.close();
+
     const {hash} = w;
     const roomName = hash;
     channelConnection = new XRChannelConnection(`${presenceEndpoint}/?c=${encodeURIComponent(roomName)}`);
