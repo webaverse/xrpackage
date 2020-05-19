@@ -875,9 +875,9 @@ multiplayerButton.addEventListener('click', async e => {
 const _makePackageHtml = p => `
   <div class=package>${p.name}</div>
 `;
-const _bindPackage = (pe, pj) => {
-  pe.addEventListener('click', async e => {
-    const {hash} = pj;
+const _bindPackage = (pE, pJ) => {
+  pE.addEventListener('click', async e => {
+    const {hash} = pJ;
     const p = await XRPackage.download(hash);
     pe.add(p);
   });
