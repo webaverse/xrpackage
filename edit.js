@@ -229,6 +229,8 @@ _bindUploadFileButton(document.getElementById('import-scene-input'), async file 
 });
 
 let selectedTool = 'camera';
+let avatarHeight = 1;
+const avatarCameraOffset = new THREE.Vector3(0, 0, -1);
 const tools = Array.from(document.querySelectorAll('.tool'));
 for (let i = 0; i < tools.length; i++) {
   const tool = document.getElementById('tool-' + (i+1));
@@ -238,44 +240,65 @@ for (let i = 0; i < tools.length; i++) {
     }
     tool.classList.add('selected');
 
+    const oldSelectedTool = selectedTool;
     selectedTool = tool.getAttribute('tool');
 
-    pe.orbitControls.enabled = false;
+    if (selectedTool !== oldSelectedTool) {
+      pe.orbitControls.enabled = false;
 
-    hoverTarget = null;
-    for (let i = 0; i < selectTargets.length; i++) {
-      const selectTarget = selectTargets[i];
-      selectTarget.control && _unbindTransformControls(selectTarget);
-    }
-    selectTargets = [];
+      hoverTarget = null;
+      for (let i = 0; i < selectTargets.length; i++) {
+        const selectTarget = selectTargets[i];
+        selectTarget.control && _unbindTransformControls(selectTarget);
+      }
+      selectTargets = [];
 
-    let decapitate = true;
-    switch (selectedTool) {
-      case 'camera': {
-        document.exitPointerLock();
-        pe.orbitControls.enabled = true;
-        pe.orbitControls.target.copy(pe.camera.position).add(new THREE.Vector3(0, 0, -3).applyQuaternion(pe.camera.quaternion));
-        break;
+      switch (oldSelectedTool) {
+        case 'thirdperson': {
+          pe.camera.position.add(localVector.copy(avatarCameraOffset).applyQuaternion(pe.camera.quaternion));
+          pe.camera.updateMatrixWorld();
+          pe.setCamera(camera);
+          break;
+        }
       }
-      case 'firstperson': {
-        pe.domElement.requestPointerLock();
-        break;
+
+      let decapitate = true;
+      switch (selectedTool) {
+        case 'camera': {
+          document.exitPointerLock();
+          pe.orbitControls.enabled = true;
+          pe.orbitControls.target.copy(pe.camera.position).add(new THREE.Vector3(0, 0, -3).applyQuaternion(pe.camera.quaternion));
+          break;
+        }
+        case 'firstperson': {
+          pe.camera.position.y = avatarHeight;
+          pe.camera.updateMatrixWorld();
+          pe.setCamera(camera);
+
+          pe.domElement.requestPointerLock();
+          break;
+        }
+        case 'thirdperson': {
+          pe.camera.position.y = avatarHeight;
+          pe.camera.position.sub(localVector.copy(avatarCameraOffset).applyQuaternion(pe.camera.quaternion));
+          pe.camera.updateMatrixWorld();
+          pe.setCamera(camera);
+
+          pe.domElement.requestPointerLock();
+          decapitate = false;
+          break;
+        }
+        case 'select': {
+          document.exitPointerLock();
+          break;
+        }
       }
-      case 'thirdperson': {
-        pe.domElement.requestPointerLock();
-        decapitate = false;
-        break;
-      }
-      case 'select': {
-        document.exitPointerLock();
-        break;
-      }
-    }
-    if (pe.rig) {
-      if (decapitate) {
-        pe.rig.decapitate();
-      } else {
-        pe.rig.undecapitate();
+      if (pe.rig) {
+        if (decapitate) {
+          pe.rig.decapitate();
+        } else {
+          pe.rig.undecapitate();
+        }
       }
     }
   });
@@ -650,14 +673,14 @@ const _updateRaycasterFromMouseEvent = (raycaster, e) => {
 const _updateMouseMovement = e => {
   const {movementX, movementY} = e;
   if (selectedTool === 'thirdperson') {
-    pe.camera.position.add(localVector.set(0, -0.5, -2).applyQuaternion(pe.camera.quaternion));
+    pe.camera.position.add(localVector.copy(avatarCameraOffset).applyQuaternion(pe.camera.quaternion));
   }
   pe.camera.rotation.y -= movementX * Math.PI*2*0.001;
   pe.camera.rotation.x -= movementY * Math.PI*2*0.001;
   pe.camera.rotation.x = Math.min(Math.max(pe.camera.rotation.x, -Math.PI/2), Math.PI/2);
   pe.camera.quaternion.setFromEuler(pe.camera.rotation);
   if (selectedTool === 'thirdperson') {
-    pe.camera.position.sub(localVector.set(0, -0.5, -2).applyQuaternion(pe.camera.quaternion));
+    pe.camera.position.sub(localVector.copy(avatarCameraOffset).applyQuaternion(pe.camera.quaternion));
   }
   pe.camera.updateMatrixWorld();
   pe.setCamera(camera);
