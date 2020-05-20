@@ -370,6 +370,10 @@ window.addEventListener('keydown', e => {
       });
       break;
     }
+    case 70: { // F
+      pe.grabdown('right');
+      break;
+    }
     case 16: { // shift
       if (document.pointerLockElement) {
         keys.shift = true;
@@ -420,6 +424,10 @@ window.addEventListener('keyup', e => {
       if (document.pointerLockElement) {
         keys.right = false;
       }
+      break;
+    }
+    case 70: { // F
+      pe.grabup('right');
       break;
     }
     case 16: { // shift

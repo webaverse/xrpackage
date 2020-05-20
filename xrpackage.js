@@ -20,6 +20,19 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localArray = Array(16);
 
+const HANDS = ['left', 'right'];
+const _oppositeHand = handedness => {
+  if (handedness === 'left') {
+    return 'right';
+  } else if (handedness === 'right') {
+    return 'left';
+  } else {
+    return null;
+  }
+};
+const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.3);
+const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.3);
+
 const _removeUrlTail = u => u.replace(/(?:\?|\#).*$/, '');
 
 const _initSw = async () => {
@@ -295,7 +308,7 @@ const xrTypeRemovers = {
       return rafPackage !== p;
     });
 
-    p.context.iframe.parentNode.removeChild(p.context.iframe);
+    p.context.iframe && p.context.iframe.parentNode.removeChild(p.context.iframe);
   },
   'gltf@0.0.1': function(p) {
     this.scene.remove(p.context.object);
@@ -410,6 +423,10 @@ export class XRPackageEngine extends EventTarget {
     this.packages = [];
     this.ids = 0;
     this.rafs = [];
+    this.grabs = {
+      left: null,
+      right: null,
+    };
     this.rig = null;
     this.rigMatrix = new THREE.Matrix4();
     this.rigMatrixEnabled = false;
@@ -679,13 +696,23 @@ export class XRPackageEngine extends EventTarget {
         // camera.position.add(localVector2.set(0, -0.5, -2).applyQuaternion(camera.quaternion));
         rig.inputs.hmd.position.copy(localVector);
         rig.inputs.hmd.quaternion.copy(localQuaternion);
-        rig.inputs.leftGamepad.position.copy(localVector).add(localVector2.set(0.3, -0.15, -0.5).applyQuaternion(localQuaternion));
+        rig.inputs.leftGamepad.position.copy(localVector).add(localVector2.copy(leftHandOffset).applyQuaternion(localQuaternion));
         rig.inputs.leftGamepad.quaternion.copy(localQuaternion);
-        rig.inputs.rightGamepad.position.copy(localVector).add(localVector2.set(-0.3, -0.15, -0.5).applyQuaternion(localQuaternion));
+        rig.inputs.rightGamepad.position.copy(localVector).add(localVector2.copy(rightHandOffset).applyQuaternion(localQuaternion));
         rig.inputs.rightGamepad.quaternion.copy(localQuaternion);
         // camera.position.sub(localVector2);
 
         rig.update();
+
+        HANDS.forEach(handedness => {
+          const grab = this.grabs[handedness];
+          if (grab) {
+            const input = rig.inputs[_oppositeHand(handedness) + 'Gamepad'];
+            grab.position.copy(input.position);
+            grab.quaternion.copy(input.quaternion);
+            grab.scale.copy(input.scale);
+          }
+        });
       }
     }
 
@@ -772,6 +799,21 @@ export class XRPackageEngine extends EventTarget {
       this.rigMatrixEnabled = false;
     }
   }
+  grabdown(handedness) {
+    if (this.rig && !this.grabs[handedness]) {
+      const input = this.rig.inputs[_oppositeHand(handedness) + 'Gamepad'];
+      const ps = this.packages
+        .map(p => p.context.object)
+        .filter(o => o)
+        .sort((a, b) => a.context.distanceTo(input.position) - b.context.distanceTo(input.position));
+      if (ps.length > 0) {
+        this.grabs[handedness] = ps[0];
+      }
+    }
+  }
+  grabup(handedness) {
+    this.grabs[handedness] = null;
+  }
   async wearAvatar(p) {
     await p.waitForLoad();
 
@@ -830,8 +872,8 @@ export class XRPackageEngine extends EventTarget {
       this.remove(ps[i]);
     }
   }
-  async importScene(uint8Array) {
-    const p = new XRPackage(uint8Array);
+  async importScene(p) {
+    // const p = new XRPackage(uint8Array);
     await p.waitForLoad();
     if (p.type === 'xrpackage-scene@0.0.1') {
       this.reset();
@@ -913,6 +955,7 @@ export class XRPackageEngine extends EventTarget {
         }),
       },
     };
+    console.log('upload scene', manifestJson);
     builder.addExchange(manifestJsonPath, 200, {
       'Content-Type': 'application/json',
     }, JSON.stringify(manifestJson, null, 2));
