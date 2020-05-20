@@ -16,6 +16,7 @@ export const apiHost = `https://ipfs.exokit.org/ipfs`;
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
+const localQuaternion2 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localArray = Array(16);
@@ -427,6 +428,10 @@ export class XRPackageEngine extends EventTarget {
       left: null,
       right: null,
     };
+    this.grabuses = {
+      left: null,
+      right: null,
+    };
     this.rig = null;
     this.rigMatrix = new THREE.Matrix4();
     this.rigMatrixEnabled = false;
@@ -702,9 +707,26 @@ export class XRPackageEngine extends EventTarget {
         rig.inputs.rightGamepad.quaternion.copy(localQuaternion);
         // camera.position.sub(localVector2);
 
-        rig.update();
-
         HANDS.forEach(handedness => {
+          const grabuse = this.grabuses[handedness];
+          if (grabuse) {
+            const {startTime, endTime} = grabuse;
+            const input = rig.inputs[_oppositeHand(handedness) + 'Gamepad'];
+            const now = Date.now();
+            if (now < endTime) {
+              const f = Math.min(Math.max((now - startTime) / (endTime - startTime), 0), 1);
+              input.position.add(
+                localVector.set(0, Math.sin(f * Math.PI * 2) * 0.2, (-1 + Math.cos(f * Math.PI * 2)) * 0.2)
+                  // .multiplyScalar()
+                  .applyQuaternion(input.quaternion)
+              );
+              input.quaternion.multiply(
+                localQuaternion.set(0, 0, 0, 1).slerp(localQuaternion2.setFromAxisAngle(localVector.set(1, 0, 0), -Math.PI*0.5), Math.sin(f * Math.PI))
+              );
+            } else {
+              this.grabuses[handedness] = null;
+            }
+          }
           const grab = this.grabs[handedness];
           if (grab) {
             const input = rig.inputs[_oppositeHand(handedness) + 'Gamepad'];
@@ -712,6 +734,8 @@ export class XRPackageEngine extends EventTarget {
             grab.quaternion.copy(input.quaternion);
             grab.scale.copy(input.scale);
           }
+
+          rig.update();
         });
       }
     }
@@ -813,6 +837,13 @@ export class XRPackageEngine extends EventTarget {
   }
   grabup(handedness) {
     this.grabs[handedness] = null;
+  }
+  grabuse(handedness) {
+    const now = Date.now();
+    this.grabuses[handedness] = {
+      startTime: now,
+      endTime: now + 200,
+    };
   }
   async wearAvatar(p) {
     await p.waitForLoad();

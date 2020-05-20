@@ -438,6 +438,11 @@ window.addEventListener('keyup', e => {
     }
   }
 });
+window.addEventListener('mousedown', e => {
+  if (document.pointerLockElement) {
+    pe.grabuse('right');
+  }
+});
 
 document.getElementById('world-name').addEventListener('change', e => {
   pe.name = e.target.value;
