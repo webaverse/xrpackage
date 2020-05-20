@@ -10,7 +10,7 @@ import abi from 'https://contracts.webaverse.com/abi.js';
 import {pe, renderer, scene, camera, container, getSession} from './run.js';
 
 const apiHost = `https://ipfs.exokit.org/ipfs`;
-const presenceEndpoint = `wss://grid-presence.exokit.org`;
+const presenceEndpoint = `wss://presence.exokit.org`;
 const worldsEndpoint = 'https://worlds.exokit.org';
 const packagesEndpoint = 'https://packages.exokit.org';
 const scenesEndpoint = 'https://scenes.exokit.org';
