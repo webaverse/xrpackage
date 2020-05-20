@@ -177,7 +177,7 @@ function animate(timestamp, frame) {
 
   if (selectedTool === 'thirdperson') {
     pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-    localVector.add(localVector3.set(0, 0, -1).applyQuaternion(localQuaternion));
+    localVector.add(localVector3.copy(avatarCameraOffset).applyQuaternion(localQuaternion));
     if (velocity.lengthSq() > 0) {
       localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.copy(velocity).normalize());
     }
