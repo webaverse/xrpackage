@@ -1147,6 +1147,40 @@ export class XRPackage extends EventTarget {
       data: this.matrix,
     }));
   }
+  setPose(pose) {
+    const [head, leftGamepad, rightGamepad] = pose;
+    if (!this.context.rig) {
+      const {model} = this.context;
+      if (model) {
+        model.scene.traverse(o => {
+          o.frustumCulled = false;
+        });
+        this.context.rig = new Avatar(model, {
+          fingers: true,
+          hair: true,
+          visemes: true,
+          decapitate: true,
+          microphoneMediaStream: null,
+          // debug: !newModel,
+        });
+      } else {
+        this.context.rig = new Avatar(null, {
+          fingers: true,
+          hair: true,
+          visemes: true,
+          decapitate: true,
+          microphoneMediaStream: null,
+          // debug: !newModel,
+        });
+      }
+    }
+    rig.inputs.hmd.position.fromArray(head[0]);
+    rig.inputs.hmd.quaternion.fromArray(head[1]);
+    rig.inputs.leftGamepad.position.fromArray(leftGamepad[0]);
+    rig.inputs.leftGamepad.quaternion.fromArray(leftGamepad[1]);
+    rig.inputs.rightGamepad.position.fromArray(rightGamepad[0]);
+    rig.inputs.rightGamepad.quaternion.fromArray(rightGamepad[1]);
+  }
   setSession(session) {
     this.context.iframe && this.context.iframe.contentWindow.xrpackage.setSession(session);
   }

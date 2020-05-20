@@ -779,18 +779,27 @@ const _connect = roomName => {
     });
     peerConnection.send('name', name);
     peerConnection.avatar = null;
+    // peerConnection.avatar = new XRPackage();
+    // peerConnection.avatar.setAvatar(true);
     peerConnection.addEventListener('pose', e => {
       const pose = e.data;
-      if (peerConnection.avatar) {
-        peerConnection.avatar.setPose(pose);
+      if (!peerConnection.avatar) {
+        peerConnection.avatar = new XRPackage();
+        pe.add(peerConnection.avatar);
       }
+      peerConnection.avatar.setPose(pose);
     });
     peerConnection.addEventListener('avatar', async e => {
       const hash = e.data;
       const p = await XRPackage.download(hash);
-      p.makeAvatar();
-      pe.add(p);
 
+      if (peerConnection.avatar) {
+        pe.remove(peerConnection.avatar);
+        peerConnection.avatar = null;
+      }
+
+      p.setAvatar(true);
+      pe.add(p);
       peerConnection.avatar = p;
 
       _renderAvatars();
