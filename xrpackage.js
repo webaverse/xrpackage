@@ -872,8 +872,8 @@ export class XRPackageEngine extends EventTarget {
       this.remove(ps[i]);
     }
   }
-  async importScene(p) {
-    // const p = new XRPackage(uint8Array);
+  async importScene(uint8Array) {
+    const p = new XRPackage(uint8Array);
     await p.waitForLoad();
     if (p.type === 'xrpackage-scene@0.0.1') {
       this.reset();
@@ -978,8 +978,7 @@ export class XRPackageEngine extends EventTarget {
     if (res.ok) {
       const arrayBuffer = await res.arrayBuffer();
       const uint8Array = new Uint8Array(arrayBuffer);
-      const p = new XRPackage(uint8Array);
-      await this.importScene(p);
+      await this.importScene(uint8Array);
     } else {
       if (res.status === 404) {
         return null;
