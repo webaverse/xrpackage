@@ -229,7 +229,7 @@ _bindUploadFileButton(document.getElementById('import-scene-input'), async file 
 });
 
 let selectedTool = 'camera';
-let avatarHeight = 1;
+let avatarHeight = 1.2;
 const avatarCameraOffset = new THREE.Vector3(0, 0, -1);
 const tools = Array.from(document.querySelectorAll('.tool'));
 for (let i = 0; i < tools.length; i++) {
