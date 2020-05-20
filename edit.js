@@ -4,7 +4,7 @@ import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import {TransformControls} from './TransformControls.js';
 import {OutlineEffect} from './OutlineEffect.js';
 import {XRChannelConnection} from 'https://metartc.com/xrrtc.js';
-import {JSONClient} from 'https://grid-presence.exokit.org/sync/sync-client.js';
+import {JSONClient} from 'https://sync.webaverse.com/sync-client.js';
 import address from 'https://contracts.webaverse.com/address.js';
 import abi from 'https://contracts.webaverse.com/abi.js';
 import {pe, renderer, scene, camera, container, getSession} from './run.js';
