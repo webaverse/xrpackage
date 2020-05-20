@@ -359,15 +359,23 @@ window.addEventListener('keydown', e => {
       break;
     }
     case 69: { // E
-      selectTargets.forEach(selectedObjectMesh => {
-        selectedObjectMesh.control.setMode('rotate');
-      });
+      if (document.pointerLockElement) {
+        // nothing
+      } else {
+        selectTargets.forEach(selectedObjectMesh => {
+          selectedObjectMesh.control.setMode('rotate');
+        });
+      }
       break;
     }
     case 82: { // R
-      selectTargets.forEach(selectedObjectMesh => {
-        selectedObjectMesh.control.setMode('scale');
-      });
+      if (document.pointerLockElement) {
+        pe.equip('back');
+      } else {
+        selectTargets.forEach(selectedObjectMesh => {
+          selectedObjectMesh.control.setMode('scale');
+        });
+      }
       break;
     }
     case 70: { // F

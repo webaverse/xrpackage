@@ -33,6 +33,26 @@ const _oppositeHand = handedness => {
 };
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.3);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.3);
+const SLOTS = ['head', 'left', 'right', 'back'];
+const _getSlotInput = (rig, slot) => {
+  if (slot === 'head') {
+    return rig.inputs.hmd;
+  } else if (slot === 'left' || slot === 'right') {
+    return rig.inputs[slot + 'Gamepad'];
+  } else if (slot === 'back') {
+    const {hmd} = rig.inputs;
+    return {
+      position: hmd.position.clone()
+        .add(localVector.set(0, 0, 0.2).applyQuaternion(hmd.quaternion)),
+      quaternion: hmd.quaternion.clone()
+        .multiply(localQuaternion.setFromAxisAngle(localVector.set(0, 1, 0), -Math.PI/2))
+        .multiply(localQuaternion.setFromAxisAngle(localVector.set(0, 0, 1), Math.PI)),
+      scale: hmd.scale,
+    };
+  } else {
+    return null;
+  }
+};
 
 const _removeUrlTail = u => u.replace(/(?:\?|\#).*$/, '');
 
@@ -432,6 +452,12 @@ export class XRPackageEngine extends EventTarget {
       left: null,
       right: null,
     };
+    this.equips = {
+      head: null,
+      left: null,
+      right: null,
+      back: null,
+    };
     this.rig = null;
     this.rigMatrix = new THREE.Matrix4();
     this.rigMatrixEnabled = false;
@@ -734,9 +760,18 @@ export class XRPackageEngine extends EventTarget {
             grab.quaternion.copy(input.quaternion);
             grab.scale.copy(input.scale);
           }
-
-          rig.update();
         });
+        SLOTS.forEach(slot => {
+          const equip = this.equips[slot];
+          if (equip) {
+            const input = _getSlotInput(rig, slot);
+            equip.position.copy(input.position);
+            equip.quaternion.copy(input.quaternion);
+            equip.scale.copy(input.scale);
+          }
+        });
+
+        rig.update();
       }
     }
 
@@ -844,6 +879,22 @@ export class XRPackageEngine extends EventTarget {
       startTime: now,
       endTime: now + 200,
     };
+  }
+  equip(slot) {
+    if (this.rig) {
+      if (this.equips[slot]) {
+        this.equips[slot] = null;
+      } else {
+        const {position} = _getSlotInput(this.rig, slot);
+        const ps = this.packages
+          .map(p => p.context.object)
+          .filter(o => o)
+          .sort((a, b) => a.context.distanceTo(position) - b.context.distanceTo(position));
+        if (ps.length > 0) {
+          this.equips[slot] = ps[0];
+        }
+      }
+    }
   }
   async wearAvatar(p) {
     await p.waitForLoad();
