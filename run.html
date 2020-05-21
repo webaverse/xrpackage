@@ -33,6 +33,15 @@
 <script type="module" src="run.js"></script>
 <script type="module">
 (async () => {
+  function parseQuery(queryString) {
+    var query = {};
+    var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
+    for (var i = 0; i < pairs.length; i++) {
+      var pair = pairs[i].split('=');
+      query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+    }
+    return query;
+  }
   const q = parseQuery(window.location.search);
   if (q.i) {
     const metadataHash = await contract.methods.getMetadata(parseInt(q.i, 10), 'hash').call();
