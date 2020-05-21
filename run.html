@@ -227,7 +227,7 @@ const _bindUploadFileButton = (inputFileEl, handleUpload) => {
     // newInputFileEl.id = 'upload-file-button';
     // newInputFileEl.style.display = 'none';
     parentNode.appendChild(newInputFileEl);
-    _bindUploadFileButton(newInputFileEl);
+    _bindUploadFileButton(newInputFileEl, handleUpload);
   });
 };
 _bindUploadFileButton(document.getElementById('load-package-input'), _handleUpload);
