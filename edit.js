@@ -752,6 +752,8 @@ const tabs = Array.from(dropdown.querySelectorAll('.tab'));
 const tabContents = Array.from(dropdown.querySelectorAll('.tab-content'));
 const worldsSubtabs = Array.from(worldsSubpage.querySelectorAll('.subtab'));
 const worldsSubtabContents = Array.from(worldsSubpage.querySelectorAll('.subtab-content'));
+const inventorySubtabs = Array.from(inventorySubpage.querySelectorAll('.subtab'));
+const inventorySubtabContents = Array.from(inventorySubpage.querySelectorAll('.subtab-content'));
 worldsButton.addEventListener('click', e => {
   worldsButton.classList.toggle('open');
   worldsSubpage.classList.toggle('open');
@@ -806,6 +808,21 @@ for (let i = 0; i < worldsSubtabs.length; i++) {
     for (let i = 0; i < worldsSubtabs.length; i++) {
       const subtab = worldsSubtabs[i];
       const subtabContent = worldsSubtabContents[i];
+      subtab.classList.remove('open');
+      subtabContent.classList.remove('open');
+    }
+
+    subtab.classList.add('open');
+    subtabContent.classList.add('open');
+  });
+}
+for (let i = 0; i < inventorySubtabs.length; i++) {
+  const subtab = inventorySubtabs[i];
+  const subtabContent = inventorySubtabContents[i];
+  subtab.addEventListener('click', e => {
+    for (let i = 0; i < inventorySubtabs.length; i++) {
+      const subtab = inventorySubtabs[i];
+      const subtabContent = inventorySubtabContents[i];
       subtab.classList.remove('open');
       subtabContent.classList.remove('open');
     }
