@@ -316,7 +316,8 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   width: 300px;
   height: calc(100% - 50px);
   background-color: #FFF;
-  border-left: 3px solid #EEE;
+  /* border-left: 3px solid #EEE; */
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
   flex-direction: column;
 }
 
@@ -377,9 +378,9 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 
 .subpage {
   position: absolute;
-  left: 100px;
+  right: 0;
   top: 50px;
-  width: calc(100% - 300px - 100px);
+  width: 640px;
   height: calc(100% - 50px);
   padding: 20px;
   background-color: #FFF;

@@ -742,17 +742,42 @@ renderer.domElement.addEventListener('click', e => {
   }
 });
 
+const worldsButton = document.getElementById('worlds-button');
+const inventoryButton = document.getElementById('inventory-button');
 const dropdownButton = document.getElementById('dropdown-button');
 const dropdown = document.getElementById('dropdown');
 const worldsSubpage = document.getElementById('worlds-subpage');
+const inventorySubpage = document.getElementById('inventory-subpage');
 const tabs = Array.from(dropdown.querySelectorAll('.tab'));
 const tabContents = Array.from(dropdown.querySelectorAll('.tab-content'));
 const worldsSubtabs = Array.from(worldsSubpage.querySelectorAll('.subtab'));
 const worldsSubtabContents = Array.from(worldsSubpage.querySelectorAll('.subtab-content'));
+worldsButton.addEventListener('click', e => {
+  worldsButton.classList.toggle('open');
+  worldsSubpage.classList.toggle('open');
+
+  dropdownButton.classList.remove('open');
+  dropdown.classList.remove('open');
+  inventoryButton.classList.remove('open');
+  inventorySubpage.classList.remove('open');
+});
+inventoryButton.addEventListener('click', e => {
+  inventoryButton.classList.toggle('open');
+  inventorySubpage.classList.toggle('open');
+
+  dropdownButton.classList.remove('open');
+  dropdown.classList.remove('open');
+  worldsButton.classList.remove('open');
+  worldsSubpage.classList.remove('open');
+});
 dropdownButton.addEventListener('click', e => {
   dropdownButton.classList.toggle('open');
   dropdown.classList.toggle('open');
-  worldsSubpage.classList.toggle('open');
+
+  worldsButton.classList.remove('open');
+  inventoryButton.classList.remove('open');
+  inventorySubpage.classList.remove('open');
+  worldsSubpage.classList.remove('open');
 });
 for (let i = 0; i < tabs.length; i++) {
   const tab = tabs[i];
