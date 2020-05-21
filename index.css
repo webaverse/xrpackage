@@ -569,6 +569,45 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   
 }
 
+.packages {
+  display: flex;
+}
+.packages .package {
+  position: relative;
+  display: inline-flex;
+  margin-right: 20px;
+  margin-bottom: 20px;
+  flex-direction: column;
+}
+.packages .package .background {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  /* right: 0; */
+  display: flex;
+  flex-direction: column;
+}
+.packages .package:not(:hover) .background {
+  display: none;
+  padding: 10px;
+}
+.packages .package img {
+  display: flex;
+  width: 100px;
+  height: 100px;
+  background-color: #F8F8F8;
+  border-radius: 5px;
+  justify-content: center;
+  align-items: center;
+}
+.packages .package .name {
+  font-size: 13px;
+}
+.packages .package .button {
+  margin-bottom: 5px;
+}
+
 .objects {
   display: flex;
   flex-direction: column;
@@ -757,6 +796,7 @@ canvas {
   border-radius: 8px;
   font-size: 12px;
   white-space: nowrap;
+  text-decoration: none;
   cursor: pointer;
   user-select: none;
   overflow: hidden;

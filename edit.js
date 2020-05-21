@@ -1008,8 +1008,19 @@ multiplayerButton.addEventListener('click', async e => {
   worldType = 'multiplayer';
   worldTools.style.visibility = null;
 });
+
 const _makePackageHtml = p => `
-  <div class=package>${p.name}</div>
+  <div class=package>
+    <img src="question.png">
+    <!-- <img src="${p.img}" width=256 height=256> -->
+    <div class=text>
+      <div class="name cardTitle">${p.name}</div>
+    </div>
+    <div class=background>
+      <nav class=button>Add</nav>
+      <a class=button href="/run.html?i=${p.index}">Test</a>
+    </div>
+  </div>
 `;
 const _bindPackage = (pE, pJ) => {
   pE.addEventListener('click', async e => {
