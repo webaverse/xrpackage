@@ -1017,17 +1017,24 @@ const _makePackageHtml = p => `
       <div class="name cardTitle">${p.name}</div>
     </div>
     <div class=background>
-      <nav class=button>Add</nav>
-      <a class=button href="/run.html?i=${p.index}">Test</a>
+      <nav class="button add-button">Add</nav>
+      <a class="button" target="_blank" href="/run.html?i=${p.index}">Test</a>
     </div>
   </div>
 `;
 const _bindPackage = (pE, pJ) => {
-  pE.addEventListener('click', async e => {
+  const addButton = pE.querySelector('.add-button');
+  addButton.addEventListener('click', async e => {
     const {hash} = pJ;
     const p = await XRPackage.download(hash);
     pe.add(p);
   });
+  /* const runButton = pE.querySelector('.run-button');
+  runButton.addEventListener('click', async e => {
+    const {hash} = pJ;
+    const p = await XRPackage.download(hash);
+    pe.add(p);
+  }); */
 };
 const packages = document.getElementById('packages');
 (async () => {
