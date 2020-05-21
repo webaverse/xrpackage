@@ -834,7 +834,7 @@ for (let i = 0; i < inventorySubtabs.length; i++) {
 
 const worlds = document.getElementById('worlds');
 const _makeWorldHtml = w => `
-  <div class="world" type="${w.type}" hash="${w.hash}">
+  <div class="world ${currentWorldHash === w.hash ? 'open' : ''}" type="${w.type}" hash="${w.hash}">
     <img src=question.png>
     <div class=wrap>
       <h1>${w.name}</h1>
@@ -926,7 +926,10 @@ const _connect = roomName => {
     channelConnection = null;
   });
 }
+let currentWorldHash = '';
 const _enterWorld = async hash => {
+  currentWorldHash = hash;
+
   singleplayerButton.classList.remove('open');
   multiplayerButton.classList.remove('open');
   Array.from(worlds.querySelectorAll('.world')).forEach(w => {
