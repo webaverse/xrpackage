@@ -67,7 +67,6 @@ body {
   font-size: 14px;
   text-decoration: none;
   cursor: pointer;
-  overflow: hidden;
 }
 
 .header .nav:hover,
@@ -131,6 +130,23 @@ body {
 {
   background-color: var(--color);
   color: #FFF;
+}
+
+.header .nav > .label {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  right: 0;
+  bottom: -24px;
+  height: 24px;
+  padding: 5px;
+  background-color: #111;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.header .nav:not(:hover) > .label {
+  display: none;
 }
 
 .subheader .nav + .subbutton {
