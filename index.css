@@ -115,6 +115,7 @@ body {
 
 .header .nav.full i {
   padding-top: 3px;
+  font-size: 16px;
 }
 
 .header .nav.full i + span {
@@ -443,19 +444,24 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 
 .worlds-wrap {
   display: flex;
+  align-items: flex-start;
 }
 
 .worlds {
-  flex: 2;
+  width: 600px;
 }
 .world-buttons {
-  flex: 1;
+  width: 350px;
+  margin-right: 50px;
 }
-
-.worlds,
-.world-tools
-{
-  margin-right: 10px;
+.world-tools {
+  padding: 15px;
+  border: 3px solid #000;
+  border-radius: 10px;
+}
+.world-tools h3 {
+  margin: 0;
+  margin-bottom: 10px;
 }
 
 .world-tool {

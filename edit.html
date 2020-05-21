@@ -70,34 +70,26 @@
         <i class="fa fa-vr-cardboard"></i>
         <span>Enter</span>
       </nav>
+      <nav class="nav full square" id=worlds-button>
+        <i class="fa fa-planet-ringed"></i>
+      </nav>
+      <nav class="nav full square" id=packages-button>
+        <i class="fa fa-sword"></i>
+      </nav>
       <nav class="nav full square" id=dropdown-button>
         <i class="fa fa-bars"></i>
       </nav>
     </div>
   </header>
-  <aside class=subpage id=subpage>
+  <aside class=subpage id=worlds-subpage>
     <div class=subtabs>
-      <nav class="subtab open" id=subtab-1>Worlds</nav>
-      <nav class=subtab id=subtab-2>Packages</nav>
-      <!-- <nav class=subtab id=subtab-3>Scenes</nav> -->
+      <nav class="subtab open" id=subtab-1>Creative</nav>
+      <nav class=subtab id=subtab-2>Worlds</nav>
     </div>
     <div class=subcontent>
       <div class="subtab-content open" id=subtab-content-1>
         <div class=worlds-wrap>
-          <div class=worlds>
-            <h1>Public</h1>
-            <div class=worlds id=worlds>
-
-            </div>
-          </div>
-          <div class=world-tools>
-            <h1></h1>
-            <nav class=world-tool id=publish-world-button>
-              <i class="fa fa-arrow-left"></i> Publish
-            </nav>
-          </div>
           <div class=world-buttons>
-            <h1>Offline</h1>
             <div class="world open" id=singleplayer-button>
               <img src=question.png>
               <div class=wrap>
@@ -115,6 +107,21 @@
               <!-- <nav class=button>Join</nav> -->
             </div>
           </div>
+          <div class=world-tools style="visibility: hidden;" id=world-tools>
+            <h3>Make public</h3>
+            <nav class=world-tool id=publish-world-button>
+              Publish world <i class="fa fa-arrow-right"></i>
+            </nav>
+          </div>
+        </div>
+      </div>
+      <div class="subtab-content" id=subtab-content-2>
+        <div class=worlds-wrap>
+          <div class=worlds>
+            <div class=worlds id=worlds>
+              
+            </div>
+          </div>
         </div>
       </div>
       <div class=subtab-content id=subtab-content-2>
@@ -122,11 +129,15 @@
           
         </div>
       </div>
-      <!-- <div class=subtab-content id=subtab-content-3>
-        <div class=scenes id=scenes>
-          
-        </div>
-      </div> -->
+    </div>
+  </aside>
+  <aside class=subpage id=worlds-subpage>
+    <div class=subtabs>
+      <nav class="subtab open" id=subtab-1>Inventory</nav>
+      <nav class=subtab id=subtab-2>Packages</nav>
+    </div>
+    <div class=subcontent>
+
     </div>
   </aside>
   <aside class="dropdown" id=dropdown>

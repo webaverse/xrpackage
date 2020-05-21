@@ -744,15 +744,15 @@ renderer.domElement.addEventListener('click', e => {
 
 const dropdownButton = document.getElementById('dropdown-button');
 const dropdown = document.getElementById('dropdown');
-const subpage = document.getElementById('subpage');
+const worldsSubpage = document.getElementById('worlds-subpage');
 const tabs = Array.from(dropdown.querySelectorAll('.tab'));
 const tabContents = Array.from(dropdown.querySelectorAll('.tab-content'));
-const subtabs = Array.from(subpage.querySelectorAll('.subtab'));
-const subtabContents = Array.from(subpage.querySelectorAll('.subtab-content'));
+const worldsSubtabs = Array.from(worldsSubpage.querySelectorAll('.subtab'));
+const worldsSubtabContents = Array.from(worldsSubpage.querySelectorAll('.subtab-content'));
 dropdownButton.addEventListener('click', e => {
   dropdownButton.classList.toggle('open');
   dropdown.classList.toggle('open');
-  subpage.classList.toggle('open');
+  worldsSubpage.classList.toggle('open');
 });
 for (let i = 0; i < tabs.length; i++) {
   const tab = tabs[i];
@@ -774,13 +774,13 @@ for (let i = 0; i < tabs.length; i++) {
     }
   });
 }
-for (let i = 0; i < subtabs.length; i++) {
-  const subtab = subtabs[i];
-  const subtabContent = subtabContents[i];
+for (let i = 0; i < worldsSubtabs.length; i++) {
+  const subtab = worldsSubtabs[i];
+  const subtabContent = worldsSubtabContents[i];
   subtab.addEventListener('click', e => {
-    for (let i = 0; i < subtabs.length; i++) {
-      const subtab = subtabs[i];
-      const subtabContent = subtabContents[i];
+    for (let i = 0; i < worldsSubtabs.length; i++) {
+      const subtab = worldsSubtabs[i];
+      const subtabContent = worldsSubtabContents[i];
       subtab.classList.remove('open');
       subtabContent.classList.remove('open');
     }
@@ -894,7 +894,7 @@ const _enterWorld = async hash => {
   w && w.classList.add('open');
 
   worldType = null;
-  publishWorldButton.style.visibility = 'hidden';
+  worldTools.style.visibility = 'hidden';
 
   if (hash) {
     const res = await fetch(worldsEndpoint + '/' + hash);
@@ -947,7 +947,7 @@ singleplayerButton.addEventListener('click', e => {
     w.classList.remove('open');
   });
   worldType = 'singleplayer';
-  publishWorldButton.style.visibility = null;
+  worldTools.style.visibility = null;
 });
 const multiplayerButton = document.getElementById('multiplayer-button');
 multiplayerButton.addEventListener('click', async e => {
@@ -961,7 +961,7 @@ multiplayerButton.addEventListener('click', async e => {
     w.classList.remove('open');
   });
   worldType = 'multiplayer';
-  publishWorldButton.style.visibility = null;
+  worldTools.style.visibility = null;
 });
 const _makePackageHtml = p => `
   <div class=package>${p.name}</div>
@@ -1003,6 +1003,7 @@ const packages = document.getElementById('packages');
     });
   });
 })(); */
+const worldTools = document.getElementById('world-tools');
 const publishWorldButton = document.getElementById('publish-world-button');
 publishWorldButton.addEventListener('click', async e => {
   let hash;
