@@ -748,6 +748,9 @@ selector.addEventListener('click', e => {
   selector.classList.toggle('open');
   selections.classList.toggle('open');
 });
+const runMode = document.getElementById('run-mode');
+const editMode = document.getElementById('edit-mode');
+
 const worldsButton = document.getElementById('worlds-button');
 const inventoryButton = document.getElementById('inventory-button');
 const dropdownButton = document.getElementById('dropdown-button');
@@ -938,6 +941,8 @@ const _enterWorld = async hash => {
   currentWorldHash = hash;
 
   headerLabel.innerText = hash || 'Sandbox';
+  runMode.setAttribute('href', 'run.html?w=' + hash);
+  editMode.setAttribute('href', 'edit.html?w=' + hash);
 
   singleplayerButton.classList.remove('open');
   multiplayerButton.classList.remove('open');

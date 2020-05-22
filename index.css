@@ -196,6 +196,7 @@ body {
   padding-left: 0;
   background-color: #FFF;
   color: #000;
+  text-decoration: none;
 }
 .selections .selection.dim {
   color: #CCC;
