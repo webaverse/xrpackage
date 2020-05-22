@@ -550,48 +550,48 @@ export class XRPackageEngine extends EventTarget {
       realSession.updateRenderState({baseLayer});
 
       await new Promise((accept, reject) => {
-        realSession.requestAnimationFrame((timestamp, frame) => {
-          const pose = frame.getViewerPose(this.referenceSpace);
-          const viewport = baseLayer.getViewport(pose.views[0]);
-          const width = viewport.width;
-          const height = viewport.height;
-          const fullWidth = (() => {
-            let result = 0;
-            for (let i = 0; i < pose.views.length; i++) {
-              result += baseLayer.getViewport(pose.views[i]).width;
+        const _recurse = () => {
+          realSession.requestAnimationFrame((timestamp, frame) => {
+            const pose = frame.getViewerPose(this.referenceSpace);
+            if (pose) {
+              const viewport = baseLayer.getViewport(pose.views[0]);
+              const width = viewport.width;
+              const height = viewport.height;
+              const fullWidth = (() => {
+                let result = 0;
+                for (let i = 0; i < pose.views.length; i++) {
+                  result += baseLayer.getViewport(pose.views[i]).width;
+                }
+                return result;
+              })();
+
+              GlobalContext.xrState.isPresentingReal[0] = 1;
+              GlobalContext.xrState.stereo[0] = 1;
+              GlobalContext.xrState.renderWidth[0] = width;
+              GlobalContext.xrState.renderHeight[0] = height;
+              
+              GlobalContext.xrFramebuffer = realSession.renderState.baseLayer.framebuffer;
+
+              const animate = (timestamp, frame) => {
+                const frameId = realSession.requestAnimationFrame(animate);
+                this.cancelFrame = () => {
+                  realSession.cancelAnimationFrame(frameId);
+                };
+                this.tick(timestamp, frame);
+              };
+              realSession.requestAnimationFrame(animate);
+
+              accept();
+
+              console.log('XR setup complete');
+            } else {
+              console.warn('XR setup deferred due to no pose');
+
+              _recurse();
             }
-            return result;
-          })();
-
-          GlobalContext.xrState.isPresentingReal[0] = 1;
-          GlobalContext.xrState.stereo[0] = 1;
-          GlobalContext.xrState.renderWidth[0] = width;
-          GlobalContext.xrState.renderHeight[0] = height;
-          
-          GlobalContext.xrFramebuffer = realSession.renderState.baseLayer.framebuffer;
-
-          const animate = (timestamp, frame) => {
-            const frameId = realSession.requestAnimationFrame(animate);
-            this.cancelFrame = () => {
-              realSession.cancelAnimationFrame(frameId);
-            };
-            this.tick(timestamp, frame);
-          };
-          realSession.requestAnimationFrame(animate);
-
-          /* win.canvas.width = fullWidth;
-          win.canvas.height = height;
-
-          await win.runAsync({
-            method: 'enterXr',
-          }); */
-
-          accept();
-
-          console.log('XR setup complete');
-        });
-        // core.setSession(realSession);
-        // core.setReferenceSpace(referenceSpace);
+          });
+        };
+        _recurse();
       });
     }
     this.realSession = realSession;
