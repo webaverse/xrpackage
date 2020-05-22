@@ -935,8 +935,8 @@ const _enterWorld = async hash => {
   currentWorldHash = hash;
 
   headerLabel.innerText = hash || 'Sandbox';
-  runMode.setAttribute('href', 'run.html?w=' + hash);
-  editMode.setAttribute('href', 'edit.html?w=' + hash);
+  runMode.setAttribute('href', 'run.html' + (hash ? ('?w=' + hash) : ''));
+  editMode.setAttribute('href', 'edit.html' + (hash ? ('?w=' + hash) : ''));
 
   singleplayerButton.classList.remove('open');
   multiplayerButton.classList.remove('open');
