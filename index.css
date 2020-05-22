@@ -932,9 +932,9 @@ input[type=file].hidden {
 
 .main {
   display: flex;
-  padding-top: 50px;
+  padding-left: 150px;
   min-height: 100vh;
-  align-items: flex-start;
+  flex-direction: column;
 }
 
 /* .main .sidebar {
