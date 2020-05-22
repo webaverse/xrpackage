@@ -687,7 +687,7 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   text-decoration: none;
 }
 
-.tokens > .object {
+.tokens > .token {
   display: flex;
   position: relative;
   flex-direction: column;
@@ -698,33 +698,33 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   max-height: 480px;
 }
 
-.tokens > .object>img {
+.tokens > .token > img {
   /* margin-bottom: 10px; */
 }
 
-.tokens > .object .text {
+.tokens > .token .text {
   display: flex;
   padding: 15px;
   flex-direction: column;
 }
 
-.tokens > .object a {
+.tokens > .token a {
   display: flex;
 }
 
-.tokens > .object a:hover {
+.tokens > .token a:hover {
   color: #42a5f5;
 }
 
-.tokens > .object a:active {
+.tokens > .token a:active {
   color: #1e88e5;
 }
 
-.tokens > .object a span {
+.tokens > .token a span {
   margin-right: auto;
 }
 
-.tokens > .object input {
+.tokens > .token input {
   padding: 5px;
   background-color: #EEE;
   border: 1px solid transparent;
@@ -733,7 +733,7 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   font-size: inherit;
 }
 
-.tokens > .object input:focus {
+.tokens > .token input:focus {
   border-color: #000;
   background-color: #FFF;
   outline: none;
