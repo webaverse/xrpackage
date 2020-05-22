@@ -1228,6 +1228,7 @@ const _renderObjects = () => {
     objectsEl.innerHTML = `
       <div class=object-detail>
         <h1><nav class=back-button><i class="fa fa-arrow-left"></i></nav>${p.name}</h1>
+        <nav class="button reload-button">Reload</nav>
         <nav class="button wear-button">Wear</nav>
         <nav class="button publish-button">Publish</nav>
         <nav class="button remove-button">Remove</nav>
@@ -1312,10 +1313,13 @@ const _renderObjects = () => {
         console.warn('invalid status code: ' + res.status);
       }
     });
+    const reloadButton = objectsEl.querySelector('.reload-button');
+    reloadButton.addEventListener('click', async e => {
+      await p.reload();
+    });
     const wearButton = objectsEl.querySelector('.wear-button');
     wearButton.addEventListener('click', async e => {
       const p2 = p.clone();
-      // await pe.add(p2);
       await pe.wearAvatar(p2);
     });
     const removeButton = objectsEl.querySelector('.remove-button');
