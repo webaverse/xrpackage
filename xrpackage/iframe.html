@@ -135,18 +135,6 @@ class XRPackageManager extends EventTarget {
 
     this.loadPromise.resolve({});
   }
-  /* addEventListener(e, fn, opts) {
-    super.addEventListener(e, fn, opts);
-
-    if (e === 'load' && !this.listenedLoad) {
-      this.listenedLoad = true;
-      this.loadPromise.then(data => {
-        this.dispatchEvent(new MessageEvent('load', {
-          data,
-        }));
-      });
-    }
-  } */
   setSession(session) {
     if (session) {
       GlobalContext.xrFramebuffer = session.renderState.baseLayer.framebuffer;
@@ -159,8 +147,6 @@ class XRPackageManager extends EventTarget {
   }
   setSchema(key, value) {
     this.schema[key] = value;
-    /* console.log('iframe set schema', this, key, value);
-    debugger; */
     window.navigator.xr.dispatchEvent(new MessageEvent('schemachange', {
       data: {
         key,
