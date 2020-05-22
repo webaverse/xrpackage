@@ -401,6 +401,7 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   padding: 20px;
   background-color: #FFF;
   box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
+  overflow: auto;
 }
 
 .subpage:not(.open) {
