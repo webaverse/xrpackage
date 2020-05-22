@@ -16,8 +16,43 @@ export const apiHost = `https://ipfs.exokit.org/ipfs`;
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
+const localQuaternion2 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
+const localArray = Array(16);
+
+const HANDS = ['left', 'right'];
+const _oppositeHand = handedness => {
+  if (handedness === 'left') {
+    return 'right';
+  } else if (handedness === 'right') {
+    return 'left';
+  } else {
+    return null;
+  }
+};
+const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.3);
+const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.3);
+const SLOTS = ['head', 'left', 'right', 'back'];
+const _getSlotInput = (rig, slot) => {
+  if (slot === 'head') {
+    return rig.inputs.hmd;
+  } else if (slot === 'left' || slot === 'right') {
+    return rig.inputs[slot + 'Gamepad'];
+  } else if (slot === 'back') {
+    const {hmd} = rig.inputs;
+    return {
+      position: hmd.position.clone()
+        .add(localVector.set(0, 0, 0.2).applyQuaternion(hmd.quaternion)),
+      quaternion: hmd.quaternion.clone()
+        .multiply(localQuaternion.setFromAxisAngle(localVector.set(0, 1, 0), -Math.PI/2))
+        .multiply(localQuaternion.setFromAxisAngle(localVector.set(0, 0, 1), Math.PI)),
+      scale: hmd.scale,
+    };
+  } else {
+    return null;
+  }
+};
 
 const _removeUrlTail = u => u.replace(/(?:\?|\#).*$/, '');
 
@@ -255,6 +290,13 @@ const xrTypeLoaders = {
 
     p.context.object = o;
   },
+  'xrpackage-scene@0.0.1': async function(p) {
+    const mainPath = '/' + p.main;
+    const indexFile = p.files.find(file => new URL(file.url).pathname === mainPath);
+    const j = JSON.parse(indexFile.response.body.toString('utf8'));
+
+    p.context.json = j;
+  },
 };
 const xrTypeAdders = {
   'webxr-site@0.0.1': async function(p) {
@@ -268,23 +310,35 @@ const xrTypeAdders = {
       id: p.id,
       xrState,
     });
-
-    this.packages.push(p);
   },
   'gltf@0.0.1': async function(p) {
     this.scene.add(p.context.object);
-
-    this.packages.push(p);
   },
   'vrm@0.0.1': async function(p) {
     this.scene.add(p.context.object);
-
-    this.packages.push(p);
   },
   'vox@0.0.1': async function(p) {
     this.scene.add(p.context.object);
+  },
+};
+const xrTypeRemovers = {
+  'webxr-site@0.0.1': function(p) {
+    this.rafs = this.rafs.filter(raf => {
+      const rafWindow = raf[symbols.windowSymbol];
+      const rafPackage = this.packages.find(p => p.context.iframe && p.context.iframe.contentWindow === rafWindow);
+      return rafPackage !== p;
+    });
 
-    this.packages.push(p);
+    p.context.iframe && p.context.iframe.parentNode.removeChild(p.context.iframe);
+  },
+  'gltf@0.0.1': function(p) {
+    this.scene.remove(p.context.object);
+  },
+  'vrm@0.0.1': function(p) {
+    this.scene.remove(p.context.object);
+  },
+  'vox@0.0.1': function(p) {
+    this.scene.remove(p.context.object);
   },
 };
 
@@ -320,12 +374,14 @@ export class XRPackageEngine extends EventTarget {
     renderer.physicallyCorrectLights = true;
     renderer.xr.enabled = true;
     this.renderer = renderer;
+    window.renderer = renderer;
 
     const scene = new THREE.Scene();
     this.scene = scene;
 
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 0, 1);
+    camera.position.set(0, 1, 2);
+    camera.rotation.order = 'YXZ';
     this.camera = camera;
 
     const orbitControls = new OrbitControls(camera, canvas, document);
@@ -337,6 +393,7 @@ export class XRPackageEngine extends EventTarget {
     const ambientLight = new THREE.AmbientLight(0xFFFFFF);
     scene.add(ambientLight);
     const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 3);
+    directionalLight.position.set(10, 10, 10)
     scene.add(directionalLight);
     const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 3);
     scene.add(directionalLight2);
@@ -383,10 +440,28 @@ export class XRPackageEngine extends EventTarget {
 
     renderer.xr.setSession(this.fakeSession);
 
+    this.name = 'XRPackage Scene';
     this.packages = [];
     this.ids = 0;
     this.rafs = [];
+    this.grabs = {
+      left: null,
+      right: null,
+    };
+    this.grabuses = {
+      left: null,
+      right: null,
+    };
+    this.equips = {
+      head: null,
+      left: null,
+      right: null,
+      back: null,
+    };
     this.rig = null;
+    this.rigMatrix = new THREE.Matrix4();
+    this.rigMatrixEnabled = false;
+    this.avatar = null;
     this.realSession = null;
     this.referenceSpace = null;
     this.loadReferenceSpaceInterval = 0;
@@ -405,22 +480,39 @@ export class XRPackageEngine extends EventTarget {
     return getContext.call(this.domElement, type, opts);
   }
   async add(p) {
-    // console.log('add loaded 1', p.loaded);
-    if (!p.loaded) {
-      await new Promise((accept, reject) => {
-        p.addEventListener('load', e => {
-          accept();
-        }, {once: true});
-      });
-    }
-    // console.log('add loaded 2', p.loaded);
+    p.parent = this;
+    this.packages.push(p);
+
+    this.dispatchEvent(new MessageEvent('packageadd', {
+      data: p,
+    }));
+
+    await p.waitForLoad();
 
     const {type} = p;
     const adder = xrTypeAdders[type];
-    // console.log('add loaded 3', !!adder);
     if (adder) {
       await adder.call(this, p);
-      p.parent = this;
+    } else {
+      this.remove(p);
+      throw new Error(`unknown xr_type: ${type}`);
+    }
+  }
+  remove(p) {
+    const index = this.packages.indexOf(p);
+    if (index !== -1) {
+      const {type} = p;
+      const remover = xrTypeRemovers[type];
+      if (remover) {
+        remover.call(this, p);
+        p.parent = null;
+
+        this.packages.splice(index, 1);
+
+        this.dispatchEvent(new MessageEvent('packageremove', {
+          data: p,
+        }));
+      }
     } else {
       throw new Error(`unknown xr_type: ${type}`);
     }
@@ -512,7 +604,7 @@ export class XRPackageEngine extends EventTarget {
     this.renderer.clear(true, true, true);
 
     if (!this.session) {
-      this.orbitControls.update();
+      this.orbitControls.enabled && this.orbitControls.update();
       this.setCamera(this.camera);
     }
 
@@ -625,16 +717,59 @@ export class XRPackageEngine extends EventTarget {
     {
       const {rig, camera} = this;
       if (rig) {
-        // console.log('update rig', camera.position.toArray());
-        const m = new THREE.Matrix4().fromArray(xrState.leftViewMatrix);
-        m.getInverse(m)
-        m.decompose(camera.position, camera.quaternion, camera.scale);
-        rig.inputs.hmd.position.copy(camera.position);
-        rig.inputs.hmd.quaternion.copy(camera.quaternion);
-        rig.inputs.leftGamepad.position.copy(camera.position).add(localVector.set(0.3, -0.15, -0.5).applyQuaternion(camera.quaternion));
-        rig.inputs.leftGamepad.quaternion.copy(camera.quaternion);
-        rig.inputs.rightGamepad.position.copy(camera.position).add(localVector.set(-0.3, -0.15, -0.5).applyQuaternion(camera.quaternion));
-        rig.inputs.rightGamepad.quaternion.copy(camera.quaternion);
+        if (this.rigMatrixEnabled) {
+          this.rigMatrix.decompose(localVector, localQuaternion, localVector2);
+        } else {
+          const m = new THREE.Matrix4().fromArray(xrState.leftViewMatrix);
+          m.getInverse(m);
+          m.decompose(localVector, localQuaternion, localVector2);
+        }
+        // camera.position.add(localVector2.set(0, -0.5, -2).applyQuaternion(camera.quaternion));
+        rig.inputs.hmd.position.copy(localVector);
+        rig.inputs.hmd.quaternion.copy(localQuaternion);
+        rig.inputs.leftGamepad.position.copy(localVector).add(localVector2.copy(leftHandOffset).applyQuaternion(localQuaternion));
+        rig.inputs.leftGamepad.quaternion.copy(localQuaternion);
+        rig.inputs.rightGamepad.position.copy(localVector).add(localVector2.copy(rightHandOffset).applyQuaternion(localQuaternion));
+        rig.inputs.rightGamepad.quaternion.copy(localQuaternion);
+        // camera.position.sub(localVector2);
+
+        HANDS.forEach(handedness => {
+          const grabuse = this.grabuses[handedness];
+          if (grabuse) {
+            const {startTime, endTime} = grabuse;
+            const input = rig.inputs[_oppositeHand(handedness) + 'Gamepad'];
+            const now = Date.now();
+            if (now < endTime) {
+              const f = Math.min(Math.max((now - startTime) / (endTime - startTime), 0), 1);
+              input.position.add(
+                localVector.set(0, Math.sin(f * Math.PI * 2) * 0.2, (-1 + Math.cos(f * Math.PI * 2)) * 0.2)
+                  // .multiplyScalar()
+                  .applyQuaternion(input.quaternion)
+              );
+              input.quaternion.multiply(
+                localQuaternion.set(0, 0, 0, 1).slerp(localQuaternion2.setFromAxisAngle(localVector.set(1, 0, 0), -Math.PI*0.5), Math.sin(f * Math.PI))
+              );
+            } else {
+              this.grabuses[handedness] = null;
+            }
+          }
+          const grab = this.grabs[handedness];
+          if (grab) {
+            const input = rig.inputs[_oppositeHand(handedness) + 'Gamepad'];
+            grab.position.copy(input.position);
+            grab.quaternion.copy(input.quaternion);
+            grab.scale.copy(input.scale);
+          }
+        });
+        SLOTS.forEach(slot => {
+          const equip = this.equips[slot];
+          if (equip) {
+            const input = _getSlotInput(rig, slot);
+            equip.position.copy(input.position);
+            equip.quaternion.copy(input.quaternion);
+            equip.scale.copy(input.scale);
+          }
+        });
 
         rig.update();
       }
@@ -661,7 +796,7 @@ export class XRPackageEngine extends EventTarget {
     } */
     for (let i = 0; i < this.packages.length; i++) {
       const p = this.packages[i];
-      if (p.context.iframe && p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer) {
+      if (p.context.iframe && p.context.iframe.contentWindow.xrpackage.session && p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer) {
         p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer.context._exokitClearEnabled(false);
         // console.log('got iframe', p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer.context.canvas.transferToImageBitmap());
         // debugger;
@@ -715,17 +850,57 @@ export class XRPackageEngine extends EventTarget {
     xrState.rightViewMatrix.set(xrState.leftViewMatrix);
     xrState.rightProjectionMatrix.set(xrState.leftProjectionMatrix);
   }
-  async wearAvatar(p) {
-    if (!p.loaded) {
-      await new Promise((accept, reject) => {
-        p.addEventListener('load', e => {
-          accept();
-        }, {once: true});
-      });
+  setRigMatrix(rigMatrix) {
+    if (rigMatrix) {
+      this.rigMatrix.copy(rigMatrix);
+      this.rigMatrixEnabled = true;
+    } else {
+      this.rigMatrixEnabled = false;
     }
+  }
+  grabdown(handedness) {
+    if (this.rig && !this.grabs[handedness]) {
+      const input = this.rig.inputs[_oppositeHand(handedness) + 'Gamepad'];
+      const ps = this.packages
+        .map(p => p.context.object)
+        .filter(o => o)
+        .sort((a, b) => a.context.distanceTo(input.position) - b.context.distanceTo(input.position));
+      if (ps.length > 0) {
+        this.grabs[handedness] = ps[0];
+      }
+    }
+  }
+  grabup(handedness) {
+    this.grabs[handedness] = null;
+  }
+  grabuse(handedness) {
+    const now = Date.now();
+    this.grabuses[handedness] = {
+      startTime: now,
+      endTime: now + 200,
+    };
+  }
+  equip(slot) {
+    if (this.rig) {
+      if (this.equips[slot]) {
+        this.equips[slot] = null;
+      } else {
+        const {position} = _getSlotInput(this.rig, slot);
+        const ps = this.packages
+          .map(p => p.context.object)
+          .filter(o => o)
+          .sort((a, b) => a.context.distanceTo(position) - b.context.distanceTo(position));
+        if (ps.length > 0) {
+          this.equips[slot] = ps[0];
+        }
+      }
+    }
+  }
+  async wearAvatar(p) {
+    await p.waitForLoad();
 
     if (this.rig) {
-      this.scene.remove(this.rig);
+      this.scene.remove(this.rig.model);
       this.rig.destroy();
       this.rig = null;
     }
@@ -744,40 +919,203 @@ export class XRPackageEngine extends EventTarget {
         // debug: !newModel,
       });
       this.scene.add(this.rig.model);
+
+      this.avatar = p;
+    }
+
+    this.dispatchEvent(new MessageEvent('avatarchange', {
+      data: this.avatar,
+    }));
+  }
+  defaultAvatar() {
+    if (this.rig) {
+      this.scene.remove(this.rig.model);
+      this.rig.destroy();
+      this.rig = null;
+    }
+
+    this.rig = new Avatar(null, {
+      fingers: true,
+      hair: true,
+      visemes: true,
+      debug: true,
+    });
+    this.scene.add(this.rig.model);
+
+    this.avatar = null;
+
+    this.dispatchEvent(new MessageEvent('avatarchange', {
+      data: this.avatar,
+    }));
+  }
+  reset() {
+    const ps = this.packages.slice();
+    for (let i = 0; i < ps.length; i++) {
+      this.remove(ps[i]);
+    }
+  }
+  async importScene(uint8Array) {
+    const p = new XRPackage(uint8Array);
+    await p.waitForLoad();
+    if (p.type === 'xrpackage-scene@0.0.1') {
+      this.reset();
+
+      const j = p.context.json;
+      const {xrpackage_scene: xrPackageScene} = j;
+      const {children} = xrPackageScene;
+      for (let i = 0; i < children.length; i++) {
+        const child = children[i];
+        const {id, hash} = child;
+        if (hash) {
+          const p = await XRPackage.download(hash);
+          p.id = id;
+          this.add(p);
+        } else {
+          const primaryUrl = `https://xrpackage.org`;
+          const idUrl = primaryUrl + '/' + id + '.wbn';
+          const file = p.files.find(f => f.url === idUrl);
+          if (file) {
+            const p = new XRPackage(file.response.body);
+            p.id = id;
+            this.add(p);
+          } else {
+            console.warn('unknown file id', id);
+          }
+        }
+      }
+    } else {
+      throw new Error('invalid type: ' + p.type);
+    }
+  }
+  async exportScene() {
+    const primaryUrl = `https://xrpackage.org`;
+    const manifestJsonPath = primaryUrl + '/manifest.json';
+    const builder = new wbn.BundleBuilder(manifestJsonPath);
+    const manifestJson = {
+      name: this.name,
+      description: 'XRPackage scene exported with the browser frontend.',
+      xr_type: 'xrpackage-scene@0.0.1',
+      start_url: 'manifest.json',
+      xrpackage_scene: {
+        children: this.packages.map(p => {
+          return {
+            id: p.id,
+            // hash: p.hash,
+            matrix: p.matrix.toArray(),
+          };
+        }),
+      },
+    };
+    builder.addExchange(manifestJsonPath, 200, {
+      'Content-Type': 'application/json',
+    }, JSON.stringify(manifestJson, null, 2));
+    for (let i = 0; i < this.packages.length; i++) {
+      const p = this.packages[i];
+      builder.addExchange(primaryUrl + '/' + p.id + '.wbn', 200, {
+        'Content-Type': 'application/json',
+      }, p.data);
+    }
+    return builder.createBundle();
+  }
+  async uploadScene() {
+    const primaryUrl = `https://xrpackage.org`;
+    const manifestJsonPath = primaryUrl + '/manifest.json';
+    const builder = new wbn.BundleBuilder(manifestJsonPath);
+    const hashes = await Promise.all(this.packages.map(p => p.upload()));
+    const manifestJson = {
+      name: 'XRPackage Scene',
+      description: 'XRPackage scene exported with the browser frontend.',
+      xr_type: 'xrpackage-scene@0.0.1',
+      start_url: 'manifest.json',
+      xrpackage_scene: {
+        children: this.packages.map((p, i) => {
+          return {
+            id: p.id,
+            hash: hashes[i],
+            matrix: p.matrix.toArray(),
+          };
+        }),
+      },
+    };
+    console.log('upload scene', manifestJson);
+    builder.addExchange(manifestJsonPath, 200, {
+      'Content-Type': 'application/json',
+    }, JSON.stringify(manifestJson, null, 2));
+    const uint8Array = builder.createBundle();
+
+    const res = await fetch(`${apiHost}/`, {
+      method: 'PUT',
+      body: uint8Array,
+    });
+    if (res.ok) {
+      const j = await res.json();
+      const {hash} = j;
+      return hash;
+    } else {
+      throw new Error('upload failed: ' + res.status);
+    }
+  }
+  async downloadScene(hash) {
+    const res = await fetch(`${apiHost}/${hash}.wbn`);
+    if (res.ok) {
+      const arrayBuffer = await res.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+      await this.importScene(uint8Array);
+    } else {
+      if (res.status === 404) {
+        return null;
+      } else {
+        throw new Error('download failed: ' + res.status);
+      }
     }
   }
 }
 
 let packageIds = Date.now();
 export class XRPackage extends EventTarget {
-  constructor(d) {
+  constructor(a) {
     super();
 
     this.id = (packageIds++) + '';
+    this.name = 'XRPackage';
     this.loaded = false;
 
-    this.data = d;
+    this.matrix = a instanceof XRPackage ? a.matrix.clone() : new THREE.Matrix4();
+    this._visible = true;
+    this.parent = null;
+    this.context = {};
 
-    const bundle = new wbn.Bundle(d);
-    const files = [];
-    for (const url of bundle.urls) {
-      const response = bundle.getResponse(url);
-      files.push({
-        url,
-        // status: response.status,
-        // headers: response.headers,
-        response,
-        // body: response.body.toString('utf-8')
-      });
+    if (a instanceof XRPackage) {
+      this.data = a.data;
+      this.files = a.files.slice();
+    } else {
+      this.data = a;
+
+      const bundle = new wbn.Bundle(a);
+      const files = [];
+      for (const url of bundle.urls) {
+        const response = bundle.getResponse(url);
+        files.push({
+          url,
+          // status: response.status,
+          // headers: response.headers,
+          response,
+          // body: response.body.toString('utf-8')
+        });
+      }
+      this.files = files;
     }
-    this.files = files;
-    
-    const manifestJsonFile = files.find(file => new URL(file.url).pathname === '/manifest.json');
+
+    this.load();
+  }
+  load() {
+    const manifestJsonFile = this.files.find(file => new URL(file.url).pathname === '/manifest.json');
     if (manifestJsonFile) {
       const s = manifestJsonFile.response.body.toString('utf-8');
       const j = JSON.parse(s);
       if (j && typeof j.xr_type === 'string' && typeof j.start_url === 'string') {
         let {
+          name,
           xr_type: xrType,
           start_url: startUrl,
           xr_details: xrDetails,
@@ -789,6 +1127,7 @@ export class XRPackage extends EventTarget {
         }
         const loader = xrTypeLoaders[xrType];
         if (loader) {
+          this.name = name;
           this.type = xrType;
           this.main = startUrl;
           this.details = xrDetails;
@@ -799,7 +1138,7 @@ export class XRPackage extends EventTarget {
               id: this.id,
               startUrl: _removeUrlTail(startUrl),
               script: xrDetails ? xrDetails.script : null,
-              files: files.map(f => ({
+              files: this.files.map(f => ({
                 pathname: new URL(f.url).pathname,
                 headers: f.response.headers,
                 body: f.response.body,
@@ -824,11 +1163,18 @@ export class XRPackage extends EventTarget {
     } else {
       throw new Error('no manifest.json in pack');
     }
-
-    this.matrix = new THREE.Matrix4();
-    this._visible = true;
-    this.parent = null;
-    this.context = {};
+  }
+  clone() {
+    return new XRPackage(this);
+  }
+  async waitForLoad() {
+    if (!this.loaded) {
+      await new Promise((accept, reject) => {
+        this.addEventListener('load', e => {
+          accept();
+        }, {once: true});
+      });
+    }
   }
   get visible() {
     return this._visible;
@@ -900,7 +1246,7 @@ export class XRPackage extends EventTarget {
 
     const primaryUrl = `https://xrpackage.org`;
     // const manifestUrl = primaryUrl + '/manifest.json';
-    const builder = (new wbn.BundleBuilder(primaryUrl + '/' + startUrl))
+    const builder = new wbn.BundleBuilder(primaryUrl + '/' + startUrl);
       // .setManifestURL(manifestUrl);
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
@@ -920,6 +1266,44 @@ export class XRPackage extends EventTarget {
       this.context.object.matrix
         .copy(m)
         .decompose(this.context.object.position, this.context.object.quaternion, this.context.object.scale);
+    this.context.iframe && this.context.iframe.contentWindow.xrpackage.setMatrix(this.matrix.toArray(localArray));
+    this.dispatchEvent(new MessageEvent('matrixupdate', {
+      data: this.matrix,
+    }));
+  }
+  setPose(pose) {
+    const [head, leftGamepad, rightGamepad] = pose;
+    if (!this.context.rig) {
+      const {model} = this.context;
+      if (model) {
+        model.scene.traverse(o => {
+          o.frustumCulled = false;
+        });
+        this.context.rig = new Avatar(model, {
+          fingers: true,
+          hair: true,
+          visemes: true,
+          decapitate: true,
+          microphoneMediaStream: null,
+          // debug: !newModel,
+        });
+      } else {
+        this.context.rig = new Avatar(null, {
+          fingers: true,
+          hair: true,
+          visemes: true,
+          decapitate: true,
+          microphoneMediaStream: null,
+          // debug: !newModel,
+        });
+      }
+    }
+    rig.inputs.hmd.position.fromArray(head[0]);
+    rig.inputs.hmd.quaternion.fromArray(head[1]);
+    rig.inputs.leftGamepad.position.fromArray(leftGamepad[0]);
+    rig.inputs.leftGamepad.quaternion.fromArray(leftGamepad[1]);
+    rig.inputs.rightGamepad.position.fromArray(rightGamepad[0]);
+    rig.inputs.rightGamepad.quaternion.fromArray(rightGamepad[1]);
   }
   setSession(session) {
     this.context.iframe && this.context.iframe.contentWindow.xrpackage.setSession(session);
@@ -952,3 +1336,5 @@ export class XRPackage extends EventTarget {
     }
   }
 }
+
+window.XRPackage = XRPackage;

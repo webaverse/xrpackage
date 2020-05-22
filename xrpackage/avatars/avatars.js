@@ -62,7 +62,7 @@ const _copySkeleton = (src, dst) => {
 };
 
 const cubeGeometry = new THREE.ConeBufferGeometry(0.05, 0.2, 3)
-  .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(
+  .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(
     new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1)))
   );
 const cubeMaterials ={};
@@ -541,6 +541,7 @@ class Avatar {
     this.hairBones = hairBones;
 
     this.springBoneManager = null;
+    let springBoneManagerPromise = null;
     if (options.hair) {
       new Promise((accept, reject) => {
         if (!object) {
@@ -595,7 +596,7 @@ class Avatar {
           };
         }
 
-        new THREE.VRMSpringBoneImporter().import(object)
+        springBoneManagerPromise = new THREE.VRMSpringBoneImporter().import(object)
           .then(springBoneManager => {
             this.springBoneManager = springBoneManager;
           });
@@ -872,7 +873,13 @@ class Avatar {
 
     this.decapitated = false;
     if (options.decapitate) {
-      this.decapitate();
+      if (springBoneManagerPromise) {
+        springBoneManagerPromise.then(() => {
+          this.decapitate();
+        });
+      } else {
+        this.decapitate();
+      }
     }
 	}
   initializeBonePositions(setups) {
