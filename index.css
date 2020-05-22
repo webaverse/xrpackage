@@ -395,6 +395,7 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   /* border-left: 3px solid #EEE; */
   box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
   flex-direction: column;
+  overflow: auto;
 }
 
 .dropdown:not(.open) {
