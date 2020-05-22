@@ -926,9 +926,12 @@ const _connect = roomName => {
     channelConnection = null;
   });
 }
+const headerLabel = document.getElementById('header-label');
 let currentWorldHash = '';
 const _enterWorld = async hash => {
   currentWorldHash = hash;
+
+  headerLabel.innerText = hash || 'Sandbox';
 
   singleplayerButton.classList.remove('open');
   multiplayerButton.classList.remove('open');
