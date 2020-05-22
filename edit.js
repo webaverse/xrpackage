@@ -1083,41 +1083,27 @@ const _getTokenHtml = cardData => {
 };
 (async () => {
   const totalObjects = await contract.methods.getNonce().call();
-  // totalObjects = parseInt(totalObjects, 10);
-  // totalPages = Math.ceil(totalObjects / resultsPerPage);
-
   const ts = [];
   for (let i = 1; i <= totalObjects; i++) {
-    // await (async () => {
-      const t = await getTokenByIndex(i);
-      ts.push(t);
-      const h = _getTokenHtml(t);
-      tokens.innerHTML += h;
+    const t = await getTokenByIndex(i);
+    ts.push(t);
+    const h = _getTokenHtml(t);
+    tokens.innerHTML += h;
 
-      Array.from(tokens.querySelectorAll('.token')).forEach((token, i) => {
-        const addAction = token.querySelector('.add-action');
-        addAction.addEventListener('click', async e => {
-          const t = ts[i];
-          const {dataHash} = t;
-          const p = await XRPackage.download(dataHash);
-          pe.add(p);
-        });
-        const input = token.querySelector('input');
-        input.addEventListener('click', e => {
-          input.select();
-        });
+    Array.from(tokens.querySelectorAll('.token')).forEach((token, i) => {
+      const addAction = token.querySelector('.add-action');
+      addAction.addEventListener('click', async e => {
+        const t = ts[i];
+        const {dataHash} = t;
+        const p = await XRPackage.download(dataHash);
+        pe.add(p);
       });
-      // console.log('got token', t);
-    // })();
+      const input = token.querySelector('input');
+      input.addEventListener('click', e => {
+        input.select();
+      });
+    });
   }
-  /* const res = await fetch(packagesEndpoint);
-  const children = await res.json();
-  const ps = await Promise.all(children.map(child =>
-    fetch(packagesEndpoint + '/' + child)
-      .then(res => res.json())
-  ));
-  packages.innerHTML = ps.map(p => _makePackageHtml(p)).join('\n');
-  Array.from(packages.querySelectorAll('.package')).forEach((pe, i) => _bindPackage(pe, ps[i])); */
 })();
 /* const scenes = document.getElementById('scenes');
 (async () => {
