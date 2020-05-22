@@ -452,9 +452,9 @@ window.addEventListener('mousedown', e => {
   }
 });
 
-document.getElementById('world-name').addEventListener('change', e => {
+/* document.getElementById('world-name').addEventListener('change', e => {
   pe.name = e.target.value;
-});
+}); */
 document.getElementById('reset-scene-button').addEventListener('click', e => {
   pe.reset();
 });
