@@ -1018,7 +1018,7 @@ const _makePackageHtml = p => `
     </div>
     <div class=background>
       <nav class="button add-button">Add</nav>
-      <a class="button" target="_blank" href="/run.html?i=${p.index}">Test</a>
+      <a class="button" target="_blank" href="/run.html?h=${p.hash}">Test</a>
     </div>
   </div>
 `;
