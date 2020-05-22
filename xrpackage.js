@@ -1187,6 +1187,13 @@ export class XRPackage extends EventTarget {
       o.visible = visible;
     }
   }
+  async reload() {
+    const {parent} = this;
+    if (parent) {
+      parent.remove(this);
+      await parent.add(this);
+    }
+  }
   static async compileFromFile(file) {
     const _createFile = async (file, xrType, mimeType) => {
       const fileData = await new Promise((accept, reject) => {
