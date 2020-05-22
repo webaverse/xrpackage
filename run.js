@@ -6,7 +6,6 @@ let currentSession = null;
 const pe = new XRPackageEngine({
   orbitControls: true,
 });
-window.pe = pe;
 
 /* const canvas = document.createElement('canvas');
 const context = canvas.getContext('webgl', {
