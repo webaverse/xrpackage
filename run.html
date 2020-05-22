@@ -44,7 +44,7 @@
     return query;
   }
   const q = parseQuery(window.location.search);
-  if (q.i) {
+  if (q.i) { // index
     const metadataHash = await contract.methods.getMetadata(parseInt(q.i, 10), 'hash').call();
     const metadata = await fetch(`${apiHost}/${metadataHash}`)
       .then(res => res.json());
@@ -55,13 +55,16 @@
 
     const p = new XRPackage(new Uint8Array(arrayBuffer));
     await pe.add(p);
-  } else if (q.u) {
+  } else if (q.u) { // url
     const arrayBuffer = await fetch(q.u)
       .then(res => res.arrayBuffer());
 
     const p = new XRPackage(new Uint8Array(arrayBuffer));
     await pe.add(p);
-  } else if (q.h) {
+  } else if (q.h) { // hash
+    const p = await XRPackage.download(q.h);
+    pe.add(p);
+  /* } else if (q.h) { // home
     const [cubeHtml, cubeManifest] = await Promise.all([
       (async () => {
         const res = await fetch('examples/html/cube.html');
@@ -88,8 +91,8 @@
       ]
     );
     const p = new XRPackage(d);
-    await pe.add(p);
-  } else {
+    await pe.add(p); */
+  } else { // default
     const [cubeHtml, cubeManifest, modelVrm, catVox] = await Promise.all([
       (async () => {
         const res = await fetch('examples/html/cube.html');
