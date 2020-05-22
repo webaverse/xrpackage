@@ -12,17 +12,43 @@
 </head>
 
 <body class="header-gap">
-  <header class=subheader>
+  <header class=header id=header>
     <a href="/" class="nav icon">メマアムく匕ムウヨ</a>
-    <a href="/browse.html" class="nav open">Packages</a>
-    <a href="/scenes.html" class="nav">Scenes</a>
-    <a href="/account.html" class="nav">Account</a>
-  </header>
-  <header class=subheader>
-    <a href="/browse.html" class="nav open">Public</a>
-    <a href="/private.html" class="nav">Private</a>
-    <a href="/inventory.html" class="nav">Mine</a>
-    <a href="/new-package.html" class=subbutton><i class="fa fa-plus"></i> New Package</a>
+    <nav class="selector nav bar" id=selector>
+      <i class="fa fa-solar-system head"></i>
+      <div class=header-label id=header-label>Browse packages</div>
+      <i class="fa fa-chevron-down tail"></i>
+      <div class=selections id=selections>
+        <a href="run.html" class=selection id=run-mode>
+          <i class="fa fa-play"></i>
+          <div class=wrap>
+            <h3>Run mode</h3>
+            <p>Switch to run mode</p>
+          </div>
+        </a>
+        <a href="edit.html" class="selection dim" id=edit-mode>
+          <i class="fa fa-pencil"></i>
+          <div class=wrap>
+            <h3>Edit mode</h3>
+            <p>You are currently editing this world</p>
+          </div>
+        </a>
+        <a href="browse.html" class=selection>
+          <i class="fa fa-solar-system"></i>
+          <div class=wrap>
+            <h3>Browse packages</h3>
+            <p>Explore the XRPackage registry</p>
+          </div>
+        </a>
+        <a href="help.html" class=selection>
+          <i class="fa fa-book"></i>
+          <div class=wrap>
+            <h3>Documentation</h3>
+            <p>Learn how to make packages and worlds</p>
+          </div>
+        </a>
+      </div>
+    </nav>
   </header>
 
   <div class=loader id=loader>
@@ -31,7 +57,7 @@
 
   <div class=main>
     <aside class=sidebar></aside>
-    <section class=grid id=grid></section>
+    <section class=tokens id=tokens></section>
   </div>
 
   <div class="pagination buttons" id=pagination>
@@ -45,7 +71,8 @@
 
   <!-- <script src="https://kit.fontawesome.com/0735724151.js"></script> -->
 
-  <script type=module>
+<script type=module>
+import './selector.js';
 import address from 'https://contracts.webaverse.com/address.js';
 import abi from 'https://contracts.webaverse.com/abi.js';
 
@@ -77,7 +104,7 @@ function makePromise() {
 function drawCard(cardData) {
   const {index, name, img, metadataHash, dataHash, modelHash} = cardData;
   const div = document.createElement('div');
-  div.classList.add('object');
+  div.classList.add('token');
   div.classList.add('card');
   div.innerHTML = `\
     <a href="/run.html?i=${index}">
@@ -97,7 +124,7 @@ function drawCard(cardData) {
   input.addEventListener('click', e => {
     input.select();
   });
-  grid.appendChild(div);
+  tokens.appendChild(div);
 }
 
 async function setCurrentPage(pageNum) {
@@ -111,11 +138,11 @@ async function setCurrentPage(pageNum) {
   if (endIndex >= totalObjects) endIndex = totalObjects;
   currentPage = pageNum;
 
-  grid.style.display = 'none';
+  tokens.style.display = 'none';
   loader.style.display = 'block';
   pagination.style.display = 'none';
   objectResults = [];
-  grid.innerHTML = '';
+  tokens.innerHTML = '';
   window.scrollTo(0, 0);
 
   for (let i = startIndex; i <= endIndex; i++) {
@@ -125,7 +152,7 @@ async function setCurrentPage(pageNum) {
 
     if (i === startIndex) {
       loader.style.display = 'none';
-      grid.style.display = 'flex';
+      tokens.style.display = 'flex';
     }
   }
 
@@ -149,7 +176,7 @@ async function getObjectByIndex(index) {
 
 // contract.init();
 
-const gridEl = document.getElementById('grid');
+const tokens = document.getElementById('tokens');
 (async () => {
   totalObjects = await contract.methods.getNonce().call();
   totalObjects = parseInt(totalObjects, 10);
@@ -162,7 +189,7 @@ const gridEl = document.getElementById('grid');
 
     if (i === 1) {
       loader.style.display = 'none';
-      grid.style.display = 'flex';
+      tokens.style.display = 'flex';
     }
   }
 

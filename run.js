@@ -1,5 +1,6 @@
 import * as THREE from './three.module.js';
 import {XRPackageEngine, XRPackage} from './xrpackage.js';
+import './selector.js';
 
 let currentSession = null;
 

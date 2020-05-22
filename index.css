@@ -233,26 +233,6 @@ body {
   font-size: 13px;
 }
 
-.subheader .nav + .subbutton {
-  margin-left: 10px;
-}
-
-.subbutton {
-  padding: 5px 10px;
-  background-color: transparent;
-  border: 2px solid var(--color);
-  border-radius: 7px;
-  color: var(--color);
-  text-decoration: none;
-  cursor: pointer;
-}
-.subbutton:hover,
-.subbutton.open
-{
-  background-color: var(--color);
-  color: #FFF;
-}
-
 .pagination {
   display: none;
   margin-bottom: 25px;
