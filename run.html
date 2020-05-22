@@ -31,8 +31,9 @@
   import THREE from './three.module.js';
   window.THREE = THREE;
 </script>
-<script type="module" src="run.js"></script>
 <script type="module">
+import {pe} from './run.js';
+
 (async () => {
   function parseQuery(queryString) {
     var query = {};
