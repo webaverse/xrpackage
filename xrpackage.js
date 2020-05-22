@@ -1077,13 +1077,17 @@ export class XRPackage extends EventTarget {
     super();
 
     this.id = (packageIds++) + '';
-    this.name = 'XRPackage';
-    this.loaded = false;
+    this.name = '';
+    this.type = '';
+    this.main = '';
+    this.schema = {};
+    this.details = {};
 
     this.matrix = a instanceof XRPackage ? a.matrix.clone() : new THREE.Matrix4();
     this._visible = true;
     this.parent = null;
     this.context = {};
+    this.loaded = false;
 
     if (a instanceof XRPackage) {
       this.data = a.data;
@@ -1125,11 +1129,27 @@ export class XRPackage extends EventTarget {
         } else {
           throw new Error('invalid xr_details in manifest.json');
         }
+        let schema;
+        if (xrDetails.schema === undefined || (typeof xrDetails.schema === 'object' && !Array.isArray(xrDetails.schema) && Object.keys(xrDetails.schema).every(k =>
+          typeof xrDetails.schema[k] === 'string'
+        ))) {
+          schema = Object.keys(xrDetails.schema).map(name => {
+            const value = xrDetails.schema[name];
+            return {
+              name,
+              value,
+            };
+          });
+        } else {
+          schema = [];
+        }
+
         const loader = xrTypeLoaders[xrType];
         if (loader) {
           this.name = name;
           this.type = xrType;
           this.main = startUrl;
+          this.schema = schema;
           this.details = xrDetails;
 
           swLoadPromise
