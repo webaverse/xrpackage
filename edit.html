@@ -13,10 +13,40 @@
 <body>
   <header class=header id=header>
     <a href="/" class="nav icon">メマアムく匕ムウヨ</a>
-    <nav href="/scenes.html" class="nav bar">
-      <div id=header-label>Sandbox</div>
-      <!-- <i class="fa fa-chevron-left"></i>
-      Edit -->
+    <nav class="selector nav bar" id=selector>
+      <i class="fa fa-map-marker-alt head"></i>
+      <div class=header-label id=header-label>Sandbox</div>
+      <i class="fa fa-chevron-down tail"></i>
+      <div class=selections id=selections>
+        <nav class=selection>
+          <i class="fa fa-play"></i>
+          <div class=wrap>
+            <h3>Run mode</h3>
+            <p>Switch to run mode</p>
+          </div>
+        </nav>
+        <div class="selection dim">
+          <i class="fa fa-pencil"></i>
+          <div class=wrap>
+            <h3>Edit mode</h3>
+            <p>You are currently editing this world</p>
+          </div>
+        </div>
+        <nav class=selection>
+          <i class="fa fa-solar-system"></i>
+          <div class=wrap>
+            <h3>Browse packages</h3>
+            <p>Explore the XRPackage registry</p>
+          </div>
+        </nav>
+        <nav class=selection>
+          <i class="fa fa-book"></i>
+          <div class=wrap>
+            <h3>Documentation</h3>
+            <p>Learn how to make packages and worlds</p>
+          </div>
+        </nav>
+      </div>
     </nav>
 
     <div class="buttons right">
