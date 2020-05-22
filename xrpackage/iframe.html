@@ -32,10 +32,12 @@ class XRPackageManager extends EventTarget {
     super();
 
     this.session = null;
+    this.schema = null;
+
     this.loadPromise = makePromise();
-    this.listenedLoad = false;
+    this.seenEvents = {};
   }
-  async iframeInit({engine, indexHtml, context, id, xrState}) {
+  async iframeInit({engine, indexHtml, context, id, schema, xrState}) {
     console.log('iframe init');
 
     {
@@ -51,6 +53,8 @@ class XRPackageManager extends EventTarget {
     document.open();
     document.write(indexHtml);
     document.close();
+
+    this.schema = schema;
 
     GlobalContext.xrState = xrState;
     /* GlobalContext.xrFramebuffer = context.createFramebuffer();
@@ -84,12 +88,25 @@ class XRPackageManager extends EventTarget {
     window.navigator.xr.addEventListener = (_addEventListener => function addEventListener(e, fn, opts) {
       _addEventListener.apply(this, arguments);
 
-      if (e === 'sessiongranted' && !self.listenedLoad) {
-        self.listenedLoad = true;
+      if (e === 'sessiongranted' && !self.seenEvents['sessiongranted']) {
         self.loadPromise.then(data => {
+          self.seenEvents['sessiongranted'] = true;
           this.dispatchEvent(new MessageEvent('sessiongranted', {
             data,
           }));
+        });
+      } else if (e === 'schemachange' && !self.seenEvents['schemachange']) {
+        self.loadPromise.then(data => {
+          self.seenEvents['schemachange'] = true;
+          for (const key in self.schema) {
+            const value = self.schema[key];
+            this.dispatchEvent(new MessageEvent('schemachange', {
+              data: {
+                key,
+                value,
+              },
+            }));
+          }
         });
       }
     })(window.navigator.xr.addEventListener);
@@ -139,6 +156,17 @@ class XRPackageManager extends EventTarget {
   }
   setMatrix(matrixArray) {
     xrOffsetMatrix.fromArray(matrixArray);
+  }
+  setSchema(key, value) {
+    this.schema[key] = value;
+    /* console.log('iframe set schema', this, key, value);
+    debugger; */
+    window.navigator.xr.dispatchEvent(new MessageEvent('schemachange', {
+      data: {
+        key,
+        value,
+      },
+    }));
   }
 }
 window.xrpackage = new XRPackageManager();

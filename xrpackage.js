@@ -308,6 +308,7 @@ const xrTypeAdders = {
       indexHtml,
       context: GlobalContext.proxyContext,
       id: p.id,
+      schema: p.schema,
       xrState,
     });
   },
@@ -1130,18 +1131,20 @@ export class XRPackage extends EventTarget {
           throw new Error('invalid xr_details in manifest.json');
         }
         let schema;
-        if (xrDetails.schema === undefined || (typeof xrDetails.schema === 'object' && !Array.isArray(xrDetails.schema) && Object.keys(xrDetails.schema).every(k =>
+        if (xrDetails.schema !== undefined && typeof xrDetails.schema === 'object' && !Array.isArray(xrDetails.schema) && Object.keys(xrDetails.schema).every(k =>
           typeof xrDetails.schema[k] === 'string'
-        ))) {
-          schema = Object.keys(xrDetails.schema).map(name => {
-            const value = xrDetails.schema[name];
-            return {
-              name,
-              value,
-            };
-          });
+        )) {
+          schema = {};
+          for (const k in xrDetails.schema) {
+            schema[k] = '';
+          }
+          // schema = JSON.parse(JSON.stringify(xrDetails.schema));
+          /* schema = Object.keys(xrDetails.schema).map(name => ({
+            name,
+            value: '',
+          })); */
         } else {
-          schema = [];
+          schema = {};
         }
 
         const loader = xrTypeLoaders[xrType];
@@ -1206,6 +1209,10 @@ export class XRPackage extends EventTarget {
     if (o) {
       o.visible = visible;
     }
+  }
+  setSchema(key, value) {
+    this.schema[key] = value;
+    this.context.iframe && this.context.iframe.contentWindow.xrpackage.setSchema(key, value);
   }
   async reload() {
     const {parent} = this;

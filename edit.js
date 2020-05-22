@@ -1281,10 +1281,10 @@ const _renderObjects = () => {
             <input type=number class=scale-z value=1 step=0.1>
           </label>
         </div>
-        ${schema.map(s => `
+        ${Object.keys(p.schema).map(name => `
           <label>
-            <span>${s.name}</span>
-            <input type=text>
+            <span>${name}</span>
+            <input class="schema-input" name="${escape(name)}" type=text value="${escape(p.schema[name])}">
           </label>
         `)}
       </div>
@@ -1375,6 +1375,16 @@ const _renderObjects = () => {
     });
     objectsEl.querySelector('.scale-z').addEventListener('change', e => {
       _setScale(e, 'z');
+    });
+
+    Array.from(objectsEl.querySelectorAll('.schema-input')).forEach(input => {
+      const name = input.getAttribute('name');
+      const value = p.schema[name] || '';
+      input.value = value;
+      input.addEventListener('change', e => {
+        const value = e.target.value;
+        p.setSchema(name, value);
+      });
     });
   } else {
     objectsEl.innerHTML = pe.packages.map((p, i) => `
