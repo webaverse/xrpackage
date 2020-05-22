@@ -21,6 +21,7 @@ function makePromise() {
 
 // load
 
+const header = document.querySelector('header');
 {
   const keystoreString = localStorage.getItem('wallet');
   if (keystoreString) {
@@ -35,7 +36,6 @@ const extensionWalletButton = document.getElementById('extension-wallet-button')
 builtinWalletButton.addEventListener('click', async e => {
   // builtinWalletButton.classList.add('selected');
   // extensionWalletButton.classList.remove('selected');
-  const header = document.getElementById('header');
   header.classList.add('unlocking');
   header.classList.add('builtin');
 
@@ -80,7 +80,6 @@ builtinWalletButton.addEventListener('click', async e => {
 extensionWalletButton.addEventListener('click', async e => {
   // builtinWalletButton.classList.remove('selected');
   // extensionWalletButton.classList.add('selected');
-  const header = document.getElementById('header');
   header.classList.add('unlocking');
   header.classList.add('extension');
 
