@@ -1086,22 +1086,29 @@ const _getTokenHtml = cardData => {
   // totalObjects = parseInt(totalObjects, 10);
   // totalPages = Math.ceil(totalObjects / resultsPerPage);
 
-  for (let i = 1; i <= totalObjects && i < 10; i++) {
-    const t = await getTokenByIndex(i);
-    const h = _getTokenHtml(t);
-    tokens.innerHTML += h;
+  const ts = [];
+  for (let i = 1; i <= totalObjects; i++) {
+    // await (async () => {
+      const t = await getTokenByIndex(i);
+      ts.push(t);
+      const h = _getTokenHtml(t);
+      tokens.innerHTML += h;
 
-    Array.from(tokens.querySelectorAll('.token')).forEach(token => {
-      const addAction = token.querySelector('.add-action');
-      addAction.addEventListener('click', e => {
-        // input.select();
+      Array.from(tokens.querySelectorAll('.token')).forEach((token, i) => {
+        const addAction = token.querySelector('.add-action');
+        addAction.addEventListener('click', async e => {
+          const t = ts[i];
+          const {dataHash} = t;
+          const p = await XRPackage.download(dataHash);
+          pe.add(p);
+        });
+        const input = token.querySelector('input');
+        input.addEventListener('click', e => {
+          input.select();
+        });
       });
-      const input = token.querySelector('input');
-      input.addEventListener('click', e => {
-        input.select();
-      });
-    });
-    // console.log('got token', t);
+      // console.log('got token', t);
+    // })();
   }
   /* const res = await fetch(packagesEndpoint);
   const children = await res.json();
