@@ -53,8 +53,7 @@ body {
   justify-content: center;
 }
 
-.header .nav,
-.subheader .nav
+.header .nav
 {
   position: relative;
   display: flex;
@@ -71,18 +70,9 @@ body {
 }
 
 .header .nav:hover,
-.header .nav.open,
-.subheader .nav:hover,
-.subheader .nav.open
+.header .nav.open
 {
   border-bottom-color: var(--color2);
-}
-
-.subheader .nav i {
-  position: relative;
-  display: inline-block;
-  padding: 0 7px;
-  padding-top: 2px;
 }
 
 .header .nav.double {
@@ -138,6 +128,10 @@ body {
   background-color: var(--color);
   border-bottom-color: transparent;
   color: #FFF;
+}
+
+.header .nav.hidden {
+  overflow: hidden;
 }
 
 .header .nav > .label {

@@ -7,7 +7,7 @@ import {XRChannelConnection} from 'https://metartc.com/xrrtc.js';
 import {JSONClient} from 'https://sync.webaverse.com/sync-client.js';
 import address from 'https://contracts.webaverse.com/address.js';
 import abi from 'https://contracts.webaverse.com/abi.js';
-import {pe, renderer, scene, camera, container, getSession} from './run.js';
+import {pe, renderer, scene, camera, container, bindUploadFileButton, getSession} from './run.js';
 
 const apiHost = `https://ipfs.exokit.org/ipfs`;
 const presenceEndpoint = `wss://presence.exokit.org`;
@@ -199,31 +199,7 @@ function animate(timestamp, frame) {
 renderer.setAnimationLoop(animate);
 renderer.xr.setSession(pe.fakeSession);
 
-const _bindUploadFileButton = (inputFileEl, handleUpload) => {
-  inputFileEl.addEventListener('change', async e => {
-    const {files} = e.target;
-    if (files.length === 1) {
-      const [file] = files;
-      handleUpload(file);
-    }
-
-    const {parentNode} = inputFileEl;
-    parentNode.removeChild(inputFileEl);
-    const newInputFileEl = inputFileEl.ownerDocument.createElement('input');
-    newInputFileEl.type = 'file';
-    // newInputFileEl.id = 'upload-file-button';
-    // newInputFileEl.style.display = 'none';
-    newInputFileEl.classList.add('hidden');
-    parentNode.appendChild(newInputFileEl);
-    _bindUploadFileButton(newInputFileEl, handleUpload);
-  });
-};
-_bindUploadFileButton(document.getElementById('load-package-input'), file => {
-  window.dispatchEvent(new MessageEvent('upload', {
-    data: file,
-  }));
-});
-_bindUploadFileButton(document.getElementById('import-scene-input'), async file => {
+bindUploadFileButton(document.getElementById('import-scene-input'), async file => {
   const uint8Array = await readFile(file);
   pe.importScene(uint8Array);
 });

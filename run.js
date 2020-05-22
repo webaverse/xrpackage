@@ -134,6 +134,31 @@ document.getElementById('enter-xr-button').addEventListener('click', e => {
   }
 });
 
+const bindUploadFileButton = (inputFileEl, handleUpload) => {
+  inputFileEl.addEventListener('change', async e => {
+    const {files} = e.target;
+    if (files.length === 1) {
+      const [file] = files;
+      handleUpload(file);
+    }
+
+    const {parentNode} = inputFileEl;
+    parentNode.removeChild(inputFileEl);
+    const newInputFileEl = inputFileEl.ownerDocument.createElement('input');
+    newInputFileEl.type = 'file';
+    // newInputFileEl.id = 'upload-file-button';
+    // newInputFileEl.style.display = 'none';
+    newInputFileEl.classList.add('hidden');
+    parentNode.appendChild(newInputFileEl);
+    bindUploadFileButton(newInputFileEl, handleUpload);
+  });
+};
+bindUploadFileButton(document.getElementById('load-package-input'), file => {
+  window.dispatchEvent(new MessageEvent('upload', {
+    data: file,
+  }));
+});
+
 const getSession = () => {
   return currentSession;
 };
@@ -144,5 +169,6 @@ export {
   scene,
   camera,
   container,
+  bindUploadFileButton,
   getSession,
 };
