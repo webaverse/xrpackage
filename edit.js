@@ -1047,6 +1047,66 @@ const packages = document.getElementById('packages');
   packages.innerHTML = ps.map(p => _makePackageHtml(p)).join('\n');
   Array.from(packages.querySelectorAll('.package')).forEach((pe, i) => _bindPackage(pe, ps[i]));
 })();
+const tokens = document.getElementById('tokens');
+async function getTokenByIndex(index) {
+  const metadataHash = await contract.methods.getMetadata(index, 'hash').call();
+  const metadata = await fetch(`${apiHost}/${metadataHash}`).then(res => res.json());
+  const {dataHash, screenshotHash, modelHash} = metadata;
+  return {
+    index: index,
+    name: metadata.objectName,
+    img: `${apiHost}/${screenshotHash}`,
+    metadataHash: metadataHash,
+    dataHash: dataHash,
+    modelHash: modelHash
+  }
+}
+const _getTokenHtml = cardData => {
+  const {index, name, img, metadataHash, dataHash, modelHash} = cardData;
+  return `\
+    <div class="token card">
+      <a href="/run.html?i=${index}">
+        <img src="${img}" width=256 height=256>
+      </a>
+      <div class=text>
+        <div class="name cardTitle">${name}</div>
+        <input type=text value="xrpk install ${index}" readonly class="cardCode">
+        <a href="/run.html?i=${index}" class="cardAction"><span>Run</span><i class="fa fa-chevron-right"></i></a>
+        <a href="https://cryptopolys.com/create.html?o=${encodeURIComponent(metadataHash)}" class="cardAction"><span>Edit</span><i class="fa fa-chevron-right"></i></a>
+        <a href="https://ipfs.exokit.org/ipfs/${dataHash}.wbn" class="cardAction"><span>Download package</span><i class="fa fa-chevron-right"></i></a>
+        <a href="https://ipfs.exokit.org/ipfs/${modelHash}.glb" class="cardAction"><span>Download model</span><i class="fa fa-chevron-right"></i></a>
+        <a href="https://${network}.opensea.io/assets/${address}/${index}" class="cardAction"><span>Opensea</span><i class="fa fa-chevron-right"></i></a>
+      </div>
+    </div>
+  `;
+};
+(async () => {
+  const totalObjects = await contract.methods.getNonce().call();
+  // totalObjects = parseInt(totalObjects, 10);
+  // totalPages = Math.ceil(totalObjects / resultsPerPage);
+
+  for (let i = 1; i <= totalObjects && i < 10; i++) {
+    const t = await getTokenByIndex(i);
+    const h = _getTokenHtml(t);
+    tokens.innerHTML += h;
+
+    Array.from(tokens.querySelectorAll('.token')).forEach(token => {
+      const input = token.querySelector('input');
+      input.addEventListener('click', e => {
+        input.select();
+      });
+    });
+    // console.log('got token', t);
+  }
+  /* const res = await fetch(packagesEndpoint);
+  const children = await res.json();
+  const ps = await Promise.all(children.map(child =>
+    fetch(packagesEndpoint + '/' + child)
+      .then(res => res.json())
+  ));
+  packages.innerHTML = ps.map(p => _makePackageHtml(p)).join('\n');
+  Array.from(packages.querySelectorAll('.package')).forEach((pe, i) => _bindPackage(pe, ps[i])); */
+})();
 /* const scenes = document.getElementById('scenes');
 (async () => {
   const res = await fetch(scenesEndpoint);
