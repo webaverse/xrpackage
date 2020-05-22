@@ -682,7 +682,7 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   flex-wrap: wrap;
 }
 
-.tokens a {
+.tokens .cardAction {
   color: inherit;
   text-decoration: none;
 }
@@ -708,19 +708,20 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   flex-direction: column;
 }
 
-.tokens > .token a {
+.tokens > .token .cardAction {
   display: flex;
+  cursor: pointer;
 }
 
-.tokens > .token a:hover {
+.tokens > .token .cardAction:hover {
   color: #42a5f5;
 }
 
-.tokens > .token a:active {
+.tokens > .token .cardAction:active {
   color: #1e88e5;
 }
 
-.tokens > .token a span {
+.tokens > .token .cardAction span {
   margin-right: auto;
 }
 

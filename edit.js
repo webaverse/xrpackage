@@ -1071,7 +1071,8 @@ const _getTokenHtml = cardData => {
       <div class=text>
         <div class="name cardTitle">${name}</div>
         <input type=text value="xrpk install ${index}" readonly class="cardCode">
-        <a href="/run.html?i=${index}" class="cardAction"><span>Run</span><i class="fa fa-chevron-right"></i></a>
+        <nav class="cardAction add-action"><span>Add</span><i class="fa fa-chevron-right"></i></nav>
+        <a href="/run.html?i=${index}" target="_blank" class="cardAction"><span>Test</span><i class="fa fa-chevron-right"></i></a>
         <a href="https://cryptopolys.com/create.html?o=${encodeURIComponent(metadataHash)}" class="cardAction"><span>Edit</span><i class="fa fa-chevron-right"></i></a>
         <a href="https://ipfs.exokit.org/ipfs/${dataHash}.wbn" class="cardAction"><span>Download package</span><i class="fa fa-chevron-right"></i></a>
         <a href="https://ipfs.exokit.org/ipfs/${modelHash}.glb" class="cardAction"><span>Download model</span><i class="fa fa-chevron-right"></i></a>
@@ -1091,6 +1092,10 @@ const _getTokenHtml = cardData => {
     tokens.innerHTML += h;
 
     Array.from(tokens.querySelectorAll('.token')).forEach(token => {
+      const addAction = token.querySelector('.add-action');
+      addAction.addEventListener('click', e => {
+        // input.select();
+      });
       const input = token.querySelector('input');
       input.addEventListener('click', e => {
         input.select();
