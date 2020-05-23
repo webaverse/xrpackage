@@ -649,7 +649,7 @@ export class XRPackageEngine extends EventTarget {
           const xrGamepad = xrState.gamepads[i];
 
           let pose, gamepad;
-          if (inputSource && (pose = frame.getPose(inputSource.targetRaySpace, referenceSpace)) && (gamepad = inputSource.gamepad || gamepads[i])) {
+          if (inputSource && (pose = frame.getPose(inputSource.targetRaySpace, this.referenceSpace)) && (gamepad = inputSource.gamepad || gamepads[i])) {
             const {transform} = pose;
             const {position, orientation, matrix} = transform;
             if (position) { // new WebXR api
