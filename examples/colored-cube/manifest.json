@@ -5,7 +5,9 @@
   "start_url": "cube.html",
   "xr_details": {
     "schema": {
-      "color": "string"
+      "color": {
+        "type": "string"
+      }
     }
   }
 }

@@ -1133,12 +1133,13 @@ export class XRPackage extends EventTarget {
           throw new Error('invalid xr_details in manifest.json');
         }
         let schema;
-        if (xrDetails.schema !== undefined && typeof xrDetails.schema === 'object' && !Array.isArray(xrDetails.schema) && Object.keys(xrDetails.schema).every(k =>
-          typeof xrDetails.schema[k] === 'string'
-        )) {
+        if (xrDetails.schema !== undefined && typeof xrDetails.schema === 'object' && !Array.isArray(xrDetails.schema) && Object.keys(xrDetails.schema).every(k => {
+          const spec = xrDetails.schema[k];
+          return spec && spec.type === 'string' && (spec.default === undefined || typeof spec.default === 'string');
+        })) {
           schema = {};
           for (const k in xrDetails.schema) {
-            schema[k] = '';
+            schema[k] = xrDetails.schema[k].default || '';
           }
           // schema = JSON.parse(JSON.stringify(xrDetails.schema));
           /* schema = Object.keys(xrDetails.schema).map(name => ({
