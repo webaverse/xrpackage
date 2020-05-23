@@ -1286,7 +1286,7 @@ const _renderObjects = () => {
             <span>${name}</span>
             <input class="schema-input" name="${escape(name)}" type=text value="${escape(p.schema[name])}">
           </label>
-        `)}
+        `).join('\n')}
       </div>
     `;
     const backButton = objectsEl.querySelector('.back-button');
