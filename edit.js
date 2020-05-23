@@ -1225,6 +1225,7 @@ const objectsEl = document.getElementById('objects');
 const _renderObjects = () => {
   if (selectedObject) {
     let p = selectedObject;
+    const schemas = Object.keys(p.schema);
     objectsEl.innerHTML = `
       <div class=object-detail>
         <h1><nav class=back-button><i class="fa fa-arrow-left"></i></nav>${p.name}</h1>
@@ -1281,12 +1282,17 @@ const _renderObjects = () => {
             <input type=number class=scale-z value=1 step=0.1>
           </label>
         </div>
-        ${Object.keys(p.schema).map(name => `
-          <label>
-            <span>${name}</span>
-            <input class="schema-input" name="${escape(name)}" type=text value="${escape(p.schema[name])}">
-          </label>
-        `).join('\n')}
+        ${schemas.length > 0 ? `
+          <b>Schema</b>
+          <div class=row>
+            ${schemas.map(name => `
+              <label>
+                <span>${name}</span>
+                <input class="schema-input" name="${escape(name)}" type=text value="${escape(p.schema[name])}">
+              </label>
+            `).join('\n')}
+          </div>
+        ` : ''}
       </div>
     `;
     const backButton = objectsEl.querySelector('.back-button');
