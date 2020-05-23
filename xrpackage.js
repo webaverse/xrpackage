@@ -524,8 +524,10 @@ export class XRPackageEngine extends EventTarget {
       this.loadReferenceSpaceInterval = 0;
     }
     if (realSession) {
-      this.cancelFrame();
-      this.cancelFrame = null;
+      if (this.cancelFrame) {
+        this.cancelFrame();
+        this.cancelFrame = null;
+      }
       
       let referenceSpaceType = '';
       const _loadReferenceSpace = async () => {
