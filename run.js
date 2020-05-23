@@ -169,6 +169,7 @@ export {
   scene,
   camera,
   container,
+  cubeMesh,
   bindUploadFileButton,
   getSession,
 };

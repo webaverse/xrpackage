@@ -7,7 +7,7 @@ import {XRChannelConnection} from 'https://metartc.com/xrrtc.js';
 import {JSONClient} from 'https://sync.webaverse.com/sync-client.js';
 import address from 'https://contracts.webaverse.com/address.js';
 import abi from 'https://contracts.webaverse.com/abi.js';
-import {pe, renderer, scene, camera, container, bindUploadFileButton, getSession} from './run.js';
+import {pe, renderer, scene, camera, container, cubeMesh, bindUploadFileButton, getSession} from './run.js';
 
 const apiHost = `https://ipfs.exokit.org/ipfs`;
 const presenceEndpoint = `wss://presence.exokit.org`;
@@ -499,6 +499,9 @@ document.getElementById('shield-slider').addEventListener('change', e => {
       break;
     }
   }
+});
+document.getElementById('toggle-stage-button').addEventListener('click', e => {
+  cubeMesh.visible = !cubeMesh.visible;
 });
 function _matrixUpdate(e) {
   const p = this;
