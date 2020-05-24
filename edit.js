@@ -59,7 +59,7 @@ const readFile = file => new Promise((accept, reject) => {
   fr.readAsArrayBuffer(file);
 });
 
-const _makeTargetMesh = () => {
+const targetMeshGeometry = (() => {
   const targetGeometry = BufferGeometryUtils.mergeBufferGeometries([
     new THREE.BoxBufferGeometry(0.03, 0.2, 0.03)
       .applyMatrix4(new THREE.Matrix4().makeTranslation(0, -0.1, 0)),
@@ -70,7 +70,7 @@ const _makeTargetMesh = () => {
       .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), new THREE.Vector3(1, 0, 0))))
       .applyMatrix4(new THREE.Matrix4().makeTranslation(0.1, 0, 0)),
   ]);
-  const geometry = BufferGeometryUtils.mergeBufferGeometries([
+  return BufferGeometryUtils.mergeBufferGeometries([
     targetGeometry.clone()
       .applyMatrix4(new THREE.Matrix4().makeTranslation(-0.5, 0.5, -0.5)),
     targetGeometry.clone()
@@ -97,24 +97,27 @@ const _makeTargetMesh = () => {
     targetGeometry.clone()
       .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(-1, 1, 0).normalize(), new THREE.Vector3(1, -1, 0).normalize())))
       .applyMatrix4(new THREE.Matrix4().makeTranslation(0.5, -0.5, 0.5)),
-  ]).applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
-  const targetVsh = `
-    #define M_PI 3.1415926535897932384626433832795
-    uniform float uTime;
-    varying vec2 vUv;
-    void main() {
-      float f = 1.0 + pow(sin(uTime * M_PI), 0.5) * 0.2;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position * f, 1.);
-    }
-  `;
-  const targetFsh = `
-    uniform float uHighlight;
-    uniform float uTime;
-    void main() {
-      float f = max(1.0 - pow(uTime, 0.5), 0.1);
-      gl_FragColor = vec4(vec3(f * uHighlight), 1.0);
-    }
-  `;
+  ])// .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
+})();
+const targetVsh = `
+  #define M_PI 3.1415926535897932384626433832795
+  uniform float uTime;
+  varying vec2 vUv;
+  void main() {
+    float f = 1.0 + pow(sin(uTime * M_PI), 0.5) * 0.2;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position * f, 1.);
+  }
+`;
+const targetFsh = `
+  uniform float uHighlight;
+  uniform float uTime;
+  void main() {
+    float f = max(1.0 - pow(uTime, 0.5), 0.1);
+    gl_FragColor = vec4(vec3(f * uHighlight), 1.0);
+  }
+`;
+const _makeTargetMesh = () => {
+  const geometry = targetMeshGeometry;
   const material = new THREE.ShaderMaterial({
     uniforms: {
       uHighlight: {
@@ -134,8 +137,30 @@ const _makeTargetMesh = () => {
   mesh.frustumCulled = false;
   return mesh;
 };
-/* const targetMesh = _makeTargetMesh();
-scene.add(targetMesh); */
+
+window.downloadTargetMesh = async () => {
+  const {GLTFExporter} = await import('./GLTFExporter.js');
+  const targetMesh = _makeTargetMesh();
+  targetMesh.material = new THREE.MeshBasicMaterial({
+    color: 0x000000,
+  });
+  const data = await new Promise((accept, reject) => {
+    const exporter = new GLTFExporter();
+    const exportScene = new THREE.Scene();
+    exportScene.add(targetMesh);
+    exporter.parse(exportScene, gltf => {
+      accept(gltf);
+    }, {
+      binary: true,
+      includeCustomExtensions: true,
+    });
+  });
+  console.log('got data', data);
+  const b = new Blob([data], {
+    type: 'application/octet-stream',
+  });
+  downloadFile(b, 'target.glb');
+};
 
 pe.defaultAvatar();
 
