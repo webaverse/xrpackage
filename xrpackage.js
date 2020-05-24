@@ -112,9 +112,9 @@ const xrState = (() => {
   result.depthNear[0] = 0.1;
   result.depthFar = _makeTypedArray(Float32Array, 1);
   result.depthFar[0] = 2000.0;
-  result.position = _makeTypedArray(Float32Array, 3);
+  /* result.position = _makeTypedArray(Float32Array, 3);
   result.orientation = _makeTypedArray(Float32Array, 4);
-  result.orientation[3] = 1;
+  result.orientation[3] = 1; */
   result.poseMatrix = _makeTypedArray(Float32Array, 16);
   result.poseMatrix.set(Float32Array.from([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]));
   result.leftViewMatrix = _makeTypedArray(Float32Array, 16);
@@ -657,8 +657,8 @@ export class XRPackageEngine extends EventTarget {
             .fromArray(xrState.leftViewMatrix)
             .getInverse(localMatrix)
             .decompose(localVector, localQuaternion, localVector2)
-          localVector.toArray(xrState.position);
-          localQuaternion.toArray(xrState.orientation);
+          // localVector.toArray(xrState.position);
+          // localQuaternion.toArray(xrState.orientation);
         };
         _loadHmd();
 
