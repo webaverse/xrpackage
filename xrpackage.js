@@ -892,9 +892,12 @@ export class XRPackageEngine extends EventTarget {
       const ps = this.packages
         .map(p => p.context.object)
         .filter(o => o)
-        .sort((a, b) => a.context.distanceTo(input.position) - b.context.distanceTo(input.position));
+        .sort((a, b) => a.position.distanceTo(input.position) - b.position.distanceTo(input.position))
       if (ps.length > 0) {
-        this.grabs[handedness] = ps[0];
+        const p = ps[0];
+        if (p.position.distanceTo(input.position) < 1.5) {
+          this.grabs[handedness] = p;
+        }
       }
     }
   }
