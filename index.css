@@ -929,8 +929,9 @@ input[type=file].hidden {
 .main {
   display: flex;
   padding-left: 150px;
-  min-height: 100vh;
+  height: 100vh;
   flex-direction: column;
+  overflow: hidden;
 }
 
 /* .main .sidebar {
