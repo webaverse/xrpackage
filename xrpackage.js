@@ -729,10 +729,17 @@ export class XRPackageEngine extends EventTarget {
         }
         rig.inputs.hmd.position.copy(localVector);
         rig.inputs.hmd.quaternion.copy(localQuaternion);
-        rig.inputs.leftGamepad.position.copy(localVector).add(localVector2.copy(leftHandOffset).applyQuaternion(localQuaternion));
-        rig.inputs.leftGamepad.quaternion.copy(localQuaternion);
-        rig.inputs.rightGamepad.position.copy(localVector).add(localVector2.copy(rightHandOffset).applyQuaternion(localQuaternion));
-        rig.inputs.rightGamepad.quaternion.copy(localQuaternion);
+        if (this.realSession) {
+          rig.inputs.leftGamepad.position.fromArray(xrState.gamepads[1].position);
+          rig.inputs.leftGamepad.quaternion.fromArray(xrState.gamepads[1].orientation);
+          rig.inputs.rightGamepad.position.fromArray(xrState.gamepads[0].position);
+          rig.inputs.rightGamepad.quaternion.fromArray(xrState.gamepads[0].orientation);
+        } else {
+          rig.inputs.leftGamepad.position.copy(localVector).add(localVector2.copy(leftHandOffset).applyQuaternion(localQuaternion));
+          rig.inputs.leftGamepad.quaternion.copy(localQuaternion);
+          rig.inputs.rightGamepad.position.copy(localVector).add(localVector2.copy(rightHandOffset).applyQuaternion(localQuaternion));
+          rig.inputs.rightGamepad.quaternion.copy(localQuaternion);
+        }
 
         HANDS.forEach(handedness => {
           const grabuse = this.grabuses[handedness];
