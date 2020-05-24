@@ -468,6 +468,20 @@ export class XRPackageEngine extends EventTarget {
     this.loadReferenceSpaceInterval = 0;
     this.cancelFrame = null;
     
+    window.addEventListener('resize', e => {
+      if (!this.realSession) {
+        renderer.xr.isPresenting = false;
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        xrState.renderWidth[0] = window.innerWidth / 2 * window.devicePixelRatio;
+        xrState.renderHeight[0] = window.innerHeight * window.devicePixelRatio;
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+
+        renderer.xr.isPresenting = true;
+      }
+    });
+    
     const animate = timestamp => {
       const frameId = window.requestAnimationFrame(animate);
       this.cancelFrame = () => {
