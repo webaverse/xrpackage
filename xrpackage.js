@@ -744,7 +744,6 @@ export class XRPackageEngine extends EventTarget {
               const f = Math.min(Math.max((now - startTime) / (endTime - startTime), 0), 1);
               input.position.add(
                 localVector.set(0, Math.sin(f * Math.PI * 2) * 0.2, (-1 + Math.cos(f * Math.PI * 2)) * 0.2)
-                  // .multiplyScalar()
                   .applyQuaternion(input.quaternion)
               );
               input.quaternion.multiply(
