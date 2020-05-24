@@ -870,6 +870,8 @@ export class XRPackageEngine extends EventTarget {
     }
   }
   setCamera(camera) {
+    camera.matrixWorld.toArray(xrState.poseMatrix);
+
     camera.matrixWorldInverse.toArray(xrState.leftViewMatrix);
     camera.projectionMatrix.toArray(xrState.leftProjectionMatrix);
 
