@@ -727,14 +727,12 @@ export class XRPackageEngine extends EventTarget {
           m.getInverse(m);
           m.decompose(localVector, localQuaternion, localVector2);
         }
-        // camera.position.add(localVector2.set(0, -0.5, -2).applyQuaternion(camera.quaternion));
         rig.inputs.hmd.position.copy(localVector);
         rig.inputs.hmd.quaternion.copy(localQuaternion);
         rig.inputs.leftGamepad.position.copy(localVector).add(localVector2.copy(leftHandOffset).applyQuaternion(localQuaternion));
         rig.inputs.leftGamepad.quaternion.copy(localQuaternion);
         rig.inputs.rightGamepad.position.copy(localVector).add(localVector2.copy(rightHandOffset).applyQuaternion(localQuaternion));
         rig.inputs.rightGamepad.quaternion.copy(localQuaternion);
-        // camera.position.sub(localVector2);
 
         HANDS.forEach(handedness => {
           const grabuse = this.grabuses[handedness];
