@@ -138,7 +138,7 @@ const _makeTargetMesh = () => {
   return mesh;
 };
 
-window.downloadTargetMesh = async () => {
+/* window.downloadTargetMesh = async () => {
   const {GLTFExporter} = await import('./GLTFExporter.js');
   const targetMesh = _makeTargetMesh();
   targetMesh.material = new THREE.MeshBasicMaterial({
@@ -160,7 +160,7 @@ window.downloadTargetMesh = async () => {
     type: 'application/octet-stream',
   });
   downloadFile(b, 'target.glb');
-};
+}; */
 
 pe.defaultAvatar();
 
