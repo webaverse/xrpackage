@@ -37,7 +37,7 @@ class XRPackageManager extends EventTarget {
     this.loadPromise = makePromise();
     this.seenEvents = {};
   }
-  async iframeInit({engine, indexHtml, context, id, schema, xrState}) {
+  async iframeInit({engine, indexHtml, context, id, schema, xrState, XRPackage}) {
     console.log('iframe init');
 
     {
@@ -54,6 +54,7 @@ class XRPackageManager extends EventTarget {
     document.write(indexHtml);
     document.close();
 
+    this._engine = engine;
     this.schema = schema;
 
     GlobalContext.xrState = xrState;
@@ -129,6 +130,8 @@ class XRPackageManager extends EventTarget {
     window.XRReferenceSpace = XR.XRReferenceSpace;
     window.XRBoundedReferenceSpace = XR.XRBoundedReferenceSpace;
 
+    window.XRPackage = XRPackage;
+
     Object.defineProperty(navigator, 'serviceWorker', {
       get() {},
     });
@@ -141,6 +144,12 @@ class XRPackageManager extends EventTarget {
     } else {
       GlobalContext.xrFramebuffer = null;
     }
+  }
+  get packages() {
+    return this._engine.packages.slice();
+  }
+  add(p) {
+    return this._engine.add(p);
   }
   setMatrix(matrixArray) {
     xrOffsetMatrix.fromArray(matrixArray);

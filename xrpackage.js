@@ -312,6 +312,7 @@ const xrTypeAdders = {
       id: p.id,
       schema: p.schema,
       xrState,
+      XRPackage,
     });
   },
   'gltf@0.0.1': async function(p) {
