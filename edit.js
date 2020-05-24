@@ -148,6 +148,7 @@ function animate(timestamp, frame) {
   const currentSession = getSession();
   if (currentSession) {
     // XXX
+    pe.setRigMatrix(null);
   } else if (document.pointerLockElement) {
     const speed = 0.015 * (keys.shift ? 3 : 1);
     const cameraEuler = pe.camera.rotation.clone();
@@ -173,15 +174,17 @@ function animate(timestamp, frame) {
     pe.camera.position.add(velocity);
     pe.camera.updateMatrixWorld();
     velocity.multiplyScalar(0.7);
-  }
 
-  if (selectedTool === 'thirdperson') {
-    pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-    localVector.add(localVector3.copy(avatarCameraOffset).applyQuaternion(localQuaternion));
-    if (velocity.lengthSq() > 0) {
-      localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.copy(velocity).normalize());
+    if (selectedTool === 'thirdperson') {
+      pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+      localVector.add(localVector3.copy(avatarCameraOffset).applyQuaternion(localQuaternion));
+      if (velocity.lengthSq() > 0) {
+        localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.copy(velocity).normalize());
+      }
+      pe.setRigMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
+    } else {
+      pe.setRigMatrix(null);
     }
-    pe.setRigMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
   } else {
     pe.setRigMatrix(null);
   }
