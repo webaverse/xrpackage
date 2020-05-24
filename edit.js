@@ -147,7 +147,7 @@ function animate(timestamp, frame) {
 
   const currentSession = getSession();
   if (currentSession) {
-    pe.setRigMatrix(null);
+    // pe.setRigMatrix(null);
   } else if (document.pointerLockElement) {
     const speed = 0.015 * (keys.shift ? 3 : 1);
     const cameraEuler = pe.camera.rotation.clone();
@@ -173,17 +173,15 @@ function animate(timestamp, frame) {
     pe.camera.position.add(velocity);
     pe.camera.updateMatrixWorld();
     velocity.multiplyScalar(0.7);
-
-    if (selectedTool === 'thirdperson') {
-      pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-      localVector.add(localVector3.copy(avatarCameraOffset).applyQuaternion(localQuaternion));
-      if (velocity.lengthSq() > 0) {
-        localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.copy(velocity).normalize());
-      }
-      pe.setRigMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
-    } else {
-      pe.setRigMatrix(null);
+  }
+  
+  if (thirdPerson) {
+    pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+    localVector.add(localVector3.copy(avatarCameraOffset).applyQuaternion(localQuaternion));
+    if (velocity.lengthSq() > 0) {
+      localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.copy(velocity).normalize());
     }
+    pe.setRigMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
   } else {
     pe.setRigMatrix(null);
   }
@@ -207,22 +205,18 @@ bindUploadFileButton(document.getElementById('import-scene-input'), async file =
 });
 
 let selectedTool = 'camera';
+let thirdPerson = false;
 let avatarHeight = 1.2;
 const avatarCameraOffset = new THREE.Vector3(0, 0, -1);
 const tools = Array.from(document.querySelectorAll('.tool'));
 for (let i = 0; i < tools.length; i++) {
   const tool = document.getElementById('tool-' + (i+1));
   tool.addEventListener('click', e => {
-    for (let i = 0; i < tools.length; i++) {
-      tools[i].classList.remove('selected');
-    }
-    tool.classList.add('selected');
-
     const oldSelectedTool = selectedTool;
-    selectedTool = tool.getAttribute('tool');
+    const newSelectedTool = tool.getAttribute('tool');
 
-    if (selectedTool !== oldSelectedTool) {
-      pe.orbitControls.enabled = false;
+    if (newSelectedTool !== oldSelectedTool) {
+      // pe.orbitControls.enabled = false;
 
       hoverTarget = null;
       for (let i = 0; i < selectTargets.length; i++) {
@@ -231,17 +225,36 @@ for (let i = 0; i < tools.length; i++) {
       }
       selectTargets = [];
 
-      switch (oldSelectedTool) {
-        case 'thirdperson': {
+      // let decapitate = true;
+      if (newSelectedTool === 'thirdperson') {
+        thirdPerson = !thirdPerson;
+
+        if (thirdPerson) {
+          pe.camera.position.y = avatarHeight;
+          pe.camera.position.sub(localVector.copy(avatarCameraOffset).applyQuaternion(pe.camera.quaternion));
+          pe.camera.updateMatrixWorld();
+          pe.setCamera(camera);
+
+          // pe.domElement.requestPointerLock();
+          // decapitate = false;
+        } else {
           pe.camera.position.add(localVector.copy(avatarCameraOffset).applyQuaternion(pe.camera.quaternion));
           pe.camera.updateMatrixWorld();
           pe.setCamera(camera);
-          break;
         }
+
+        tool.classList.toggle('selected');
+      } else {
+        for (let i = 0; i < tools.length; i++) {
+          const tool = tools[i];
+          if (tool.getAttribute('tool') !== 'thirdperson') {
+            tool.classList.remove('selected');
+          }
+        }
+        tool.classList.add('selected');
       }
 
-      let decapitate = true;
-      switch (selectedTool) {
+      switch (newSelectedTool) {
         case 'camera': {
           document.exitPointerLock();
           pe.orbitControls.enabled = true;
@@ -252,31 +265,31 @@ for (let i = 0; i < tools.length; i++) {
           pe.camera.position.y = avatarHeight;
           pe.camera.updateMatrixWorld();
           pe.setCamera(camera);
+          
+          pe.orbitControls.enabled = false;
 
           pe.domElement.requestPointerLock();
-          break;
-        }
-        case 'thirdperson': {
-          pe.camera.position.y = avatarHeight;
-          pe.camera.position.sub(localVector.copy(avatarCameraOffset).applyQuaternion(pe.camera.quaternion));
-          pe.camera.updateMatrixWorld();
-          pe.setCamera(camera);
-
-          pe.domElement.requestPointerLock();
-          decapitate = false;
           break;
         }
         case 'select': {
+          pe.orbitControls.enabled = false;
+          
           document.exitPointerLock();
           break;
         }
       }
       if (pe.rig) {
-        if (decapitate) {
+        if (!thirdPerson) {
           pe.rig.decapitate();
         } else {
           pe.rig.undecapitate();
         }
+      }
+
+      if (newSelectedTool === 'thirdperson') {
+        // nothing
+      } else {
+        selectedTool = newSelectedTool;
       }
     }
   });
@@ -674,14 +687,14 @@ const _updateRaycasterFromMouseEvent = (raycaster, e) => {
 };
 const _updateMouseMovement = e => {
   const {movementX, movementY} = e;
-  if (selectedTool === 'thirdperson') {
+  if (thirdPerson) {
     pe.camera.position.add(localVector.copy(avatarCameraOffset).applyQuaternion(pe.camera.quaternion));
   }
   pe.camera.rotation.y -= movementX * Math.PI*2*0.001;
   pe.camera.rotation.x -= movementY * Math.PI*2*0.001;
   pe.camera.rotation.x = Math.min(Math.max(pe.camera.rotation.x, -Math.PI/2), Math.PI/2);
   pe.camera.quaternion.setFromEuler(pe.camera.rotation);
-  if (selectedTool === 'thirdperson') {
+  if (thirdPerson) {
     pe.camera.position.sub(localVector.copy(avatarCameraOffset).applyQuaternion(pe.camera.quaternion));
   }
   pe.camera.updateMatrixWorld();
@@ -689,8 +702,6 @@ const _updateMouseMovement = e => {
 };
 renderer.domElement.addEventListener('mousemove', e => {
   if (selectedTool === 'firstperson') {
-    _updateMouseMovement(e);
-  } else if (selectedTool === 'thirdperson') {
     _updateMouseMovement(e);
   } else if (selectedTool === 'select' && !getSession()) {
     _updateRaycasterFromMouseEvent(raycaster, e);
