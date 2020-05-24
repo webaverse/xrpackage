@@ -443,6 +443,7 @@ class XRPose {
     this._realViewMatrix = this.transform.inverse.matrix;
     this._localViewMatrix = Float32Array.from([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
     this.transform.inverse.matrix = this._localViewMatrix;
+    this.transform.matrix = GlobalContext.xrState.poseMatrix;
   }
 }
 
