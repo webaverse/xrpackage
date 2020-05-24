@@ -115,6 +115,8 @@ const xrState = (() => {
   result.position = _makeTypedArray(Float32Array, 3);
   result.orientation = _makeTypedArray(Float32Array, 4);
   result.orientation[3] = 1;
+  result.poseMatrix = _makeTypedArray(Float32Array, 16);
+  result.poseMatrix.set(Float32Array.from([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]));
   result.leftViewMatrix = _makeTypedArray(Float32Array, 16);
   result.leftViewMatrix.set(Float32Array.from([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]));
   result.rightViewMatrix = _makeTypedArray(Float32Array, 16);
