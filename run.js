@@ -53,8 +53,8 @@ function mod(a, n) {
 const parcelSize = 10;
 const parcelGeometry = (() => {
   const tileGeometry = new THREE.PlaneBufferGeometry(1, 1)
-    .applyMatrix(localMatrix.makeScale(0.95, 0.95, 1))
-    .applyMatrix(localMatrix.makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2)))
+    .applyMatrix4(localMatrix.makeScale(0.95, 0.95, 1))
+    .applyMatrix4(localMatrix.makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2)))
     .toNonIndexed();
   const numCoords = tileGeometry.attributes.position.array.length;
   const numVerts = numCoords/3;
@@ -66,7 +66,7 @@ const parcelGeometry = (() => {
   for (let x = -parcelSize/2+0.5; x < parcelSize/2; x++) {
     for (let z = -parcelSize/2+0.5; z < parcelSize/2; z++) {
       const newTileGeometry = tileGeometry.clone()
-        .applyMatrix(localMatrix.makeTranslation(x, 0, z));
+        .applyMatrix4(localMatrix.makeTranslation(x, 0, z));
       positions.set(newTileGeometry.attributes.position.array, i * newTileGeometry.attributes.position.array.length);
       for (let j = 0; j < newTileGeometry.attributes.position.array.length/3; j++) {
         localVector.set(x, 0, z).toArray(centers, i*newTileGeometry.attributes.position.array.length + j*3);
