@@ -2,6 +2,9 @@ import * as THREE from './three.module.js';
 import {XRPackageEngine, XRPackage} from './xrpackage.js';
 import './selector.js';
 
+const localVector = new THREE.Vector3();
+const localMatrix = new THREE.Matrix4();
+
 let currentSession = null;
 
 const pe = new XRPackageEngine({
@@ -44,23 +47,71 @@ container.add(directionalLight);
 const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 3);
 container.add(directionalLight2);
 
-const cubeMesh = (() => {
-  const geometry = new THREE.BoxBufferGeometry(10, 1, 10);
-  const material = new THREE.MeshStandardMaterial({
-    color: 0x666666,
-    // side: THREE.DoubleSide,
+function mod(a, n) {
+  return ((a%n)+n)%n;
+}
+const parcelSize = 10;
+const parcelGeometry = (() => {
+  const tileGeometry = new THREE.PlaneBufferGeometry(1, 1)
+    .applyMatrix(localMatrix.makeScale(0.95, 0.95, 1))
+    .applyMatrix(localMatrix.makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2)))
+    .toNonIndexed();
+  const numCoords = tileGeometry.attributes.position.array.length;
+  const numVerts = numCoords/3;
+  const positions = new Float32Array(numCoords*parcelSize*parcelSize);
+  const centers = new Float32Array(numCoords*parcelSize*parcelSize);
+  const typesx = new Float32Array(numVerts*parcelSize*parcelSize);
+  const typesz = new Float32Array(numVerts*parcelSize*parcelSize);
+  let i = 0;
+  for (let x = -parcelSize/2+0.5; x < parcelSize/2; x++) {
+    for (let z = -parcelSize/2+0.5; z < parcelSize/2; z++) {
+      const newTileGeometry = tileGeometry.clone()
+        .applyMatrix(localMatrix.makeTranslation(x, 0, z));
+      positions.set(newTileGeometry.attributes.position.array, i * newTileGeometry.attributes.position.array.length);
+      for (let j = 0; j < newTileGeometry.attributes.position.array.length/3; j++) {
+        localVector.set(x, 0, z).toArray(centers, i*newTileGeometry.attributes.position.array.length + j*3);
+      }
+      let typex = 0;
+      if (mod((x + parcelSize/2-0.5), parcelSize) === 0) {
+        typex = 1/8;
+      } else if (mod((x + parcelSize/2-0.5), parcelSize) === parcelSize-1) {
+        typex = 2/8;
+      }
+      let typez = 0;
+      if (mod((z + parcelSize/2-0.5), parcelSize) === 0) {
+        typez = 1/8;
+      } else if (mod((z + parcelSize/2-0.5), parcelSize) === parcelSize-1) {
+        typez = 2/8;
+      }
+      for (let j = 0; j < numVerts; j++) {
+        typesx[i*numVerts + j] = typex;
+        typesz[i*numVerts + j] = typez;
+      }
+      i++;
+    }
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  /* geometry.setAttribute('center', new THREE.BufferAttribute(centers, 3));
+  geometry.setAttribute('typex', new THREE.BufferAttribute(typesx, 1));
+  geometry.setAttribute('typez', new THREE.BufferAttribute(typesz, 1)); */
+  return geometry;
+})();
+const _makeFloorMesh = () => {
+  const geometry = parcelGeometry;
+  const material = new THREE.MeshBasicMaterial({
+    color: 0x000000,
+    opacity: 0.9,
+    side: THREE.DoubleSide,
+    transparent: true,
   });
-  const mesh = new THREE.Mesh(geometry, material);  
+  const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
   return mesh;
-})();
-cubeMesh.position.set(0, -1/2, 0);
-// cubeMesh.rotation.order = 'YXZ';
-container.add(cubeMesh);
+};
+const floorMesh = _makeFloorMesh();
+container.add(floorMesh);
 
-/* window.addEventListener('animate', e => {
-  const {timestamp, frame} = e.data;
-}); */
 function animate(timestamp, frame) {
   /* const timeFactor = 1000;
   targetMesh.material.uniforms.uTime.value = (Date.now() % timeFactor) / timeFactor; */
@@ -169,7 +220,7 @@ export {
   scene,
   camera,
   container,
-  cubeMesh,
+  floorMesh,
   bindUploadFileButton,
   getSession,
 };
