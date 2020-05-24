@@ -1229,6 +1229,7 @@ const _renderObjects = () => {
   if (selectedObject) {
     let p = selectedObject;
     const schemas = Object.keys(p.schema);
+    const {events} = p;
     objectsEl.innerHTML = `
       <div class=object-detail>
         <h1><nav class=back-button><i class="fa fa-arrow-left"></i></nav>${p.name}</h1>
@@ -1289,9 +1290,21 @@ const _renderObjects = () => {
           <b>Schema</b>
           <div class=row>
             ${schemas.map(name => `
-              <label>
+              <label class=schema>
                 <span>${name}</span>
                 <input class="schema-input" name="${escape(name)}" type=text value="${escape(p.schema[name])}">
+              </label>
+            `).join('\n')}
+          </div>
+        ` : ''}
+        ${events.length > 0 ? `
+          <b>Events</b>
+          <div class=row>
+            ${events.map(e => `
+              <label class=event name="${escape(e.name)}">
+                <span>${e.name}</span>
+                <input class="event-input" type=text>
+                <nav class="button event-send-button">Send</nav>
               </label>
             `).join('\n')}
           </div>
@@ -1386,13 +1399,23 @@ const _renderObjects = () => {
       _setScale(e, 'z');
     });
 
-    Array.from(objectsEl.querySelectorAll('.schema-input')).forEach(input => {
-      const name = input.getAttribute('name');
+    Array.from(objectsEl.querySelectorAll('.schema-input')).forEach(schemaInput => {
+      const name = schemaInput.getAttribute('name');
       const value = p.schema[name] || '';
-      input.value = value;
-      input.addEventListener('change', e => {
+      schemaInput.value = value;
+      schemaInput.addEventListener('change', e => {
         const value = e.target.value;
         p.setSchema(name, value);
+      });
+    });
+
+    Array.from(objectsEl.querySelectorAll('.event')).forEach(event => {
+      const name = event.getAttribute('name');
+      const eventInput = event.querySelector('.event-input');
+      const eventSendButton = event.querySelector('.event-send-button');
+      eventSendButton.addEventListener('click', e => {
+        const {value} = eventInput;
+        p.sendEvent(name, value);
       });
     });
   } else {

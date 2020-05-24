@@ -1141,13 +1141,24 @@ export class XRPackage extends EventTarget {
           for (const k in xrDetails.schema) {
             schema[k] = xrDetails.schema[k].default || '';
           }
-          // schema = JSON.parse(JSON.stringify(xrDetails.schema));
-          /* schema = Object.keys(xrDetails.schema).map(name => ({
-            name,
-            value: '',
-          })); */
         } else {
           schema = {};
+        }
+        let events;
+        if (xrDetails.events !== undefined && typeof xrDetails.events === 'object' && !Array.isArray(xrDetails.events) && Object.keys(xrDetails.events).every(k => {
+          const spec = xrDetails.events[k];
+          return spec && spec.type === 'string';
+        })) {
+          events = Object.keys(xrDetails.events).map(name => {
+            const spec = xrDetails.events[name];
+            const {type} = spec;
+            return {
+              name,
+              type,
+            };
+          });
+        } else {
+          events = [];
         }
 
         const loader = xrTypeLoaders[xrType];
@@ -1156,6 +1167,7 @@ export class XRPackage extends EventTarget {
           this.type = xrType;
           this.main = startUrl;
           this.schema = schema;
+          this.events = events;
           this.details = xrDetails;
 
           swLoadPromise
@@ -1216,6 +1228,11 @@ export class XRPackage extends EventTarget {
   setSchema(key, value) {
     this.schema[key] = value;
     this.context.iframe && this.context.iframe.contentWindow.xrpackage.setSchema(key, value);
+  }
+  sendEvent(name, value) {
+    if (this.events.some(e => e.name === name)) {
+      this.context.iframe && this.context.iframe.contentWindow.xrpackage.sendEvent(name, value);
+    }
   }
   async reload() {
     const {parent} = this;

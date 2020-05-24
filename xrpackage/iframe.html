@@ -154,6 +154,14 @@ class XRPackageManager extends EventTarget {
       },
     }));
   }
+  sendEvent(name, value) {
+    window.navigator.xr.dispatchEvent(new MessageEvent('event', {
+      data: {
+        name,
+        value,
+      },
+    }));
+  }
 }
 window.xrpackage = new XRPackageManager();
 })();
