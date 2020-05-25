@@ -801,14 +801,14 @@ export class XRPackageEngine extends EventTarget {
           const grab = this.grabs[handedness];
           if (grab) {
             const input = rig.inputs[_oppositeHand(handedness) + 'Gamepad'];
-            grab.setMatrix(localMatrix.compose(input.position, input.quaternion, input.scale).premultiply(localMatrix2.getInverse(xrOffsetMatrix)));
+            grab.setMatrix(localMatrix.compose(input.position, input.quaternion, input.scale));
           }
         });
         SLOTS.forEach(slot => {
           const equip = this.equips[slot];
           if (equip) {
             const input = _getSlotInput(rig, slot);
-            equip.setMatrix(localMatrix.compose(input.position, input.quaternion, input.scale).premultiply(localMatrix2.getInverse(xrOffsetMatrix)));
+            equip.setMatrix(localMatrix.compose(input.position, input.quaternion, input.scale));
           }
         });
 
@@ -916,7 +916,7 @@ export class XRPackageEngine extends EventTarget {
       const input = this.rig.inputs[_oppositeHand(handedness) + 'Gamepad'];
       const inputPosition = localVector
         .copy(input.position)
-        .applyMatrix4(localMatrix.getInverse(xrOffsetMatrix));
+        // .applyMatrix4(localMatrix.getInverse(xrOffsetMatrix));
       const ps = this.packages
         .sort((a, b) => {
           a.matrix.decompose(localVector2, localQuaternion, localVector4);
@@ -950,7 +950,7 @@ export class XRPackageEngine extends EventTarget {
         const input = _getSlotInput(this.rig, slot);
         const inputPosition = localVector
           .copy(input.position)
-          .applyMatrix4(localMatrix.getInverse(xrOffsetMatrix));
+          // .applyMatrix4(localMatrix.getInverse(xrOffsetMatrix));
         const ps = this.packages
           .sort((a, b) => {
             a.matrix.decompose(localVector2, localQuaternion, localVector4);
@@ -1408,7 +1408,7 @@ export class XRPackage extends EventTarget {
 
       this.context.object &&
         this.context.object.matrix
-          .copy(localMatrix)
+          .copy(this.matrix)
           .decompose(this.context.object.position, this.context.object.quaternion, this.context.object.scale);
       this.context.iframe && this.context.iframe.contentWindow.xrpackage.setMatrix(localMatrix.toArray(localArray));
     }
