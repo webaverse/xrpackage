@@ -381,7 +381,6 @@ export class XRPackageEngine extends EventTarget {
     renderer.physicallyCorrectLights = true;
     renderer.xr.enabled = true;
     this.renderer = renderer;
-    window.renderer = renderer;
 
     const scene = new THREE.Scene();
     this.scene = scene;
