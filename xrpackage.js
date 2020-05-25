@@ -222,6 +222,8 @@ const xrTypeLoaders = {
 
     p.context.object = scene;
 
+    p.context.object.matrix.copy(p.matrix).decompose(p.context.object.position, p.context.object.quaternion, p.context.object.scale);
+
     if (p.details.script) {
       const scriptPath = '/' + p.details.script;
       const scriptFile = p.files.find(file => new URL(file.url).pathname === scriptPath);
@@ -279,6 +281,7 @@ const xrTypeLoaders = {
     o.scene.traverse(o => {
       o.frustumCulled = false;
     });
+    p.context.object.matrix.copy(p.matrix).decompose(p.context.object.position, p.context.object.quaternion, p.context.object.scale);
   },
   'vox@0.0.1': async function(p) {
     const mainPath = '/' + p.main;
@@ -292,6 +295,7 @@ const xrTypeLoaders = {
     URL.revokeObjectURL(u);
 
     p.context.object = o;
+    p.context.object.matrix.copy(p.matrix).decompose(p.context.object.position, p.context.object.quaternion, p.context.object.scale);
   },
   'xrpackage-scene@0.0.1': async function(p) {
     const mainPath = '/' + p.main;
