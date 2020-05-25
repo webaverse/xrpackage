@@ -921,9 +921,12 @@ export class XRPackageEngine extends EventTarget {
         const ps = this.packages
           .map(p => p.context.object)
           .filter(o => o)
-          .sort((a, b) => a.context.distanceTo(position) - b.context.distanceTo(position));
+          .sort((a, b) => a.position.distanceTo(position) - b.position.distanceTo(position));
         if (ps.length > 0) {
-          this.equips[slot] = ps[0];
+          const p = ps[0];
+          if (p.position.distanceTo(position) < 1.5) {
+            this.equips[slot] = p;
+          }
         }
       }
     }
