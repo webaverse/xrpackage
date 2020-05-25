@@ -886,6 +886,11 @@ export class XRPackageEngine extends EventTarget {
       this.rigMatrixEnabled = false;
     }
   }
+  setGamepadsConnected(connected) {
+    for (let i = 0; i < xrState.gamepads.length; i++) {
+      xrState.gamepads[i].connected[0] = connected ? 1 : 0;
+    }
+  }
   grabdown(handedness) {
     if (this.rig && !this.grabs[handedness]) {
       const input = this.rig.inputs[_oppositeHand(handedness) + 'Gamepad'];
