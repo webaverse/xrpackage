@@ -319,13 +319,13 @@ const xrTypeAdders = {
     });
   },
   'gltf@0.0.1': async function(p) {
-    this.scene.add(p.context.object);
+    this.container.add(p.context.object);
   },
   'vrm@0.0.1': async function(p) {
-    this.scene.add(p.context.object);
+    this.container.add(p.context.object);
   },
   'vox@0.0.1': async function(p) {
-    this.scene.add(p.context.object);
+    this.container.add(p.context.object);
   },
 };
 const xrTypeRemovers = {
@@ -339,13 +339,13 @@ const xrTypeRemovers = {
     p.context.iframe && p.context.iframe.parentNode.removeChild(p.context.iframe);
   },
   'gltf@0.0.1': function(p) {
-    this.scene.remove(p.context.object);
+    this.container.remove(p.context.object);
   },
   'vrm@0.0.1': function(p) {
-    this.scene.remove(p.context.object);
+    this.container.remove(p.context.object);
   },
   'vox@0.0.1': function(p) {
-    this.scene.remove(p.context.object);
+    this.container.remove(p.context.object);
   },
 };
 
@@ -390,6 +390,10 @@ export class XRPackageEngine extends EventTarget {
     camera.rotation.order = 'YXZ';
     this.camera = camera;
 
+    const container = new THREE.Object3D();
+    scene.add(container);
+    this.container = container;
+
     const orbitControls = new OrbitControls(camera, canvas, document);
     orbitControls.screenSpacePanning = true;
     orbitControls.enableMiddleZoom = false;
@@ -397,12 +401,12 @@ export class XRPackageEngine extends EventTarget {
     this.orbitControls = orbitControls;
 
     const ambientLight = new THREE.AmbientLight(0xFFFFFF);
-    scene.add(ambientLight);
+    container.add(ambientLight);
     const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 3);
     directionalLight.position.set(10, 10, 10)
-    scene.add(directionalLight);
+    container.add(directionalLight);
     const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 3);
-    scene.add(directionalLight2);
+    container.add(directionalLight2);
 
     this.fakeSession = new XR.XRSession();
     this.fakeSession.onrequestanimationframe = this.requestAnimationFrame.bind(this);
@@ -944,7 +948,7 @@ export class XRPackageEngine extends EventTarget {
     await p.waitForLoad();
 
     if (this.rig) {
-      this.scene.remove(this.rig.model);
+      this.container.remove(this.rig.model);
       this.rig.destroy();
       this.rig = null;
     }
@@ -962,7 +966,7 @@ export class XRPackageEngine extends EventTarget {
         microphoneMediaStream: null,
         // debug: !newModel,
       });
-      this.scene.add(this.rig.model);
+      this.container.add(this.rig.model);
 
       this.avatar = p;
     }
@@ -973,7 +977,7 @@ export class XRPackageEngine extends EventTarget {
   }
   defaultAvatar() {
     if (this.rig) {
-      this.scene.remove(this.rig.model);
+      this.container.remove(this.rig.model);
       this.rig.destroy();
       this.rig = null;
     }
@@ -984,7 +988,7 @@ export class XRPackageEngine extends EventTarget {
       visemes: true,
       debug: true,
     });
-    this.scene.add(this.rig.model);
+    this.container.add(this.rig.model);
 
     this.avatar = null;
 
