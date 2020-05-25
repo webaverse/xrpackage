@@ -1377,6 +1377,9 @@ export class XRPackage extends EventTarget {
   setMatrix(m) {
     this.matrix.copy(m);
     this.matrixWorldNeedsUpdate = true;
+    this.dispatchEvent(new MessageEvent('matrixupdate', {
+      data: this.matrix,
+    }));
   }
   updateMatrixWorld() {
     if (this.matrixWorldNeedsUpdate) {
@@ -1387,9 +1390,6 @@ export class XRPackage extends EventTarget {
           .copy(this.matrix)
           .decompose(this.context.object.position, this.context.object.quaternion, this.context.object.scale);
       this.context.iframe && this.context.iframe.contentWindow.xrpackage.setMatrix(this.matrix.toArray(localArray));
-      this.dispatchEvent(new MessageEvent('matrixupdate', {
-        data: this.matrix,
-      }));
     }
   }
   grabrelease() {
