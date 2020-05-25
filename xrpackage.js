@@ -650,7 +650,7 @@ export class XRPackageEngine extends EventTarget {
         const _loadHmd = () => {
           const {views} = pose;
 
-          xrState.poseMatrix.set(pose.matrix);
+          xrState.poseMatrix.set(pose.transform.matrix);
 
           xrState.leftViewMatrix.set(views[0].transform.inverse.matrix);
           xrState.leftProjectionMatrix.set(views[0].projectionMatrix);
