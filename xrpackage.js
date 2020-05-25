@@ -308,6 +308,7 @@ const xrTypeAdders = {
     const indexHtml = indexFile.response.body.toString('utf-8');
     await p.context.iframe.contentWindow.xrpackage.iframeInit({
       engine: this,
+      pkg: p,
       indexHtml,
       context: GlobalContext.proxyContext,
       id: p.id,

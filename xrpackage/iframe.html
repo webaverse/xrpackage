@@ -37,7 +37,7 @@ class XRPackageManager extends EventTarget {
     this.loadPromise = makePromise();
     this.seenEvents = {};
   }
-  async iframeInit({engine, indexHtml, context, id, schema, xrState, XRPackage}) {
+  async iframeInit({engine, pkg, indexHtml, context, id, schema, xrState, XRPackage}) {
     console.log('iframe init');
 
     {
@@ -55,6 +55,7 @@ class XRPackageManager extends EventTarget {
     document.close();
 
     this._engine = engine;
+    this._package = pkg;
     this.schema = schema;
 
     GlobalContext.xrState = xrState;
@@ -147,6 +148,9 @@ class XRPackageManager extends EventTarget {
   }
   get packages() {
     return this._engine.packages.slice();
+  }
+  get package() {
+    return this._package;
   }
   add(p) {
     return this._engine.add(p);
