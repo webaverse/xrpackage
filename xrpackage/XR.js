@@ -11,6 +11,94 @@ const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 
+class GamepadButton {
+  constructor(_value, _pressed, _touched) {
+    this._value = _value;
+    this._pressed = _pressed;
+    this._touched = _touched;
+  }
+
+  get value() {
+    return this._value[0];
+  }
+  set value(value) {
+    this._value[0] = value;
+  }
+  get pressed() {
+    return this._pressed[0] !== 0;
+  }
+  set pressed(pressed) {
+    this._pressed[0] = pressed ? 1 : 0;
+  }
+  get touched() {
+    return this._touched[0] !== 0;
+  }
+  set touched(touched) {
+    this._touched[0] = touched ? 1 : 0;
+  }
+}
+class GamepadPose {
+  constructor() {
+    this.hasPosition = true;
+    this.hasOrientation = true;
+    this.position = new Float32Array(3);
+    this.linearVelocity = new Float32Array(3);
+    this.linearAcceleration = new Float32Array(3);
+    this.orientation = Float32Array.from([0, 0, 0, 1]);
+    this.angularVelocity = new Float32Array(3);
+    this.angularAcceleration = new Float32Array(3);
+  }
+}
+class GamepadHapticActuator {
+  constructor(index) {
+    this.index = index;
+  }
+  get type() {
+    return 'vibration';
+  }
+  set type(type) {}
+  pulse(value, duration) {
+    self._postMessageUp({
+      method: 'emit',
+      type: 'hapticPulse',
+      event: {
+        index: this.index,
+        value,
+        duration,
+      },
+    });
+  }
+}
+class Gamepad {
+  constructor(index, id, hand, xrGamepad, hapticActuator) {
+    this.index = index;
+    this.id = id;
+    this.hand = hand;
+    this._xrGamepad = xrGamepad;
+
+    this.mapping = 'standard';
+    this.buttons = (() => {
+      const result = Array(xrGamepad.buttons.length);
+      for (let i = 0; i < result.length; i++) {
+        const vrButtonIndex = i; // xrToVrButtonMappings[i];
+        result[vrButtonIndex] = new GamepadButton(xrGamepad.buttons[i].value, xrGamepad.buttons[i].pressed, xrGamepad.buttons[i].touched);
+      }
+      return result;
+    })();
+    this.pose = new GamepadPose();
+    this.axes = xrGamepad.axes;
+    this.hapticActuators = hapticActuator ? [hapticActuator] : [];
+    // this.bones = xrGamepad.bones;
+  }
+
+  get connected() {
+    return this._xrGamepad.connected[0] !== 0;
+  }
+  set connected(connected) {
+    this._xrGamepad.connected[0] = connected ? 1 : 0;
+  }
+}
+
 class XR extends EventTarget {
   constructor(/*window*/) {
     super();
@@ -497,6 +585,9 @@ class XRInputSource {
     this._inputPose.targetRay.direction.values = xrStateGamepad.direction;
     this._inputPose._realViewMatrix = xrStateGamepad.transformMatrix;
     this._inputPose._localViewMatrix = Float32Array.from([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]); */
+    
+    this.gamepad = new Gamepad(handedness === 'right' ? 1 : 0, 'WebXR Gamepad', handedness, xrStateGamepad, false);
+    this.profiles = ['webxr'];
   }
   get connected() {
     return this._xrStateGamepad.connected[0] !== 0;
