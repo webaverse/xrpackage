@@ -133,6 +133,7 @@ class XRPackageManager extends EventTarget {
 
     window.XRPackage = XRPackage;
 
+    HTMLElement.prototype.requestPointerLock = async () => {};
     Object.defineProperty(navigator, 'serviceWorker', {
       get() {},
     });
