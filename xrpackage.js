@@ -1368,6 +1368,20 @@ export class XRPackage extends EventTarget {
       data: this.matrix,
     }));
   }
+  grabrelease() {
+    if (this.parent) {
+      for (const k in this.parent.grabs) {
+        if (this.parent.grabs[k] === this) {
+          this.parent.grabs[k] = null;
+        }
+      }
+      for (const k in this.parent.equips) {
+        if (this.parent.equips[k] === this) {
+          this.parent.equips[k] = null;
+        }
+      }
+    }
+  }
   setPose(pose) {
     const [head, leftGamepad, rightGamepad] = pose;
     if (!this.context.rig) {
