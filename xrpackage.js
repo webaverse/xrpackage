@@ -544,7 +544,7 @@ export class XRPackageEngine extends EventTarget {
   }
   setMatrix(m) {
     xrOffsetMatrix.copy(m);
-    this.container.matrix.getInverse(m).decompose(this.container.position, this.container.quaternion, this.container.scale);
+    // this.container.matrix.getInverse(m).decompose(this.container.position, this.container.quaternion, this.container.scale);
 
     for (let i = 0; i < this.packages.length; i++) {
       this.packages[i].matrixWorldNeedsUpdate = true;
@@ -756,10 +756,13 @@ export class XRPackageEngine extends EventTarget {
       const {rig, camera} = this;
       if (rig) {
         if (this.rigMatrixEnabled) {
-          this.rigMatrix.decompose(localVector, localQuaternion, localVector2);
+          localMatrix.copy(this.rigMatrix)
+            .premultiply(localMatrix2.getInverse(xrOffsetMatrix))
+            .decompose(localVector, localQuaternion, localVector2);
         } else {
-          const m = new THREE.Matrix4().fromArray(xrState.leftViewMatrix);
+          const m = localMatrix.fromArray(xrState.leftViewMatrix);
           m.getInverse(m);
+          m.premultiply(localMatrix2.getInverse(xrOffsetMatrix));
           m.decompose(localVector, localQuaternion, localVector2);
         }
         rig.inputs.hmd.position.copy(localVector);

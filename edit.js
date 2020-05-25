@@ -214,7 +214,7 @@ function animate(timestamp, frame) {
   }
 
   // const f = Math.sin((Date.now()%1000)/1000*Math.PI*2);
-  // pe.setMatrix(localMatrix.compose(localVector.set(0, 0, f * 3), localQuaternion.set(0, 0, 0, 1), localVector2.set(1, 1, 1)));
+  // pe.setMatrix(localMatrix.compose(localVector.set(0, 0, 3 * f), localQuaternion.set(0, 0, 0, 1), localVector2.set(1, 1, 1)));
 
   renderer.render(scene, camera);
 
