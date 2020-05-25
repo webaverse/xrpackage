@@ -405,6 +405,7 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 
 .dropdown .row {
   padding: 10px;
+  flex-direction: column;
 }
 
 .dropdown .tabs {
@@ -1122,6 +1123,10 @@ header.unlocking + .main .blocker .button
 
 .cardAction {
   padding: 5px;
+}
+
+.schema {
+  display: flex;
 }
 
 .error {
