@@ -1008,10 +1008,12 @@ export class XRPackageEngine extends EventTarget {
       const {children} = xrPackageScene;
       for (let i = 0; i < children.length; i++) {
         const child = children[i];
-        const {id, hash} = child;
+        const {id, hash, matrix} = child;
         if (hash) {
           const p = await XRPackage.download(hash);
           p.id = id;
+          p.setMatrix(localMatrix.fromArray(matrix));
+          console.log('load matrix 1', matrix);
           this.add(p);
         } else {
           const primaryUrl = `https://xrpackage.org`;
@@ -1020,6 +1022,7 @@ export class XRPackageEngine extends EventTarget {
           if (file) {
             const p = new XRPackage(file.response.body);
             p.id = id;
+            p.setMatrix(localMatrix.fromArray(matrix));
             this.add(p);
           } else {
             console.warn('unknown file id', id);
