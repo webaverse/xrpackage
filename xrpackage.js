@@ -16,6 +16,7 @@ export const apiHost = `https://ipfs.exokit.org/ipfs`;
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
+const localVector4 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
@@ -541,6 +542,14 @@ export class XRPackageEngine extends EventTarget {
       throw new Error(`unknown xr_type: ${type}`);
     }
   }
+  setMatrix(m) {
+    xrOffsetMatrix.copy(m);
+    this.container.matrix.getInverse(m).decompose(this.container.position, this.container.quaternion, this.container.scale);
+
+    for (let i = 0; i < this.packages.length; i++) {
+      this.packages[i].matrixWorldNeedsUpdate = true;
+    }
+  }
   async setSession(realSession) {
     if (this.loadReferenceSpaceInterval !== 0) {
       clearInterval(this.loadReferenceSpaceInterval);
@@ -789,14 +798,14 @@ export class XRPackageEngine extends EventTarget {
           const grab = this.grabs[handedness];
           if (grab) {
             const input = rig.inputs[_oppositeHand(handedness) + 'Gamepad'];
-            grab.setMatrix(localMatrix.compose(input.position, input.quaternion, input.scale));
+            grab.setMatrix(localMatrix.compose(input.position, input.quaternion, input.scale).premultiply(localMatrix2.getInverse(xrOffsetMatrix)));
           }
         });
         SLOTS.forEach(slot => {
           const equip = this.equips[slot];
           if (equip) {
             const input = _getSlotInput(rig, slot);
-            equip.setMatrix(localMatrix.compose(input.position, input.quaternion, input.scale));
+            equip.setMatrix(localMatrix.compose(input.position, input.quaternion, input.scale).premultiply(localMatrix2.getInverse(xrOffsetMatrix)));
           }
         });
 
@@ -806,8 +815,7 @@ export class XRPackageEngine extends EventTarget {
 
     // update matrices
     for (let i = 0; i < this.packages.length; i++) {
-      const p = this.packages[i];
-      p.updateMatrixWorld();
+      this.packages[i].updateMatrixWorld();
     }
 
     /* for (let i = 0; i < GlobalContext.contexts.length; i++) {
@@ -903,16 +911,19 @@ export class XRPackageEngine extends EventTarget {
   grabdown(handedness) {
     if (this.rig && !this.grabs[handedness]) {
       const input = this.rig.inputs[_oppositeHand(handedness) + 'Gamepad'];
+      const inputPosition = localVector
+        .copy(input.position)
+        .applyMatrix4(localMatrix.getInverse(xrOffsetMatrix));
       const ps = this.packages
         .sort((a, b) => {
-          a.matrix.decompose(localVector, localQuaternion, localVector3);
-          b.matrix.decompose(localVector2, localQuaternion, localVector3);
-          return localVector.distanceTo(input.position) - localVector2.distanceTo(input.position);
+          a.matrix.decompose(localVector2, localQuaternion, localVector4);
+          b.matrix.decompose(localVector3, localQuaternion, localVector4);
+          return localVector2.distanceTo(inputPosition) - localVector3.distanceTo(inputPosition);
         });
       if (ps.length > 0) {
         const p = ps[0];
-        p.matrix.decompose(localVector, localQuaternion, localVector3);
-        if (localVector.distanceTo(input.position) < 1.5) {
+        p.matrix.decompose(localVector2, localQuaternion, localVector4);
+        if (localVector2.distanceTo(inputPosition) < 1.5) {
           this.grabs[handedness] = p;
         }
       }
@@ -933,17 +944,20 @@ export class XRPackageEngine extends EventTarget {
       if (this.equips[slot]) {
         this.equips[slot] = null;
       } else {
-        const {position} = _getSlotInput(this.rig, slot);
+        const input = _getSlotInput(this.rig, slot);
+        const inputPosition = localVector
+          .copy(input.position)
+          .applyMatrix4(localMatrix.getInverse(xrOffsetMatrix));
         const ps = this.packages
           .sort((a, b) => {
-            a.matrix.decompose(localVector, localQuaternion, localVector3);
-            b.matrix.decompose(localVector2, localQuaternion, localVector3);
-            return localVector.distanceTo(position) - localVector2.distanceTo(position);
+            a.matrix.decompose(localVector2, localQuaternion, localVector4);
+            b.matrix.decompose(localVector3, localQuaternion, localVector4);
+            return localVector2.distanceTo(inputPosition) - localVector3.distanceTo(inputPosition);
           });
         if (ps.length > 0) {
           const p = ps[0];
-          p.matrix.decompose(localVector, localQuaternion, localVector3);
-          if (localVector.distanceTo(position) < 1.5) {
+          p.matrix.decompose(localVector2, localQuaternion, localVector4);
+          if (localVector2.distanceTo(inputPosition) < 1.5) {
             this.equips[slot] = p;
           }
         }
@@ -1385,11 +1399,15 @@ export class XRPackage extends EventTarget {
     if (this.matrixWorldNeedsUpdate) {
       this.matrixWorldNeedsUpdate = false;
 
+      localMatrix
+        .copy(this.matrix)
+        .premultiply(xrOffsetMatrix);
+
       this.context.object &&
         this.context.object.matrix
-          .copy(this.matrix)
+          .copy(localMatrix)
           .decompose(this.context.object.position, this.context.object.quaternion, this.context.object.scale);
-      this.context.iframe && this.context.iframe.contentWindow.xrpackage.setMatrix(this.matrix.toArray(localArray));
+      this.context.iframe && this.context.iframe.contentWindow.xrpackage.setMatrix(localMatrix.toArray(localArray));
     }
   }
   grabrelease() {
