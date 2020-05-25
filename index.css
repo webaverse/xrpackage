@@ -1125,8 +1125,20 @@ header.unlocking + .main .blocker .button
   padding: 5px;
 }
 
+.object-detail {
+  padding: 0 10px;
+}
+
 .schema {
   display: flex;
+}
+.schema .name {
+  width: 50%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.schema input {
+  flex: 1;
 }
 
 .error {
