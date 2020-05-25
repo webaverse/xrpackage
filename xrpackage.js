@@ -804,6 +804,12 @@ export class XRPackageEngine extends EventTarget {
       }
     }
 
+    // update matrices
+    for (let i = 0; i < this.packages.length; i++) {
+      const p = this.packages[i];
+      p.updateMatrixWorld();
+    }
+
     /* for (let i = 0; i < GlobalContext.contexts.length; i++) {
       const context =  GlobalContext.contexts[i];
       context._exokitClearEnabled && context._exokitClearEnabled(true);
@@ -1135,6 +1141,7 @@ export class XRPackage extends EventTarget {
     this.details = {};
 
     this.matrix = a instanceof XRPackage ? a.matrix.clone() : new THREE.Matrix4();
+    this.matrixWorldNeedsUpdate = true;
     this._visible = true;
     this.parent = null;
     this.context = {};
@@ -1369,14 +1376,21 @@ export class XRPackage extends EventTarget {
   }
   setMatrix(m) {
     this.matrix.copy(m);
-    this.context.object &&
-      this.context.object.matrix
-        .copy(m)
-        .decompose(this.context.object.position, this.context.object.quaternion, this.context.object.scale);
-    this.context.iframe && this.context.iframe.contentWindow.xrpackage.setMatrix(this.matrix.toArray(localArray));
-    this.dispatchEvent(new MessageEvent('matrixupdate', {
-      data: this.matrix,
-    }));
+    this.matrixWorldNeedsUpdate = true;
+  }
+  updateMatrixWorld() {
+    if (this.matrixWorldNeedsUpdate) {
+      this.matrixWorldNeedsUpdate = false;
+
+      this.context.object &&
+        this.context.object.matrix
+          .copy(this.matrix)
+          .decompose(this.context.object.position, this.context.object.quaternion, this.context.object.scale);
+      this.context.iframe && this.context.iframe.contentWindow.xrpackage.setMatrix(this.matrix.toArray(localArray));
+      this.dispatchEvent(new MessageEvent('matrixupdate', {
+        data: this.matrix,
+      }));
+    }
   }
   grabrelease() {
     if (this.parent) {
