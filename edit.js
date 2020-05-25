@@ -1378,7 +1378,7 @@ const _renderObjects = () => {
 
     const _setPosition = (e, key) => {
       p.matrix.decompose(localVector, localQuaternion, localVector2);
-      localVector[key] = e.target.value;
+      localVector[key] = parseFloat(e.target.value);
       p.setMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
     };
     const _setQuaternion = (e, key) => {
@@ -1386,13 +1386,13 @@ const _renderObjects = () => {
       localQuaternion[key] = e.target.value;
       localQuaternion.normalize();
       ['x', 'y', 'z', 'w'].forEach(k => {
-        objectsEl.querySelector('.quaternion-' + k).value = localQuaternion[k];
+        objectsEl.querySelector('.quaternion-' + k).value = parseFloat(localQuaternion[k]);
       });
       p.setMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
     };
     const _setScale = (e, key) => {
       p.matrix.decompose(localVector, localQuaternion, localVector2);
-      localVector2[key] = e.target.value;
+      localVector2[key] = parseFloat(e.target.value);
       p.setMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
     };
     objectsEl.querySelector('.position-x').addEventListener('change', e => {
