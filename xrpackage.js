@@ -208,12 +208,11 @@ const xrTypeLoaders = {
     p.context.iframe = iframe;
   },
   'gltf@0.0.1': async function(p) {
-    const mainPath = '/' + p.main;
-    const indexFile = p.files.find(file => new URL(file.url).pathname === mainPath);
-    const indexBlob = new Blob([indexFile.response.body], {
+    const d = p.getMainData();
+    const b = new Blob([d], {
       type: 'application/octet-stream',
     });
-    const u = URL.createObjectURL(indexBlob);
+    const u = URL.createObjectURL(b);
     const {scene} = await new Promise((accept, reject) => {
       const loader = new GLTFLoader();
       loader.load(u, accept, function onProgress() {}, reject);
@@ -264,12 +263,11 @@ const xrTypeLoaders = {
     }
   },
   'vrm@0.0.1': async function(p) {
-    const mainPath = '/' + p.main;
-    const indexFile = p.files.find(file => new URL(file.url).pathname === mainPath);
-    const indexBlob = new Blob([indexFile.response.body], {
+    const d = p.getMainData();
+    const b = new Blob([d], {
       type: 'application/octet-stream',
     });
-    const u = URL.createObjectURL(indexBlob);
+    const u = URL.createObjectURL(b);
     const o = await new Promise((accept, reject) => {
       const loader = new GLTFLoader();
       loader.load(u, accept, function onProgress() {}, reject);
@@ -284,10 +282,11 @@ const xrTypeLoaders = {
     p.context.object.matrix.copy(p.matrix).decompose(p.context.object.position, p.context.object.quaternion, p.context.object.scale);
   },
   'vox@0.0.1': async function(p) {
-    const mainPath = '/' + p.main;
-    const indexFile = p.files.find(file => new URL(file.url).pathname === mainPath);
-    const indexBlob = new Blob([indexFile.response.body]);
-    const u = URL.createObjectURL(indexBlob);
+    const d = p.getMainData();
+    const b = new Blob([d], {
+      type: 'application/octet-stream',
+    });
+    const u = URL.createObjectURL(b);
     const o = await new Promise((accept, reject) => {
       const loader = new VOXLoader();
       loader.load(u, accept, function onProgress() {}, reject);
@@ -298,18 +297,16 @@ const xrTypeLoaders = {
     p.context.object.matrix.copy(p.matrix).decompose(p.context.object.position, p.context.object.quaternion, p.context.object.scale);
   },
   'xrpackage-scene@0.0.1': async function(p) {
-    const mainPath = '/' + p.main;
-    const indexFile = p.files.find(file => new URL(file.url).pathname === mainPath);
-    const j = JSON.parse(indexFile.response.body.toString('utf8'));
+    const d = p.getMainData();
+    const j = JSON.parse(d.toString('utf8'));
 
     p.context.json = j;
   },
 };
 const xrTypeAdders = {
   'webxr-site@0.0.1': async function(p) {
-    const mainPath = '/' + _removeUrlTail(p.main);
-    const indexFile = p.files.find(file => new URL(file.url).pathname === mainPath);
-    const indexHtml = indexFile.response.body.toString('utf-8');
+    const d = p.getMainData();
+    const indexHtml = d.toString('utf8');
     await p.context.iframe.contentWindow.xrpackage.iframeInit({
       engine: this,
       pkg: p,
@@ -1283,6 +1280,11 @@ export class XRPackage extends EventTarget {
       parent.remove(this);
       await parent.add(this);
     }
+  }
+  getMainData() {
+    const mainPath = '/' + this.main;
+    const mainFile = this.files.find(file => new URL(file.url).pathname === mainPath);
+    return mainFile.response.body;
   }
   static async compileFromFile(file) {
     const _createFile = async (file, xrType, mimeType) => {
