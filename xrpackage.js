@@ -15,6 +15,7 @@ export const apiHost = `https://ipfs.exokit.org/ipfs`;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
@@ -783,18 +784,14 @@ export class XRPackageEngine extends EventTarget {
           const grab = this.grabs[handedness];
           if (grab) {
             const input = rig.inputs[_oppositeHand(handedness) + 'Gamepad'];
-            grab.position.copy(input.position);
-            grab.quaternion.copy(input.quaternion);
-            grab.scale.copy(input.scale);
+            grab.setMatrix(localMatrix.compose(input.position, input.quaternion, input.scale));
           }
         });
         SLOTS.forEach(slot => {
           const equip = this.equips[slot];
           if (equip) {
             const input = _getSlotInput(rig, slot);
-            equip.position.copy(input.position);
-            equip.quaternion.copy(input.quaternion);
-            equip.scale.copy(input.scale);
+            equip.setMatrix(localMatrix.compose(input.position, input.quaternion, input.scale));
           }
         });
 
@@ -891,12 +888,15 @@ export class XRPackageEngine extends EventTarget {
     if (this.rig && !this.grabs[handedness]) {
       const input = this.rig.inputs[_oppositeHand(handedness) + 'Gamepad'];
       const ps = this.packages
-        .map(p => p.context.object)
-        .filter(o => o)
-        .sort((a, b) => a.position.distanceTo(input.position) - b.position.distanceTo(input.position))
+        .sort((a, b) => {
+          a.matrix.decompose(localVector, localQuaternion, localVector3);
+          b.matrix.decompose(localVector2, localQuaternion, localVector3);
+          return localVector.distanceTo(input.position) - localVector2.distanceTo(input.position);
+        });
       if (ps.length > 0) {
         const p = ps[0];
-        if (p.position.distanceTo(input.position) < 1.5) {
+        p.matrix.decompose(localVector, localQuaternion, localVector3);
+        if (localVector.distanceTo(input.position) < 1.5) {
           this.grabs[handedness] = p;
         }
       }
@@ -919,12 +919,15 @@ export class XRPackageEngine extends EventTarget {
       } else {
         const {position} = _getSlotInput(this.rig, slot);
         const ps = this.packages
-          .map(p => p.context.object)
-          .filter(o => o)
-          .sort((a, b) => a.position.distanceTo(position) - b.position.distanceTo(position));
+          .sort((a, b) => {
+            a.matrix.decompose(localVector, localQuaternion, localVector3);
+            b.matrix.decompose(localVector2, localQuaternion, localVector3);
+            return localVector.distanceTo(position) - localVector2.distanceTo(position);
+          });
         if (ps.length > 0) {
           const p = ps[0];
-          if (p.position.distanceTo(position) < 1.5) {
+          p.matrix.decompose(localVector, localQuaternion, localVector3);
+          if (localVector.distanceTo(position) < 1.5) {
             this.equips[slot] = p;
           }
         }
