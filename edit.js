@@ -1318,7 +1318,7 @@ const _renderObjects = () => {
           <div class=row>
             ${schemas.map(name => `
               <label class=schema>
-                <span>${name}</span>
+                <span class=name>${name}</span>
                 <input class="schema-input" name="${escape(name)}" type=text value="${escape(p.schema[name])}">
               </label>
             `).join('\n')}
