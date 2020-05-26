@@ -28,6 +28,7 @@ const localVector4 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
+const localMatrix2 = new THREE.Matrix4();
 const localBox = new THREE.Box3();
 
 function parseQuery(queryString) {
@@ -194,14 +195,22 @@ function animate(timestamp, frame) {
           lastAxes[0][0] = axes[0];
           lastAxes[0][1] = axes[1];
         } else if (handedness === 'right') {
+          const _applyRotation = r => {
+            const xrCamera = pe.renderer.xr.getCamera(pe.camera);
+            localMatrix
+              .copy(xrCamera.matrix)
+              .premultiply(pe.matrix)
+              .decompose(localVector, localQuaternion, localVector2);
+            localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), r));
+            localMatrix
+              .compose(localVector, localQuaternion, localVector2)
+              .multiply(localMatrix2.getInverse(xrCamera.matrix));
+            pe.setMatrix(localMatrix);
+          };
           if (axes[0] < -0.5 && !(lastAxes[1][0] < -0.5)) {
-            pe.matrix.decompose(localVector, localQuaternion, localVector2);
-            localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI*0.3));
-            pe.setMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
+            _applyRotation(-Math.PI*0.2);
           } else if (axes[0] > 0.5 && !(lastAxes[1][0] > 0.5)) {
-            pe.matrix.decompose(localVector, localQuaternion, localVector2);
-            localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), -Math.PI*0.3));
-            pe.setMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
+            _applyRotation(Math.PI*0.2);
           }
           lastAxes[1][0] = axes[0];
           lastAxes[1][1] = axes[1];
