@@ -165,7 +165,6 @@ const _makeTargetMesh = () => {
 pe.defaultAvatar();
 
 const velocity = new THREE.Vector3();
-const extraVelocity = new THREE.Vector3();
 const lastAxes = [[0, 0], [0, 0]];
 function animate(timestamp, frame) {
   /* const timeFactor = 1000;
@@ -219,23 +218,23 @@ function animate(timestamp, frame) {
     const cameraEuler = pe.camera.rotation.clone();
     cameraEuler.x = 0;
     cameraEuler.z = 0;
-    extraVelocity.set(0, 0, 0);
+    localVector.set(0, 0, 0);
     if (keys.left) {
-      extraVelocity.add(new THREE.Vector3(-1, 0, 0).applyEuler(cameraEuler));
+      localVector.add(new THREE.Vector3(-1, 0, 0).applyEuler(cameraEuler));
     }
     if (keys.right) {
-      extraVelocity.add(new THREE.Vector3(1, 0, 0).applyEuler(cameraEuler));
+      localVector.add(new THREE.Vector3(1, 0, 0).applyEuler(cameraEuler));
     }
     if (keys.up) {
-      extraVelocity.add(new THREE.Vector3(0, 0, -1).applyEuler(cameraEuler));
+      localVector.add(new THREE.Vector3(0, 0, -1).applyEuler(cameraEuler));
     }
     if (keys.down) {
-      extraVelocity.add(new THREE.Vector3(0, 0, 1).applyEuler(cameraEuler));
+      localVector.add(new THREE.Vector3(0, 0, 1).applyEuler(cameraEuler));
     }
-    if (extraVelocity.length() > 0) {
-      extraVelocity.normalize().multiplyScalar(speed);
+    if (localVector.length() > 0) {
+      localVector.normalize().multiplyScalar(speed);
     }
-    velocity.add(extraVelocity);
+    velocity.add(localVector);
     pe.camera.position.add(velocity);
     pe.camera.updateMatrixWorld();
     velocity.multiplyScalar(0.7);
