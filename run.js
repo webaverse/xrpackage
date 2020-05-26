@@ -148,9 +148,9 @@ window.addEventListener('upload', async e => {
   const p = new XRPackage(d);
   await pe.add(p);
 
-  if (/\.vrm$/.test(file.name)) {
+  /* if (/\.vrm$/.test(file.name)) {
     p.wearAvatar();
-  }
+  } */
 });
 
 function onSessionStarted(session) {
