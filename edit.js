@@ -167,6 +167,7 @@ const _makeTargetMesh = () => {
 pe.defaultAvatar();
 
 const velocity = new THREE.Vector3();
+const lastGrabs = [false, false];
 const lastAxes = [[0, 0], [0, 0]];
 function animate(timestamp, frame) {
   /* const timeFactor = 1000;
@@ -179,6 +180,21 @@ function animate(timestamp, frame) {
       const inputSource = inputSources[i];
       const {handedness, gamepad} = inputSource;
       if (gamepad) {
+        const index = handedness === 'right' ? 1 : 0;
+
+        // buttons
+        const {buttons} = gamepad;
+        const grab = buttons[1].pressed;
+        const lastGrab = lastGrabs[index];
+        if (!lastGrab && grab) { // grip
+          // console.log('gripped', handedness);
+          pe.grabdown(handedness);
+        } else if (lastGrab && !grab) {
+          pe.grabup(handedness);
+        }
+        lastGrabs[index] = grab;
+
+        // axes
         const {axes} = gamepad;
         if (handedness == 'left') {
           localVector.set(0, 0, 0);
