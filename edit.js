@@ -166,12 +166,53 @@ pe.defaultAvatar();
 
 const velocity = new THREE.Vector3();
 const extraVelocity = new THREE.Vector3();
+const lastAxes = [[0, 0], [0, 0]];
 function animate(timestamp, frame) {
   /* const timeFactor = 1000;
   targetMesh.material.uniforms.uTime.value = (Date.now() % timeFactor) / timeFactor; */
 
   const currentSession = getSession();
   if (currentSession) {
+    const {inputSources} = currentSession;
+    for (let i = 0; i < inputSources.length; i++) {
+      const inputSource = inputSources[i];
+      const {handedness, gamepad} = inputSource;
+      if (gamepad) {
+        const {axes} = gamepad;
+        if (handedness == 'left') {
+          localVector.set(0, 0, 0);
+          if (axes[1] < -0.5) {
+            localVector.add(localVector2.set(0, 0, 0.015));
+          } else if (axes[1] > 0.5) {
+            localVector.sub(localVector2.set(0, 0, 0.015));
+          }
+          pe.matrix.decompose(localVector2, localQuaternion, localVector3);
+          const xrCamera = pe.renderer.xr.getCamera(pe.camera);
+          // console.log('cameras', );
+          // debugger;
+          // console.log('got camera quat', pe.camera.quaternion.toArray().join(','));
+          // localVector.applyQuaternion(localQuaternion);
+          localVector.applyQuaternion(xrCamera.quaternion);
+          localVector2.add(localVector);
+          pe.setMatrix(localMatrix.compose(localVector2, localQuaternion, localVector3));
+          lastAxes[0][0] = axes[0];
+          lastAxes[0][1] = axes[1];
+        } else if (handedness === 'right') {
+          if (axes[0] < -0.5 && !(lastAxes[1][0] < -0.5)) {
+            pe.matrix.decompose(localVector, localQuaternion, localVector2);
+            localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI*0.3));
+            pe.setMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
+          } else if (axes[0] > 0.5 && !(lastAxes[1][0] > 0.5)) {
+            pe.matrix.decompose(localVector, localQuaternion, localVector2);
+            localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), -Math.PI*0.3));
+            pe.setMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
+          }
+          lastAxes[1][0] = axes[0];
+          lastAxes[1][1] = axes[1];
+        }
+      }
+    }
+    
     pe.setRigMatrix(null);
   } else if (document.pointerLockElement) {
     const speed = 0.015 * (keys.shift ? 3 : 1);
