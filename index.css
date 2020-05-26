@@ -147,6 +147,7 @@ body {
   background-color: #111;
   font-size: 13px;
   white-space: nowrap;
+  pointer-events: none;
 }
 .header .nav:not(:hover) > .label {
   display: none;
@@ -365,6 +366,7 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   background-color: #111;
   font-size: 13px;
   white-space: nowrap;
+  pointer-events: none;
 }
 .tools > .row > .tool:not(:hover) > .label,
 .ops > .op:not(:hover) > .label
