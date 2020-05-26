@@ -182,6 +182,11 @@ function animate(timestamp, frame) {
         const {axes} = gamepad;
         if (handedness == 'left') {
           localVector.set(0, 0, 0);
+          if (axes[0] < -0.5) {
+            localVector.x += 0.015;
+          } else if (axes[0] > 0.5) {
+            localVector.x -= 0.015;
+          }
           if (axes[1] < -0.5) {
             localVector.z += 0.015;
           } else if (axes[1] > 0.5) {
