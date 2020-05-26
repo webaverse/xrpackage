@@ -187,11 +187,8 @@ function animate(timestamp, frame) {
           }
           pe.matrix.decompose(localVector2, localQuaternion, localVector3);
           const xrCamera = pe.renderer.xr.getCamera(pe.camera);
-          // console.log('cameras', );
-          // debugger;
-          // console.log('got camera quat', pe.camera.quaternion.toArray().join(','));
-          // localVector.applyQuaternion(localQuaternion);
-          localVector.applyQuaternion(xrCamera.quaternion);
+          localQuaternion2.copy(xrCamera.quaternion).premultiply(localQuaternion);
+          localVector.applyQuaternion(localQuaternion2);
           localVector2.add(localVector);
           pe.setMatrix(localMatrix.compose(localVector2, localQuaternion, localVector3));
           lastAxes[0][0] = axes[0];
