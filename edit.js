@@ -183,9 +183,9 @@ function animate(timestamp, frame) {
         if (handedness == 'left') {
           localVector.set(0, 0, 0);
           if (axes[1] < -0.5) {
-            localVector.add(localVector2.set(0, 0, 0.015));
+            localVector.z += 0.015;
           } else if (axes[1] > 0.5) {
-            localVector.sub(localVector2.set(0, 0, 0.015));
+            localVector.z -= 0.015;
           }
           pe.matrix.decompose(localVector2, localQuaternion, localVector3);
           const xrCamera = pe.renderer.xr.getCamera(pe.camera);
