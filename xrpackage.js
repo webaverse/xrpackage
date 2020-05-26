@@ -770,10 +770,14 @@ export class XRPackageEngine extends EventTarget {
         rig.inputs.hmd.position.copy(localVector);
         rig.inputs.hmd.quaternion.copy(localQuaternion);
         if (this.realSession) {
-          rig.inputs.leftGamepad.position.fromArray(xrState.gamepads[1].position);
-          rig.inputs.leftGamepad.quaternion.fromArray(xrState.gamepads[1].orientation);
-          rig.inputs.rightGamepad.position.fromArray(xrState.gamepads[0].position);
-          rig.inputs.rightGamepad.quaternion.fromArray(xrState.gamepads[0].orientation);
+          localMatrix
+            .compose(localVector.fromArray(xrState.gamepads[1].position), localQuaternion.fromArray(xrState.gamepads[1].orientation), localVector2.set(1, 1, 1))
+            .premultiply(localMatrix2.getInverse(xrOffsetMatrix))
+            .decompose(rig.inputs.leftGamepad.position, rig.inputs.leftGamepad.quaternion, localVector2);
+          localMatrix
+            .compose(localVector.fromArray(xrState.gamepads[0].position), localQuaternion.fromArray(xrState.gamepads[0].orientation), localVector2.set(1, 1, 1))
+            .premultiply(localMatrix2.getInverse(xrOffsetMatrix))
+            .decompose(rig.inputs.rightGamepad.position, rig.inputs.rightGamepad.quaternion, localVector2);
         } else {
           rig.inputs.leftGamepad.position.copy(localVector).add(localVector2.copy(leftHandOffset).applyQuaternion(localQuaternion));
           rig.inputs.leftGamepad.quaternion.copy(localQuaternion);
