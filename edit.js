@@ -320,8 +320,6 @@ for (let i = 0; i < tools.length; i++) {
     selectedTool = tool.getAttribute('tool');
 
     if (selectedTool !== oldSelectedTool) {
-      pe.orbitControls.enabled = false;
-
       hoverTarget = null;
       for (let i = 0; i < selectTargets.length; i++) {
         const selectTarget = selectTargets[i];
@@ -351,6 +349,8 @@ for (let i = 0; i < tools.length; i++) {
           pe.camera.updateMatrixWorld();
           pe.setCamera(camera);
 
+          document.dispatchEvent(new MouseEvent('mouseup'));
+          pe.orbitControls.enabled = false;
           pe.domElement.requestPointerLock();
           break;
         }
@@ -360,12 +360,14 @@ for (let i = 0; i < tools.length; i++) {
           pe.camera.updateMatrixWorld();
           pe.setCamera(camera);
 
+          document.dispatchEvent(new MouseEvent('mouseup'));
+          pe.orbitControls.enabled = false;
           pe.domElement.requestPointerLock();
           decapitate = false;
           break;
         }
         case 'select': {
-          document.exitPointerLock();
+          pe.orbitControls.enabled = false;
           break;
         }
       }
