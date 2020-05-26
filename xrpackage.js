@@ -681,7 +681,7 @@ export class XRPackageEngine extends EventTarget {
 
         const _loadGamepad = i => {
           const inputSource = inputSources[i];
-          const xrGamepad = xrState.gamepads[inputSource.handedness === 'right' ? 1 : 0];
+          const xrGamepad = inputSource && xrState.gamepads[inputSource.handedness === 'right' ? 1 : 0];
 
           let pose, gamepad;
           if (inputSource && (pose = frame.getPose(inputSource.targetRaySpace, this.referenceSpace)) && (gamepad = inputSource.gamepad || gamepads[i])) {
