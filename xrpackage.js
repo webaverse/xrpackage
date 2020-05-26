@@ -359,7 +359,8 @@ export class XRPackageEngine extends EventTarget {
     const canvas = document.createElement('canvas');
     canvas.style.outline = 'none';
     this.domElement = canvas;
-    // this.context = GlobalContext.proxyContext;
+
+    this.matrix = xrOffsetMatrix;
 
     GlobalContext.proxyContext = canvas.getContext('webgl2', {
       antialias: true,
