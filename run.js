@@ -3,6 +3,8 @@ import {XRPackageEngine, XRPackage} from './xrpackage.js';
 import './selector.js';
 
 const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 
 let currentSession = null;
@@ -146,6 +148,17 @@ window.addEventListener('upload', async e => {
 
   const d = await XRPackage.compileFromFile(file);
   const p = new XRPackage(d);
+  if (p.type === 'webxr@0.0.1') {
+    // nothing
+  } else {
+    const xrCamera = pe.renderer.xr.getCamera(pe.camera);
+    localMatrix
+      .copy(xrCamera.matrix)
+      .premultiply(pe.matrix)
+      .decompose(localVector, localQuaternion, localVector2);
+    localVector.add(localVector2.set(0, 0, -1.5).applyQuaternion(localQuaternion));
+    p.setMatrix(localMatrix.compose(localVector, localQuaternion, localVector2.set(1, 1, 1)));
+  }
   await pe.add(p);
 
   /* if (/\.vrm$/.test(file.name)) {
