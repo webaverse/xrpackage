@@ -948,6 +948,22 @@ export class XRPackageEngine extends EventTarget {
       endTime: now + 200,
     };
   }
+  grabtriggerdown(handedness) {
+    const index = handedness === 'right' ? 1 : 0;
+    const xrGamepad = xrState.gamepads[index];
+    const button = xrGamepad.buttons[0];
+    button.touched[0] = 1;
+    button.pressed[0] = 1;
+    button.value[0] = 1;
+  }
+  grabtriggerup(handedness) {
+    const index = handedness === 'right' ? 1 : 0;
+    const xrGamepad = xrState.gamepads[index];
+    const button = xrGamepad.buttons[0];
+    button.touched[0] = 0;
+    button.pressed[0] = 0;
+    button.value[0] = 0;
+  }
   equip(slot) {
     if (this.rig) {
       if (this.equips[slot]) {
