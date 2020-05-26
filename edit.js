@@ -164,7 +164,16 @@ const _makeTargetMesh = () => {
   downloadFile(b, 'target.glb');
 }; */
 
-pe.defaultAvatar();
+(async () => {
+  const res = await fetch('./assets/avatar.vrm');
+  const b = await res.blob();
+  b.name = 'model.vrm';
+  const d = await XRPackage.compileFromFile(b);
+  const p = new XRPackage(d);
+  // pe.add(p);
+  pe.wearAvatar(p);
+})();
+// pe.defaultAvatar();
 // pe.setGamepadsConnected(true);
 
 const velocity = new THREE.Vector3();
