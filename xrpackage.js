@@ -207,6 +207,7 @@ const xrTypeLoaders = {
       iframe.addEventListener('error', reject);
     });
     p.context.iframe = iframe;
+    p.matrixWorldNeedsUpdate = true;
   },
   'gltf@0.0.1': async function(p) {
     const d = p.getMainData();
@@ -221,8 +222,7 @@ const xrTypeLoaders = {
     URL.revokeObjectURL(u);
 
     p.context.object = scene;
-
-    p.context.object.matrix.copy(p.matrix).decompose(p.context.object.position, p.context.object.quaternion, p.context.object.scale);
+    p.matrixWorldNeedsUpdate = true;
 
     if (p.details.script) {
       const scriptPath = '/' + p.details.script;
@@ -280,7 +280,7 @@ const xrTypeLoaders = {
     o.scene.traverse(o => {
       o.frustumCulled = false;
     });
-    p.context.object.matrix.copy(p.matrix).decompose(p.context.object.position, p.context.object.quaternion, p.context.object.scale);
+    p.matrixWorldNeedsUpdate = true;
   },
   'vox@0.0.1': async function(p) {
     const d = p.getMainData();
@@ -295,7 +295,7 @@ const xrTypeLoaders = {
     URL.revokeObjectURL(u);
 
     p.context.object = o;
-    p.context.object.matrix.copy(p.matrix).decompose(p.context.object.position, p.context.object.quaternion, p.context.object.scale);
+    p.matrixWorldNeedsUpdate = true;
   },
   'xrpackage-scene@0.0.1': async function(p) {
     const d = p.getMainData();
