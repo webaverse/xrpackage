@@ -148,7 +148,7 @@ window.addEventListener('upload', async e => {
 
   const d = await XRPackage.compileFromFile(file);
   const p = new XRPackage(d);
-  if (p.type === 'webxr@0.0.1') {
+  if (p.type === 'webxr-site@0.0.1') {
     // nothing
   } else {
     const xrCamera = pe.renderer.xr.getCamera(pe.camera);
