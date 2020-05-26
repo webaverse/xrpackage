@@ -217,8 +217,6 @@ function animate(timestamp, frame) {
           localVector.applyEuler(localEuler);
           localVector2.add(localVector);
           pe.setMatrix(localMatrix.compose(localVector2, localQuaternion, localVector3));
-          lastAxes[0][0] = axes[0];
-          lastAxes[0][1] = axes[1];
         } else if (handedness === 'right') {
           const _applyRotation = r => {
             const xrCamera = pe.renderer.xr.getCamera(pe.camera);
@@ -232,14 +230,14 @@ function animate(timestamp, frame) {
               .multiply(localMatrix2.getInverse(xrCamera.matrix));
             pe.setMatrix(localMatrix);
           };
-          if (axes[0] < -0.5 && !(lastAxes[1][0] < -0.5)) {
+          if (axes[0] < -0.5 && !(lastAxes[index][0] < -0.5)) {
             _applyRotation(-Math.PI*0.2);
-          } else if (axes[0] > 0.5 && !(lastAxes[1][0] > 0.5)) {
+          } else if (axes[0] > 0.5 && !(lastAxes[index][0] > 0.5)) {
             _applyRotation(Math.PI*0.2);
           }
-          lastAxes[1][0] = axes[0];
-          lastAxes[1][1] = axes[1];
         }
+        lastAxes[index][0] = axes[0];
+        lastAxes[index][1] = axes[1];
       }
     }
     
