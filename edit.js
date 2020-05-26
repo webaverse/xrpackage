@@ -165,6 +165,7 @@ const _makeTargetMesh = () => {
 }; */
 
 pe.defaultAvatar();
+// pe.setGamepadsConnected(true);
 
 const velocity = new THREE.Vector3();
 const lastGrabs = [false, false];
