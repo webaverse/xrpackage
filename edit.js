@@ -523,7 +523,13 @@ window.addEventListener('keyup', e => {
 });
 window.addEventListener('mousedown', e => {
   if (document.pointerLockElement) {
+    pe.grabtriggerdown('right');
     pe.grabuse('right');
+  }
+});
+window.addEventListener('mouseup', e => {
+  if (document.pointerLockElement) {
+    pe.grabtriggerup('right');
   }
 });
 
