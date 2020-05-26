@@ -50,7 +50,7 @@ body {
 .subheader .icon
 {
   display: flex;
-  width: 150px;
+  width: 50px;
   justify-content: center;
 }
 
