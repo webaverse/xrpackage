@@ -342,6 +342,8 @@ for (let i = 0; i < tools.length; i++) {
           document.exitPointerLock();
           pe.orbitControls.enabled = true;
           pe.orbitControls.target.copy(pe.camera.position).add(new THREE.Vector3(0, 0, -3).applyQuaternion(pe.camera.quaternion));
+          _resetKeys();
+          velocity.set(0, 0, 0);
           break;
         }
         case 'firstperson': {
@@ -368,6 +370,8 @@ for (let i = 0; i < tools.length; i++) {
         }
         case 'select': {
           pe.orbitControls.enabled = false;
+          _resetKeys();
+          velocity.set(0, 0, 0);
           break;
         }
       }
@@ -393,6 +397,11 @@ const keys = {
   left: false,
   right: false,
   shift: false,
+};
+const _resetKeys = () => {
+  for (const k in keys) {
+    keys[k] = false;
+  }
 };
 window.addEventListener('keydown', e => {
   switch (e.which) {
