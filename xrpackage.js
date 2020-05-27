@@ -175,15 +175,6 @@ const xrState = (() => {
     }
     return result;
   })();
-  // result.id = _makeTypedArray(Uint32Array, 1);
-  // result.hmdType = _makeTypedArray(Uint32Array, 1);
-  // result.tex = _makeTypedArray(Uint32Array, 1);
-  // result.depthTex = _makeTypedArray(Uint32Array, 1);
-  // result.msTex = _makeTypedArray(Uint32Array, 1);
-  // result.msDepthTex = _makeTypedArray(Uint32Array, 1);
-  // result.aaEnabled = _makeTypedArray(Uint32Array, 1);
-  // result.fakeVrDisplayEnabled = _makeTypedArray(Uint32Array, 1);
-  // result.blobId = _makeTypedArray(Uint32Array, 1);
 
   return result;
 })();
