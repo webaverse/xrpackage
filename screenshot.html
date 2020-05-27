@@ -29,11 +29,7 @@ const uint8Array = new Uint8Array(arrayBuffer);
 const p = await (async () => {
   try {
     const p = new XRPackage(uint8Array);
-    await new Promise((accept, reject) => {
-      p.addEventListener('load', e => {
-        accept();
-      });
-    });
+    await p.waitForLoad();
     return p;
   } catch(err) {
     console.warn(err.stack);
