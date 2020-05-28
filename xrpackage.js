@@ -385,6 +385,8 @@ export class XRPackageEngine extends EventTarget {
     xrState.renderHeight[0] = options.height * options.devicePixelRatio;
 
     const context = this.getContext('webgl2');
+    this.context = context;
+    
     const renderer = new THREE.WebGLRenderer({
       canvas,
       context,
