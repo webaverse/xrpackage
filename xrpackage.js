@@ -402,8 +402,8 @@ export class XRPackageEngine extends EventTarget {
     container.add(directionalLight2);
 
     this.fakeSession = new XR.XRSession();
-    this.fakeSession.onrequestanimationframe = this.requestAnimationFrame.bind(this);
-    this.fakeSession.oncancelanimationframe = this.cancelAnimationFrame.bind(this);
+    this.fakeSession.onrequestanimationframe = fn => this.packageRequestAnimationFrame(fn, globalThis);
+    this.fakeSession.oncancelanimationframe = this.packageCancelAnimationFrame.bind(this);
 
     window.OldXR = {
       XR: window.XR,
@@ -872,7 +872,7 @@ export class XRPackageEngine extends EventTarget {
     this.renderer.render(this.scene, this.camera);
     // console.log('render context 2', GlobalContext.proxyContext.getError());
   }
-  requestAnimationFrame(fn, win) {
+  packageRequestAnimationFrame(fn, win) {
     this.rafs.push(fn);
 
     const id = ++this.ids;
@@ -880,7 +880,7 @@ export class XRPackageEngine extends EventTarget {
     fn[symbols.windowSymbol] = win;
     return id;
   }
-  cancelAnimationFrame(id) {
+  packageCancelAnimationFrame(id) {
     const index = this.rafs.findIndex(fn => fn[symbols.rafCbsSymbol].id === id);
     if (index !== -1) {
       this.rafs.splice(index, 1);

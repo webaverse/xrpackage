@@ -69,23 +69,26 @@ class XRPackageManager extends EventTarget {
     GlobalContext.proxyContext = context;
     GlobalContext.contexts = [];
     
-    window.requestAnimationFrame = fn => engine.requestAnimationFrame(fn, globalThis);
-    window.cancelAnimationFrame = engine.cancelAnimationFrame.bind(engine);
-    // window.innerWidth = canvas.width;
-    // window.innerHeight = canvas.height;
+    window.requestAnimationFrame = fn => engine.packageRequestAnimationFrame(fn, globalThis);
+    window.cancelAnimationFrame = engine.packageCancelAnimationFrame.bind(engine);
 
     window.CanvasRenderingContext2D = CanvasRenderingContext2D;
     window.WebGLRenderingContext = WebGLRenderingContext;
     window.WebGL2RenderingContext = WebGL2RenderingContext;
 
     const session = new XR.XRSession();
-    session.onrequestanimationframe = fn => engine.requestAnimationFrame(fn, globalThis);
-    session.oncancelanimationframe = engine.cancelAnimationFrame.bind(engine);
+    session.onrequestanimationframe = fn => engine.packageRequestAnimationFrame(fn, globalThis);
+    session.oncancelanimationframe = engine.packageCancelAnimationFrame.bind(engine);
     this.session = session;
 
     delete Navigator.prototype.xr;
     window.navigator.xr = new XR.XR(window);
-    window.navigator.xr.onrequestpresent = () => ({session: this.session});
+    window.navigator.xr.onrequestpresent = () => {
+      engine.packageRequestPresent(pkg);
+      return {
+        session: this.session,
+      };
+    };
     const self = this;
     window.navigator.xr.addEventListener = (_addEventListener => function addEventListener(e, fn, opts) {
       _addEventListener.apply(this, arguments);
