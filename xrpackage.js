@@ -23,6 +23,17 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localArray = Array(16);
 
+function makePromise() {
+  let resolve, reject;
+  const result = new Promise((a, b) => {
+    resolve = a;
+    reject = b;
+  });
+  result.resolve = resolve;
+  result.reject = reject;
+  return result;
+}
+
 const HANDS = ['left', 'right'];
 const _oppositeHand = handedness => {
   if (handedness === 'left') {
@@ -98,9 +109,7 @@ const xrState = (() => {
   result.isPresenting = _makeTypedArray(Uint32Array, 1);
   result.isPresentingReal = _makeTypedArray(Uint32Array, 1);
   result.renderWidth = _makeTypedArray(Float32Array, 1);
-  result.renderWidth[0] = window.innerWidth / 2 * window.devicePixelRatio;
   result.renderHeight = _makeTypedArray(Float32Array, 1);
-  result.renderHeight[0] = window.innerHeight * window.devicePixelRatio;
   result.metrics = _makeTypedArray(Uint32Array, 2);
   result.metrics[0] = window.innerWidth;
   result.metrics[1] = window.innerHeight;
@@ -197,6 +206,7 @@ const xrTypeLoaders = {
       iframe.addEventListener('load', accept);
       iframe.addEventListener('error', reject);
     });
+
     p.context.iframe = iframe;
     p.matrixWorldNeedsUpdate = true;
   },
@@ -297,6 +307,8 @@ const xrTypeLoaders = {
 };
 const xrTypeAdders = {
   'webxr-site@0.0.1': async function(p) {
+    p.context.requestPresentPromise = makePromise();
+    
     const d = p.getMainData();
     const indexHtml = d.toString('utf8');
     await p.context.iframe.contentWindow.xrpackage.iframeInit({
@@ -309,6 +321,8 @@ const xrTypeAdders = {
       xrState,
       XRPackage,
     });
+    
+    await p.context.requestPresentPromise;
   },
   'gltf@0.0.1': async function(p) {
     this.container.add(p.context.object);
@@ -345,7 +359,12 @@ export class XRPackageEngine extends EventTarget {
   constructor(options) {
     super();
 
-    this.options = options || {};
+    options = options || {};
+    options.width = typeof options.width === 'number' ? options.width : window.innerWidth;
+    options.height = typeof options.height === 'number' ? options.height : window.innerHeight;
+    options.devicePixelRatio = typeof options.devicePixelRatio === 'number' ? options.devicePixelRatio : window.devicePixelRatio;
+    options.autoStart = typeof options.autoStart === 'boolean' ? options.autoStart : true; 
+    this.options = options;
 
     const canvas = document.createElement('canvas');
     canvas.style.outline = 'none';
@@ -359,6 +378,9 @@ export class XRPackageEngine extends EventTarget {
       xrCompatible: true,
     });
     GlobalContext.contexts = [];
+    
+    xrState.renderWidth[0] = options.width / 2 * options.devicePixelRatio;
+    xrState.renderHeight[0] = options.height * options.devicePixelRatio;
 
     const context = this.getContext('webgl2');
     const renderer = new THREE.WebGLRenderer({
@@ -366,8 +388,8 @@ export class XRPackageEngine extends EventTarget {
       context,
       // preserveDrawingBuffer: true,
     });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(options.width, options.height);
+    renderer.setPixelRatio(options.devicePixelRatio);
     // renderer.setClearAlpha(0);
     renderer.autoClear = false;
     // renderer.sortObjects = false;
@@ -378,7 +400,7 @@ export class XRPackageEngine extends EventTarget {
     const scene = new THREE.Scene();
     this.scene = scene;
 
-    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(60, options.width / options.height, 0.1, 1000);
     camera.position.set(0, 1, 2);
     camera.rotation.order = 'YXZ';
     this.camera = camera;
@@ -469,32 +491,35 @@ export class XRPackageEngine extends EventTarget {
     this.referenceSpace = null;
     this.loadReferenceSpaceInterval = 0;
     this.cancelFrame = null;
-    
-    window.addEventListener('resize', e => {
-      if (!this.realSession) {
-        renderer.xr.isPresenting = false;
 
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        xrState.renderWidth[0] = window.innerWidth / 2 * window.devicePixelRatio;
-        xrState.renderHeight[0] = window.innerHeight * window.devicePixelRatio;
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-
-        renderer.xr.isPresenting = true;
-      }
-    });
-    
-    const animate = timestamp => {
-      const frameId = window.requestAnimationFrame(animate);
-      this.cancelFrame = () => {
-        window.cancelAnimationFrame(frameId);
-      };
-      this.tick(timestamp);
-    };
-    window.requestAnimationFrame(animate);
+    options.autoStart && this.start();
   }
   getContext(type, opts) {
     return getContext.call(this.domElement, type, opts);
+  }
+  start() {
+    this.setSession(null);
+
+    window.addEventListener('resize', e => {
+      if (!this.realSession) {
+        this.resize(window.innerWidth, window.innerHeight);
+      }
+    });
+  }
+  resize(width = this.options.width, height = this.options.height, devicePixelRatio = this.options.devicePixelRatio) {
+    this.renderer.xr.isPresenting = false;
+
+    this.renderer.setSize(width, height);
+    xrState.renderWidth[0] = width / 2 * devicePixelRatio;
+    xrState.renderHeight[0] = height * devicePixelRatio;
+    this.camera.aspect = width / height;
+    this.camera.updateProjectionMatrix();
+
+    this.renderer.xr.isPresenting = true;
+    
+    this.options.width = width;
+    this.options.height = height;
+    this.options.devicePixelRatio = devicePixelRatio;
   }
   async add(p) {
     p.parent = this;
@@ -619,9 +644,19 @@ export class XRPackageEngine extends EventTarget {
         };
         _recurse();
       });
+      this.realSession = realSession;
+    } else {
+      const animate = timestamp => {
+        const frameId = window.requestAnimationFrame(animate);
+        this.cancelFrame = () => {
+          window.cancelAnimationFrame(frameId);
+        };
+        this.tick(timestamp);
+      };
+      window.requestAnimationFrame(animate);
+      this.realSession = null;
     }
-    this.realSession = realSession;
-    
+
     this.packages.forEach(p => {
       p.setSession(realSession);
     });
@@ -884,6 +919,9 @@ export class XRPackageEngine extends EventTarget {
     if (index !== -1) {
       this.rafs.splice(index, 1);
     }
+  }
+  packageRequestPresent(p) {
+    p.context.requestPresentPromise.resolve();
   }
   setCamera(camera) {
     camera.matrixWorld.toArray(xrState.poseMatrix);
