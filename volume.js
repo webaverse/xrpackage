@@ -239,12 +239,18 @@ void main() {
     const depths = new Float32Array(pe.options.width * pe.options.devicePixelRatio * pe.options.height * pe.options.devicePixelRatio);
     let j = 0;
     for (let i = 0; i < depths.length; i++) {
-      depths[i] =
+      let v = 
         pixels[j++]/255.0 +
         pixels[j++] +
         pixels[j++]*255.0 +
         pixels[j++]*255.0*255.0;
+      if (v > pe.camera.far) {
+        v = Infinity;
+      }
+      depths[i] = v;
     }
+
+    console.log('got depths', depths);
 
     /* gl.blitFramebuffer(
       0, 0, pe.options.width * pe.options.devicePixelRatio, pe.options.height * pe.options.devicePixelRatio,
