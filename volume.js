@@ -41,7 +41,7 @@ const getPreviewMesh = async p => {
   const pe = new XRPackageEngine({
     autoStart: false,
   });
-  pe.add(p);
+  await pe.add(p);
   pe.tick();
   const server = new MesherServer();
   return new THREE.Object3D();
