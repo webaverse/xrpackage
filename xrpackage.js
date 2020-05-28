@@ -308,6 +308,8 @@ const xrTypeLoaders = {
 const xrTypeAdders = {
   'webxr-site@0.0.1': async function(p) {
     p.context.requestPresentPromise = makePromise();
+
+    p.setXrFramebuffer(GlobalContext.xrFramebuffer);
     
     const d = p.getMainData();
     const indexHtml = d.toString('utf8');
@@ -321,7 +323,7 @@ const xrTypeAdders = {
       xrState,
       XRPackage,
     });
-    
+
     await p.context.requestPresentPromise;
   },
   'gltf@0.0.1': async function(p) {
@@ -622,8 +624,6 @@ export class XRPackageEngine extends EventTarget {
               GlobalContext.xrState.stereo[0] = 1;
               GlobalContext.xrState.renderWidth[0] = width;
               GlobalContext.xrState.renderHeight[0] = height;
-              
-              GlobalContext.xrFramebuffer = realSession.renderState.baseLayer.framebuffer;
 
               const animate = (timestamp, frame) => {
                 const frameId = realSession.requestAnimationFrame(animate);
@@ -659,9 +659,14 @@ export class XRPackageEngine extends EventTarget {
       this.realSession = null;
     }
 
-    this.packages.forEach(p => {
-      p.setSession(realSession);
-    });
+    const xrfb = this.realSession ? this.realSession.renderState.baseLayer.framebuffer : null;
+    this.setXrFramebuffer(xrfb);
+  }
+  setXrFramebuffer(xrfb) {
+    GlobalContext.xrFramebuffer = xrfb;
+    for (let i = 0; i < this.packages.length; i++) {
+      this.packages[i].setXrFramebuffer(xrfb);
+    }
   }
   tick(timestamp = performance.now(), frame = null) {
     this.renderer.clear(true, true, true);
@@ -1513,8 +1518,8 @@ export class XRPackage extends EventTarget {
     rig.inputs.rightGamepad.position.fromArray(rightGamepad[0]);
     rig.inputs.rightGamepad.quaternion.fromArray(rightGamepad[1]);
   }
-  setSession(session) {
-    this.context.iframe && this.context.iframe.contentWindow.xrpackage.setSession(session);
+  setXrFramebuffer(xrfb) {
+    this.context.iframe && this.context.iframe.contentWindow.xrpackage.setXrFramebuffer(xrfb);
   }
   async upload() {
     const res = await fetch(`${apiHost}/`, {

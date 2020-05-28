@@ -138,12 +138,8 @@ class XRPackageManager extends EventTarget {
 
     this.loadPromise.resolve({});
   }
-  setSession(session) {
-    if (session) {
-      GlobalContext.xrFramebuffer = session.renderState.baseLayer.framebuffer;
-    } else {
-      GlobalContext.xrFramebuffer = null;
-    }
+  setXrFramebuffer(xrfb) {
+    GlobalContext.xrFramebuffer = xrfb;
   }
   get packages() {
     return this._engine.packages.slice();
