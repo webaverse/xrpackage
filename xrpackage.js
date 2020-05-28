@@ -626,7 +626,7 @@ export class XRPackageEngine extends EventTarget {
       p.setSession(realSession);
     });
   }
-  tick(timestamp, frame) {
+  tick(timestamp = performance.now(), frame = null) {
     this.renderer.clear(true, true, true);
 
     if (!this.session) {
