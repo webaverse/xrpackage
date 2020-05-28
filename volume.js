@@ -52,7 +52,7 @@ const getPreviewMesh = async p => {
 
   const depthRenderbuffer = gl.createRenderbuffer();
   gl.bindRenderbuffer(gl.RENDERBUFFER, depthRenderbuffer);
-  gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.DEPTH24_STENCIL8, pe.options.width * pe.options.devicePixelRatio, pe.options.height * pe.options.devicePixelRatio);
+  gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.DEPTH32F_STENCIL8, pe.options.width * pe.options.devicePixelRatio, pe.options.height * pe.options.devicePixelRatio);
   gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, depthRenderbuffer);
 
   gl.bindRenderbuffer(gl.RENDERBUFFER, null);
@@ -78,10 +78,12 @@ const getPreviewMesh = async p => {
   
   const depthTex = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, depthTex);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH24_STENCIL8, pe.options.width * pe.options.devicePixelRatio, pe.options.height * pe.options.devicePixelRatio, 0, gl.DEPTH_STENCIL, gl.UNSIGNED_INT_24_8, null);
+  // gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH24_STENCIL8, pe.options.width * pe.options.devicePixelRatio, pe.options.height * pe.options.devicePixelRatio, 0, gl.DEPTH_STENCIL, gl.UNSIGNED_INT_24_8, null);
+  gl.texStorage2D(gl.TEXTURE_2D, 1, gl.DEPTH32F_STENCIL8, pe.options.width * pe.options.devicePixelRatio, pe.options.height * pe.options.devicePixelRatio);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.TEXTURE_2D, depthTex, 0);
   
   gl.blitFramebuffer(
@@ -116,7 +118,7 @@ uniform sampler2D colorMap;
 varying vec2 vTexCoords;
 
 void main() {
-  gl_FragColor = texture2D(colorMap, vTexCoords);
+  gl_FragColor = vec4(pow(texture2D(colorMap, vTexCoords).r, 10.), 0., 0., 1.0);
 }`;
   function compileShader(gl, shaderSource, shaderType) {
     // Create the shader object
@@ -161,7 +163,7 @@ void main() {
     gl.useProgram(shaderProgram);
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.bindTexture(gl.TEXTURE_2D, depthTex);
     gl.uniform1i(uniforms.colorMap, 0);
 
     const verts = [
