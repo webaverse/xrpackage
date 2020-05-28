@@ -117,8 +117,31 @@ precision highp float;
 uniform sampler2D colorMap;
 varying vec2 vTexCoords;
 
+uniform float uNear;
+uniform float uFar;
+vec4 encodePixelDepth(float v) {
+  float x = fract(v);
+  v -= x;
+  v /= 255.0;
+  float y = fract(v);
+  v -= y;
+  v /= 255.0;
+  float z = fract(v);
+  /* v -= y;
+  v /= 255.0;
+  float w = fract(v);
+  float w = 0.0;
+  if (x == 0.0 && y == 0.0 && z == 0.0 && w == 0.0) {
+    return vec4(0.0, 0.0, 0.0, 1.0);
+  } else { */
+    return vec4(x, y, z, 0.0);
+  // }
+}
 void main() {
-  gl_FragColor = vec4(pow(texture2D(colorMap, vTexCoords).r, 10.), 0., 0., 1.0);
+  float z_b = texture2D(colorMap, vTexCoords).r;
+  float z_n = 2.0 * z_b - 1.0;
+  float z_e = 2.0 * uNear * uFar / (uFar + uNear - z_n * (uFar - uNear));
+  gl_FragColor = encodePixelDepth(z_e);
 }`;
   function compileShader(gl, shaderSource, shaderType) {
     // Create the shader object
@@ -165,6 +188,10 @@ void main() {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, depthTex);
     gl.uniform1i(uniforms.colorMap, 0);
+    gl.uniform1f(uniforms.uNear, pe.camera.near);
+    gl.uniform1f(uniforms.uFar, pe.camera.far);
+    
+    console.log('got near far', pe.camera.near, pe.camera.far);
 
     const verts = [
       // First triangle:
@@ -200,9 +227,24 @@ void main() {
     };
     const uniforms = {
       colorMap: gl.getUniformLocation(program, 'colorMap'),
+      uNear: gl.getUniformLocation(program, 'uNear'),
+      uFar: gl.getUniformLocation(program, 'uFar'),
     };
     drawFullScreenQuad(gl, program, vertexAttributes, uniforms);
-    console.log('got program', program);
+
+    // gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
+    const pixels = new Uint8Array(pe.options.width * pe.options.devicePixelRatio * pe.options.height * pe.options.devicePixelRatio * 4);
+    gl.readPixels(0, 0, pe.options.width * pe.options.devicePixelRatio, pe.options.height * pe.options.devicePixelRatio, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+ 
+    const depths = new Float32Array(pe.options.width * pe.options.devicePixelRatio * pe.options.height * pe.options.devicePixelRatio);
+    let j = 0;
+    for (let i = 0; i < depths.length; i++) {
+      depths[i] =
+        pixels[j++]/255.0 +
+        pixels[j++] +
+        pixels[j++]*255.0 +
+        pixels[j++]*255.0*255.0;
+    }
 
     /* gl.blitFramebuffer(
       0, 0, pe.options.width * pe.options.devicePixelRatio, pe.options.height * pe.options.devicePixelRatio,
