@@ -543,16 +543,15 @@ export class XRPackageEngine extends EventTarget {
     }
   }
   async setSession(realSession) {
+    if (this.cancelFrame) {
+      this.cancelFrame();
+      this.cancelFrame = null;
+    }
     if (this.loadReferenceSpaceInterval !== 0) {
       clearInterval(this.loadReferenceSpaceInterval);
       this.loadReferenceSpaceInterval = 0;
     }
     if (realSession) {
-      if (this.cancelFrame) {
-        this.cancelFrame();
-        this.cancelFrame = null;
-      }
-      
       let referenceSpaceType = '';
       const _loadReferenceSpace = async () => {
         const lastReferenceSpaceType = referenceSpaceType;
