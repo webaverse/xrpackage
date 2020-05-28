@@ -59,13 +59,6 @@ class XRPackageManager extends EventTarget {
     this.schema = schema;
 
     GlobalContext.xrState = xrState;
-    /* GlobalContext.xrFramebuffer = context.createFramebuffer();
-    const fboTex = context.createTexture();
-    context.bindTexture(context.TEXTURE_2D, fboTex);
-    const size = 256;
-    context.texImage2D(context.TEXTURE_2D, 0, context.RGBA, size, size, 0, context.RGBA, context.UNSIGNED_BYTE, null);
-    context.bindFramebuffer(context.FRAMEBUFFER, GlobalContext.xrFramebuffer);
-    context.framebufferTexture2D(context.FRAMEBUFFER, context.COLOR_ATTACHMENT0, context.TEXTURE_2D, fboTex, 0); */
     GlobalContext.proxyContext = context;
     GlobalContext.contexts = [];
     
