@@ -2,6 +2,11 @@ import THREE from './three.module.js';
 import {XRPackageEngine} from './xrpackage.js';
 import {MesherServer} from './mesher.js';
 
+const voxelWidth = 15;
+const voxelSize = 1;
+const pixelRatio = 3;
+const voxelResolution = voxelSize / voxelWidth;
+
 function makePromise() {
   let accept, reject;
   const p = new Promise((a, r) => {
@@ -41,6 +46,8 @@ const getPreviewMesh = async p => {
   const pe = new XRPackageEngine({
     autoStart: false,
   });
+  const camera = new THREE.OrthographicCamera(Math.PI, Math.PI, Math.PI, Math.PI, 0.001, 1000);
+  pe.camera = camera;
   const gl = pe.context;
   const xrfb = gl.createFramebuffer();
   gl.bindFramebuffer(gl.FRAMEBUFFER, xrfb);
@@ -61,7 +68,6 @@ const getPreviewMesh = async p => {
   pe.setXrFramebuffer(xrfb);
 
   await pe.add(p);
-  pe.tick();
 
   const rfb = gl.createFramebuffer();
   
@@ -74,7 +80,7 @@ const getPreviewMesh = async p => {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+  gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
   
   const depthTex = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, depthTex);
@@ -84,13 +90,7 @@ const getPreviewMesh = async p => {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.TEXTURE_2D, depthTex, 0);
-  
-  gl.blitFramebuffer(
-    0, 0, pe.options.width * pe.options.devicePixelRatio, pe.options.height * pe.options.devicePixelRatio,
-    0, 0, pe.options.width * pe.options.devicePixelRatio, pe.options.height * pe.options.devicePixelRatio,
-    gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT, gl.NEAREST
-  );
+  gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.TEXTURE_2D, depthTex, 0);
   
   gl.bindTexture(gl.TEXTURE_2D, null);
   gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
@@ -182,57 +182,35 @@ void main() {
    
     return program;
   }
-  function drawFullScreenQuad(gl, shaderProgram, vertexAttributes, uniforms) {
-    gl.useProgram(shaderProgram);
 
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, depthTex);
-    gl.uniform1i(uniforms.colorMap, 0);
-    gl.uniform1f(uniforms.uNear, pe.camera.near);
-    gl.uniform1f(uniforms.uFar, pe.camera.far);
-    
-    console.log('got near far', pe.camera.near, pe.camera.far);
+  const vShader = compileShader(gl, vsh, gl.VERTEX_SHADER);
+  const fShader = compileShader(gl, fsh, gl.FRAGMENT_SHADER);
+  const program = createProgram(gl, vShader, fShader);
+  const vertexAttributes = {
+    vertexPositionNDC: gl.getAttribLocation(program, 'vertexPositionNDC'),
+  };
+  const uniforms = {
+    colorMap: gl.getUniformLocation(program, 'colorMap'),
+    uNear: gl.getUniformLocation(program, 'uNear'),
+    uFar: gl.getUniformLocation(program, 'uFar'),
+  };
+  
+  const verts = [
+    // First triangle:
+     1.0,  1.0,
+    -1.0,  1.0,
+    -1.0, -1.0,
+    // Second triangle:
+    -1.0, -1.0,
+     1.0, -1.0,
+     1.0,  1.0
+  ];
+  const screenQuadVBO = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, screenQuadVBO);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
+  gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-    const verts = [
-      // First triangle:
-       1.0,  1.0,
-      -1.0,  1.0,
-      -1.0, -1.0,
-      // Second triangle:
-      -1.0, -1.0,
-       1.0, -1.0,
-       1.0,  1.0
-    ];
-    const screenQuadVBO = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, screenQuadVBO);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
-
-    // Bind:
-    gl.bindBuffer(gl.ARRAY_BUFFER, screenQuadVBO);
-    gl.enableVertexAttribArray(vertexAttributes.vertexPositionNDC);
-    gl.vertexAttribPointer(vertexAttributes.vertexPositionNDC, 2, gl.FLOAT, false, 0, 0);
-
-    // Draw 6 vertexes => 2 triangles:
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
-
-    // Cleanup:
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
-  }
   {
-    const vShader = compileShader(gl, vsh, gl.VERTEX_SHADER);
-    const fShader = compileShader(gl, fsh, gl.FRAGMENT_SHADER);
-    const program = createProgram(gl, vShader, fShader);
-    const vertexAttributes = {
-      vertexPositionNDC: gl.getAttribLocation(program, 'vertexPositionNDC'),
-    };
-    const uniforms = {
-      colorMap: gl.getUniformLocation(program, 'colorMap'),
-      uNear: gl.getUniformLocation(program, 'uNear'),
-      uFar: gl.getUniformLocation(program, 'uFar'),
-    };
-    drawFullScreenQuad(gl, program, vertexAttributes, uniforms);
-
-    // gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
     const pixels = new Uint8Array(pe.options.width * pe.options.devicePixelRatio * pe.options.height * pe.options.devicePixelRatio * 4);
     gl.readPixels(0, 0, pe.options.width * pe.options.devicePixelRatio, pe.options.height * pe.options.devicePixelRatio, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
  
@@ -244,23 +222,111 @@ void main() {
         pixels[j++] +
         pixels[j++]*255.0 +
         pixels[j++]*255.0*255.0;
-      if (v > pe.camera.far) {
+      if (v > camera.far) {
         v = Infinity;
       }
       depths[i] = v;
     }
 
-    console.log('got depths', depths);
+    const updateView = (p, q) => {
+      if (!camera.position.equals(p) || !camera.quaternion.equals(q)) {
+        camera.position.copy(p);
+        camera.quaternion.copy(q);
+        camera.updateMatrixWorld();
+      }
+    };
+    const updateSize = (uSize, vSize, dSize) => {
+      camera.left = uSize / -2;
+      camera.right = uSize / 2;
+      camera.top = vSize / 2;
+      camera.bottom = vSize / -2;
+      camera.near = 0.001;
+      camera.far = dSize;
+      camera.updateProjectionMatrix();
+    };
+    const renderDepth = () => {
+      // render
+      pe.tick();
 
-    /* gl.blitFramebuffer(
-      0, 0, pe.options.width * pe.options.devicePixelRatio, pe.options.height * pe.options.devicePixelRatio,
-      0, 0, pe.options.width * pe.options.devicePixelRatio, pe.options.height * pe.options.devicePixelRatio,
-      gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT, gl.NEAREST
-    );
+      // resolve
+      gl.bindFramebuffer(gl.READ_FRAMEBUFFER, xrfb);
+      gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, rfb);
+      gl.blitFramebuffer(
+        0, 0, pe.options.width * pe.options.devicePixelRatio, pe.options.height * pe.options.devicePixelRatio,
+        0, 0, pe.options.width * pe.options.devicePixelRatio, pe.options.height * pe.options.devicePixelRatio,
+        gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT, gl.NEAREST
+      );
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-    gl.bindTexture(gl.TEXTURE_2D, null);
-    gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
-    gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null); */
+      // read
+      gl.useProgram(shaderProgram);
+
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, depthTex);
+      gl.uniform1i(uniforms.colorMap, 0);
+      gl.uniform1f(uniforms.uNear, camera.near);
+      gl.uniform1f(uniforms.uFar, camera.far);
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, screenQuadVBO);
+      gl.enableVertexAttribArray(vertexAttributes.vertexPositionNDC);
+      gl.vertexAttribPointer(vertexAttributes.vertexPositionNDC, 2, gl.FLOAT, false, 0, 0);
+
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    };
+    const getDepthPixels = (i, depthTextures, offset) => {
+      gl.readPixels(0, 0, width * pixelRatio, height * pixelRatio, new Float32Array(depthTextures.buffer, depthTextures.byteOffset + offset * Float32Array.BYTES_PER_ELEMENT, width * pixelRatio * height * pixelRatio * 4), 0);
+    };
+    
+    /* const aabb = new THREE.Box3().setFromObject(m);
+    const center = aabb.getCenter(new THREE.Vector3());
+    const size = aabb.getSize(new THREE.Vector3()); */
+    const center = new THREE.Vector3(0, 0, 0);
+    const size = new THREE.Vector3(3, 3, 3);
+    // size.multiplyScalar(1.5);
+
+    const voxelResolution = size.clone().divideScalar(voxelWidth);
+
+    const _multiplyLength = (a, b) => a.x*b.x + a.y*b.y + a.z*b.z;
+
+    const depthTextures = new Float32Array(voxelWidth * pixelRatio * voxelWidth * pixelRatio * 4 * 6);
+    [
+      [center.x, center.y, center.z + size.z/2, 0, 0, new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1)],
+      [center.x + size.x/2, center.y, center.z, Math.PI/2, 0, new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0)],
+      [center.x, center.y, center.z - size.z/2, Math.PI/2*2, 0, new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1)],
+      [center.x - size.x/2, center.y, center.z, Math.PI/2*3, 0, new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0)],
+      [center.x, center.y + size.y/2, center.z, 0, -Math.PI/2, new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 1, 0)],
+      [center.x, center.y - size.y/2, center.z, 0, Math.PI/2, new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 1, 0)],
+    ].forEach(([x, y, z, ry, rx, sx, sy, sz], i) => {
+      if (ry !== 0) {
+        localQuaternion.setFromAxisAngle(localVector.set(0, 1, 0), ry);
+      } else if (rx !== 0) {
+        localQuaternion.setFromAxisAngle(localVector.set(1, 0, 0), rx);
+      } else {
+        localQuaternion.set(0, 0, 0, 1);
+      }
+      updateView(x, y, z, localQuaternion);
+      updateSize(_multiplyLength(size, sx), _multiplyLength(size, sy), _multiplyLength(size, sz));
+      renderDepth();
+      getDepthPixels(i, depthTextures, voxelWidth * pixelRatio * voxelWidth * pixelRatio * 4 * i);
+    });
+
+    this.scene.remove(m);
+
+    // const {arrayBuffer} = this;
+    // this.arrayBuffer = null;
+    const res = await this.marchPotentials({
+      // method: 'marchPotentials',
+      depthTextures,
+      dims: [voxelWidth, voxelWidth, voxelWidth],
+      shift: [voxelResolution.x/2 + center.x - size.x/2, voxelResolution.y/2 + center.y - size.y/2, voxelResolution.z/2 + center.z - size.z/2],
+      size: [size.x, size.y, size.z],
+      pixelRatio,
+      value: 1,
+      nvalue: -1,
+    });
+    console.log('got res', res);
   }
 
   document.body.appendChild(pe.domElement);
