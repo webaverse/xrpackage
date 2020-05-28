@@ -404,6 +404,8 @@ export class XRPackageEngine extends EventTarget {
     camera.position.set(0, 1, 2);
     camera.rotation.order = 'YXZ';
     this.camera = camera;
+    
+    renderer.render(scene, camera); // pre-render the scene to compile
 
     const container = new THREE.Object3D();
     scene.add(container);
