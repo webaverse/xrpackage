@@ -285,6 +285,13 @@ function animate(timestamp, frame) {
         localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.copy(velocity).normalize());
       }
       pe.setRigMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
+    } else if (selectedTool === 'isometric') {
+      pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+      localVector.add(localVector3.copy(isometricCameraOffset).applyQuaternion(localQuaternion));
+      if (velocity.lengthSq() > 0) {
+        localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.copy(velocity).normalize());
+      }
+      pe.setRigMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
     } else if (selectedTool === 'birdseye') {
       pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localVector.add(localVector3.set(0, -birdsEyeHeight + avatarHeight, 0));
@@ -324,6 +331,7 @@ let selectedTool = 'camera';
 let avatarHeight = 1.2;
 const birdsEyeHeight = 10;
 const avatarCameraOffset = new THREE.Vector3(0, 0, -1);
+const isometricCameraOffset = new THREE.Vector3(0, 0, -5);
 const tools = Array.from(document.querySelectorAll('.tool'));
 for (let i = 0; i < tools.length; i++) {
   const tool = document.getElementById('tool-' + (i+1));
@@ -344,14 +352,26 @@ for (let i = 0; i < tools.length; i++) {
       }
       selectTargets = [];
 
-      /* switch (oldSelectedTool) {
+      switch (oldSelectedTool) {
         case 'thirdperson': {
           pe.camera.position.add(localVector.copy(avatarCameraOffset).applyQuaternion(pe.camera.quaternion));
           pe.camera.updateMatrixWorld();
           pe.setCamera(camera);
           break;
         }
-      } */
+        case 'isometric': {
+          pe.camera.position.add(localVector.copy(isometricCameraOffset).applyQuaternion(pe.camera.quaternion));
+          pe.camera.updateMatrixWorld();
+          pe.setCamera(camera);
+          break;
+        }
+        /* case 'birdseye': {
+          pe.camera.position.add(localVector.copy(avatarCameraOffset).applyQuaternion(pe.camera.quaternion));
+          pe.camera.updateMatrixWorld();
+          pe.setCamera(camera);
+          break;
+        } */
+      }
 
       let decapitate = true;
       switch (selectedTool) {
@@ -376,6 +396,20 @@ for (let i = 0; i < tools.length; i++) {
         case 'thirdperson': {
           pe.camera.position.y = avatarHeight;
           pe.camera.position.sub(localVector.copy(avatarCameraOffset).applyQuaternion(pe.camera.quaternion));
+          pe.camera.updateMatrixWorld();
+          pe.setCamera(camera);
+
+          document.dispatchEvent(new MouseEvent('mouseup'));
+          pe.orbitControls.enabled = false;
+          pe.domElement.requestPointerLock();
+          decapitate = false;
+          break;
+        }
+        case 'isometric': {
+          pe.camera.rotation.x = -Math.PI/4;
+          pe.camera.quaternion.setFromEuler(pe.camera.rotation);
+          pe.camera.position.y = avatarHeight;
+          pe.camera.position.sub(localVector.copy(isometricCameraOffset).applyQuaternion(pe.camera.quaternion));
           pe.camera.updateMatrixWorld();
           pe.setCamera(camera);
 
@@ -822,15 +856,17 @@ const _updateMouseMovement = e => {
   const {movementX, movementY} = e;
   if (selectedTool === 'thirdperson') {
     pe.camera.position.add(localVector.copy(avatarCameraOffset).applyQuaternion(pe.camera.quaternion));
+  } else if (selectedTool === 'isometric') {
+    pe.camera.position.add(localVector.copy(isometricCameraOffset).applyQuaternion(pe.camera.quaternion));
   } else if (selectedTool === 'birdseye') {
     pe.camera.rotation.x = -Math.PI/2;
     pe.camera.quaternion.setFromEuler(pe.camera.rotation);
-    pe.camera.updateMatrixWorld();
-    pe.setCamera(camera);
+    // pe.camera.updateMatrixWorld();
+    // pe.setCamera(camera);
   }
 
   pe.camera.rotation.y -= movementX * Math.PI*2*0.001;
-  if (selectedTool !== 'birdseye') {
+  if (selectedTool !== 'isometric' && selectedTool !== 'birdseye') {
     pe.camera.rotation.x -= movementY * Math.PI*2*0.001;
     pe.camera.rotation.x = Math.min(Math.max(pe.camera.rotation.x, -Math.PI/2), Math.PI/2);
     pe.camera.quaternion.setFromEuler(pe.camera.rotation);
@@ -838,12 +874,14 @@ const _updateMouseMovement = e => {
 
   if (selectedTool === 'thirdperson') {
     pe.camera.position.sub(localVector.copy(avatarCameraOffset).applyQuaternion(pe.camera.quaternion));
+  } else if (selectedTool === 'isometric') {
+    pe.camera.position.sub(localVector.copy(isometricCameraOffset).applyQuaternion(pe.camera.quaternion));
   }
   pe.camera.updateMatrixWorld();
   pe.setCamera(camera);
 };
 renderer.domElement.addEventListener('mousemove', e => {
-  if (selectedTool === 'firstperson' || selectedTool === 'thirdperson' || selectedTool === 'birdseye') {
+  if (selectedTool === 'firstperson' || selectedTool === 'thirdperson' || selectedTool === 'isometric' || selectedTool === 'birdseye') {
     _updateMouseMovement(e);
   } else if (selectedTool === 'select' && !getSession()) {
     _updateRaycasterFromMouseEvent(raycaster, e);
