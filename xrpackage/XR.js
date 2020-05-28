@@ -137,7 +137,7 @@ class XR extends EventTarget {
       });
       this.session = session;
     }
-    return Promise.resolve(this.session);
+    return this.session;
   }
   /* async requestDevice() {
     return new XRDevice(this);
