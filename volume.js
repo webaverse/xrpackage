@@ -1,4 +1,5 @@
 import THREE from './three.module.js';
+import {XRPackageEngine} from './xrpackage.js';
 import {MesherServer} from './mesher.js';
 
 function makePromise() {
@@ -37,6 +38,11 @@ self.wasmModule = (moduleName, moduleFn) => {
 import('./bin/mc.js');
 
 const getPreviewMesh = async p => {
+  const pe = new XRPackageEngine({
+    autoStart: false,
+  });
+  pe.add(p);
+  pe.tick();
   const server = new MesherServer();
   return new THREE.Object3D();
 };
