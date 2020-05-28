@@ -68,6 +68,7 @@ const getPreviewMesh = async p => {
   }
   await pe.add(p);
   pe.tick();
+  document.body.appendChild(pe.domElement);
   const server = new MesherServer();
   return new THREE.Object3D();
 };
