@@ -612,13 +612,13 @@ export class XRPackageEngine extends EventTarget {
               const viewport = baseLayer.getViewport(pose.views[0]);
               const width = viewport.width;
               const height = viewport.height;
-              const fullWidth = (() => {
+              /* const fullWidth = (() => {
                 let result = 0;
                 for (let i = 0; i < pose.views.length; i++) {
                   result += baseLayer.getViewport(pose.views[i]).width;
                 }
                 return result;
-              })();
+              })(); */
 
               GlobalContext.xrState.isPresentingReal[0] = 1;
               GlobalContext.xrState.stereo[0] = 1;
