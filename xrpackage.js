@@ -316,7 +316,7 @@ const xrTypeAdders = {
       engine: this,
       pkg: p,
       indexHtml,
-      context: GlobalContext.proxyContext,
+      context: this.proxyContext,
       id: p.id,
       schema: p.schema,
       xrState,
@@ -1549,4 +1549,4 @@ export class XRPackage extends EventTarget {
   }
 }
 
-window.XRPackage = XRPackage;
+// window.XRPackage = XRPackage;
