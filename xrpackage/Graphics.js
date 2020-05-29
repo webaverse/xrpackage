@@ -197,20 +197,20 @@ class OES_vertex_array_object {
     this.VERTEX_ARRAY_BINDING_OES = OES_vertex_array_object.VERTEX_ARRAY_BINDING_OES;
   }
   createVertexArrayOES() {
-    return this.canvas.proxyContext.createVertexArray();
+    return this.gl.canvas.proxyContext.createVertexArray();
   }
   bindVertexArrayOES(vao) {
     this.gl.state.vao = vao;
-    return this.canvas.proxyContext.bindVertexArray(vao);
+    return this.gl.canvas.proxyContext.bindVertexArray(vao);
   }
   deleteVertexArrayOES(vao) {
     if (this.gl.state.vao === vao) {
       this.gl.state.vao = null;
     }
-    return this.canvas.proxyContext.deleteVertexArray(vao);
+    return this.gl.canvas.proxyContext.deleteVertexArray(vao);
   }
   isVertexArrayOES(vao) {
-    return this.canvas.proxyContext.isVertexArray(vao);
+    return this.gl.canvas.proxyContext.isVertexArray(vao);
   }
   static get VERTEX_ARRAY_BINDING_OES() {
     return WebGL2RenderingContext.VERTEX_ARRAY_BINDING;
