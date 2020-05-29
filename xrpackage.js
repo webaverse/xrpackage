@@ -427,7 +427,7 @@ export class XRPackageEngine extends EventTarget {
     const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 3);
     container.add(directionalLight2);
 
-    this.fakeSession = new XR.XRSession();
+    this.fakeSession = new XR.XRSession(this.xrState);
     this.fakeSession.onrequestanimationframe = fn => this.packageRequestAnimationFrame(fn, globalThis);
     this.fakeSession.oncancelanimationframe = this.packageCancelAnimationFrame.bind(this);
 
