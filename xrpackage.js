@@ -145,7 +145,6 @@ const _makeXrState = () => {
   result.leftFov.set(Float32Array.from([45, 45, 45, 45]));
   result.rightFov = _makeTypedArray(Float32Array, 4);
   result.rightFov.set(result.leftFov);
-  result.offsetEpoch = _makeTypedArray(Uint32Array, 1);
   const _makeGamepad = () => ({
     connected: _makeTypedArray(Uint32Array, 1),
     position: _makeTypedArray(Float32Array, 3),
