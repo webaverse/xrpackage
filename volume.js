@@ -164,11 +164,11 @@ vec4 encodePixelDepth(float v) {
   // }
 }
 void main() {
-  gl_FragColor = texture2D(colorMap, vTexCoords);
-  /* float z_b = texture2D(colorMap, vTexCoords).r;
+  // gl_FragColor = texture2D(colorMap, vTexCoords);
+  float z_b = texture2D(colorMap, vTexCoords).r;
   float z_n = 2.0 * z_b - 1.0;
   float z_e = 2.0 * uNear * uFar / (uFar + uNear - z_n * (uFar - uNear));
-  gl_FragColor = encodePixelDepth(z_e); */
+  gl_FragColor = encodePixelDepth(z_e);
 }`;
   function compileShader(gl, shaderSource, shaderType) {
     // Create the shader object
@@ -407,10 +407,10 @@ void main() {
       index += Float32Array.BYTES_PER_ELEMENT * numBarycentrics[0];
 
       return {
-        result: {
+        // result: {
           positions: outP,
           barycentrics: outB,
-        },
+        /* },
         cleanup: () => {
           allocator.freeAll();
 
@@ -419,7 +419,7 @@ void main() {
             const fn = this.queue.shift();
             fn();
           }
-        },
+        }, */
       };
     }
     const res = await marchPotentials({
@@ -432,6 +432,7 @@ void main() {
       nvalue: -1,
     });
     console.log('got res', res);
+    return res;
   }
 
   const server = new MesherServer();
