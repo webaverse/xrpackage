@@ -804,18 +804,6 @@ const getContext = (oldGetContext => function getContext(type, init = {}) {
       return canvas2.toBlob(cb, type, quality);
     };
 
-    /* new MutationObserver(() => {
-      GlobalContext.proxyContext.canvas.width = canvas.width;
-      GlobalContext.proxyContext.canvas.height = canvas.height;
-    }).observe(canvas, {
-      attributes: true,
-      attributeFilter: ['width', 'height'],
-    }); */
-
-    /* setTimeout(() => {
-      window.vrdisplayactivate();
-    }); */
-
     return gl;
   } else {
     return oldGetContext.call(this, type, init);
