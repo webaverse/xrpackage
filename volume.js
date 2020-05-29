@@ -2,7 +2,7 @@ import THREE from './three.module.js';
 import {XRPackageEngine} from './xrpackage.js';
 import {MesherServer} from './mesher.js';
 
-const voxelWidth = 15;
+const voxelWidth = 100;
 const voxelSize = 1;
 const pixelRatio = 3;
 const voxelResolution = voxelSize / voxelWidth;
@@ -422,6 +422,9 @@ void main() {
         }, */
       };
     }
+    
+    pe.remove(p);
+
     const res = await marchPotentials({
       depthTextures,
       dims: [voxelWidth, voxelWidth, voxelWidth],
@@ -434,9 +437,6 @@ void main() {
     console.log('got res', res);
     return res;
   }
-
-  const server = new MesherServer();
-  return new THREE.Object3D();
 };
 export {
   getPreviewMesh,

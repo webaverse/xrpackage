@@ -8,7 +8,7 @@ window.THREE = THREE;
   <h1 id=text>Volumizing...</h1>
   <pre><code id=error></code></pre>
   <script type=module>
-import {XRPackage} from './xrpackage.js';
+import {XRPackage, XRPackageEngine} from './xrpackage.js';
 import {OrbitControls} from './xrpackage/OrbitControls.js';
 // import {screenshotObject, exportObject} from './screenshot-object.js';
 import {getPreviewMesh} from './volume.js';
@@ -81,7 +81,8 @@ const makeWireframeMaterial = () => new THREE.ShaderMaterial({
   /* polygonOffset: true,
   polygonOffsetFactor: -1,
   polygonOffsetUnits: -4, */
-  // transparent: true,
+  transparent: true,
+  opacity: 0.5,
   // depthWrite: false,
   extensions: {
     derivatives: true,
@@ -107,18 +108,25 @@ orbitControls.screenSpacePanning = true;
 orbitControls.enableMiddleZoom = false;
 orbitControls.update();
 
-{
-  const o = await getPreviewMesh(p);
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.BufferAttribute(o.positions, 3));
-  geometry.setAttribute('barycentric', new THREE.BufferAttribute(o.barycentrics, 3));
-  const material = makeWireframeMaterial();
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.frustumCulled = false;
-  scene.add(mesh);
-}
+const o = await getPreviewMesh(p);
+const geometry = new THREE.BufferGeometry();
+geometry.setAttribute('position', new THREE.BufferAttribute(o.positions, 3));
+geometry.setAttribute('barycentric', new THREE.BufferAttribute(o.barycentrics, 3));
+const material = makeWireframeMaterial();
+const wireframeMesh = new THREE.Mesh(geometry, material);
+wireframeMesh.frustumCulled = false;
 
-document.body.appendChild(renderer.domElement);
+const pe = new XRPackageEngine();
+pe.add(p);
+await p.waitForLoad();
+pe.scene.add(wireframeMesh);
+document.body.appendChild(pe.domElement);
+pe.domElement.style.position = 'absolute';
+pe.domElement.style.left = '0';
+pe.domElement.style.top = '0';
+pe.domElement.style.width = '100%';
+pe.domElement.style.height = '100%';
+pe.domElement.style.background = '#000';
 
 function animate(timestamp, frame) {
   orbitControls.update();

@@ -200,15 +200,8 @@ const xrTypeLoaders = {
     iframe.style.top = '-10000px';
     iframe.style.left = '-10000px';
     iframe.style.visibility = 'hidden';
-    document.body.appendChild(iframe);
-
-    await new Promise((accept, reject) => {
-      iframe.addEventListener('load', accept);
-      iframe.addEventListener('error', reject);
-    });
 
     p.context.iframe = iframe;
-    p.matrixWorldNeedsUpdate = true;
   },
   'gltf@0.0.1': async function(p) {
     const d = p.getMainData();
@@ -307,8 +300,14 @@ const xrTypeLoaders = {
 };
 const xrTypeAdders = {
   'webxr-site@0.0.1': async function(p) {
+    document.body.appendChild(p.context.iframe);
+    await new Promise((accept, reject) => {
+      p.context.iframe.addEventListener('load', accept);
+      p.context.iframe.addEventListener('error', reject);
+    });
+    p.matrixWorldNeedsUpdate = true;
+    
     p.context.requestPresentPromise = makePromise();
-
     p.setXrFramebuffer(GlobalContext.xrFramebuffer);
     
     const d = p.getMainData();
@@ -882,7 +881,7 @@ export class XRPackageEngine extends EventTarget {
     } */
     for (let i = 0; i < this.packages.length; i++) {
       const p = this.packages[i];
-      if (p.context.iframe && p.context.iframe.contentWindow.xrpackage.session && p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer) {
+      if (p.context.iframe && p.context.iframe.contentWindow && p.context.iframe.contentWindow.xrpackage && p.context.iframe.contentWindow.xrpackage.session && p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer) {
         p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer.context._exokitClearEnabled(false);
         // console.log('got iframe', p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer.context.canvas.transferToImageBitmap());
         // debugger;
