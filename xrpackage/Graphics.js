@@ -8,9 +8,7 @@ import GlobalContext from './GlobalContext.js';
 let {WebGLRenderingContext, WebGL2RenderingContext, CanvasRenderingContext2D} = globalThis;
 
 class WebGLState {
-  constructor() {
-    const gl = GlobalContext.proxyContext;
-
+  constructor(gl) {
     this.vao = null;
 
     this.arrayBuffer = null;
@@ -96,7 +94,7 @@ function ProxiedWebGLRenderingContext(canvas) {
   });
 
   // this.id = ++GlobalContext.xrState.id[0];
-  this.state = new WebGLState();
+  this.state = new WebGLState(canvas.proxyContext);
   this._enabled = {
     blend: true,
     clear: true,
@@ -124,10 +122,10 @@ for (const k in WebGLRenderingContext.prototype) {
   const o = Object.getOwnPropertyDescriptor(WebGLRenderingContext.prototype, k);
   if (o.get) {
     o.get = (get => function() {
-      return GlobalContext.proxyContext[k];
+      return this.canvas.proxyContext[k];
     })(o.get);
     o.set = (set => function(v) {
-      GlobalContext.proxyContext[k] = v;
+      this.canvas.proxyContext[k] = v;
     })(o.set);
     Object.defineProperty(ProxiedWebGLRenderingContext.prototype, k, o);
   } else {
@@ -137,24 +135,24 @@ for (const k in WebGLRenderingContext.prototype) {
         ProxiedWebGLRenderingContext.prototype[k] = function() {
           // if (window[symbols.mrDisplaysSymbol].vrDisplay.isPresenting) {
             this.setProxyState();
-            return GlobalContext.proxyContext[k].apply(GlobalContext.proxyContext, arguments);
+            return this.canvas.proxyContext[k].apply(this.canvas.proxyContext, arguments);
           // }
         };
       } else if (k === 'texImage2D' || k === 'texSubImage2D') {
         ProxiedWebGLRenderingContext.prototype[k] = function(a, b, c, d, e, f, g, h, i) {
           this.setProxyState();
           if (i instanceof Float32Array) {
-            c = GlobalContext.proxyContext.RGBA32F;
-            return GlobalContext.proxyContext[k].call(GlobalContext.proxyContext, a, b, c, d, e, f, g, h, i);
+            c = this.canvas.proxyContext.RGBA32F;
+            return this.canvas.proxyContext[k].call(this.canvas.proxyContext, a, b, c, d, e, f, g, h, i);
           } else {
-            return GlobalContext.proxyContext[k].apply(GlobalContext.proxyContext, arguments);
+            return this.canvas.proxyContext[k].apply(this.canvas.proxyContext, arguments);
           }
         };
       } else {
         ProxiedWebGLRenderingContext.prototype[k] = function() {
           // console.log('set proxy state 1', k, window.location.href);
           this.setProxyState();
-          const result = GlobalContext.proxyContext[k].apply(GlobalContext.proxyContext, arguments);
+          const result = this.canvas.proxyContext[k].apply(this.canvas.proxyContext, arguments);
           // console.log('set proxy state 2', k);
           return result;
         };
@@ -163,30 +161,30 @@ for (const k in WebGLRenderingContext.prototype) {
   }
 }
 ProxiedWebGLRenderingContext.prototype._exokitClear = function _exokitClear() {
-  const gl = GlobalContext.proxyContext;
+  const gl = this.canvas.proxyContext;
   gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);
 };
 ProxiedWebGLRenderingContext.prototype._exokitClearEnabled = function _exokitClearEnabled(enabled) {
   this._enabled.clear = enabled;
 };
 ProxiedWebGLRenderingContext.prototype._exokitEnable = function _exokitEnable(flag) {
-  const gl = GlobalContext.proxyContext;
+  const gl = this.canvas.proxyContext;
   gl.enable(flag);
 };
 ProxiedWebGLRenderingContext.prototype._exokitDisable = function _exokitDisable(flag) {
-  const gl = GlobalContext.proxyContext;
+  const gl = this.canvas.proxyContext;
   gl.disable(flag);
 };
 ProxiedWebGLRenderingContext.prototype._exokitBlendFuncSeparate = function _exokitBlendFuncSeparate(srcRgb, dstRgb, srcAlpha, dstAlpha) {
-  const gl = GlobalContext.proxyContext;
+  const gl = this.canvas.proxyContext;
   gl.blendFuncSeparate(srcRgb, dstRgb, srcAlpha, dstAlpha);
 };
 ProxiedWebGLRenderingContext.prototype._exokitBlendEquationSeparate = function _exokitBlendEquationSeparate(rgb, a) {
-  const gl = GlobalContext.proxyContext;
+  const gl = this.canvas.proxyContext;
   gl.blendEquationSeparate(rgb, a);
 };
 ProxiedWebGLRenderingContext.prototype._exokitBlendColor = function _exokitBlendColor(r, g, b, a) {
-  const gl = GlobalContext.proxyContext;
+  const gl = this.canvas.proxyContext;
   gl.blendColor(r, g, b, a);
 };
 ProxiedWebGLRenderingContext.prototype._exokitBlendEnabled = function _exokitBlendEnabled(enabled) {
@@ -199,20 +197,20 @@ class OES_vertex_array_object {
     this.VERTEX_ARRAY_BINDING_OES = OES_vertex_array_object.VERTEX_ARRAY_BINDING_OES;
   }
   createVertexArrayOES() {
-    return GlobalContext.proxyContext.createVertexArray();
+    return this.canvas.proxyContext.createVertexArray();
   }
   bindVertexArrayOES(vao) {
     this.gl.state.vao = vao;
-    return GlobalContext.proxyContext.bindVertexArray(vao);
+    return this.canvas.proxyContext.bindVertexArray(vao);
   }
   deleteVertexArrayOES(vao) {
     if (this.gl.state.vao === vao) {
       this.gl.state.vao = null;
     }
-    return GlobalContext.proxyContext.deleteVertexArray(vao);
+    return this.canvas.proxyContext.deleteVertexArray(vao);
   }
   isVertexArrayOES(vao) {
-    return GlobalContext.proxyContext.isVertexArray(vao);
+    return this.canvas.proxyContext.isVertexArray(vao);
   }
   static get VERTEX_ARRAY_BINDING_OES() {
     return WebGL2RenderingContext.VERTEX_ARRAY_BINDING;
@@ -220,13 +218,13 @@ class OES_vertex_array_object {
 }
 class ANGLE_instanced_arrays {
   drawArraysInstancedANGLE(mode, first, count, primcount) {
-    return GlobalContext.proxyContext.drawArraysInstanced(mode, first, count, primcount);
+    return this.canvas.proxyContext.drawArraysInstanced(mode, first, count, primcount);
   }
   drawElementsInstancedANGLE(mode, count, type, offset, primcount) {
-    return GlobalContext.proxyContext.drawElementsInstanced(mode, count, type, offset, primcount);
+    return this.canvas.proxyContext.drawElementsInstanced(mode, count, type, offset, primcount);
   }
   vertexAttribDivisorANGLE(index, divisor) {
-    return GlobalContext.proxyContext.vertexAttribDivisor(index, divisor);
+    return this.canvas.proxyContext.vertexAttribDivisor(index, divisor);
   }
 }
 ProxiedWebGLRenderingContext.prototype.getExtension = (_getExtension => function getExtension(name) {
@@ -234,13 +232,13 @@ ProxiedWebGLRenderingContext.prototype.getExtension = (_getExtension => function
     if (hasWebGL2) {
       return new OES_vertex_array_object(this);
     } else {
-      return GlobalContext.proxyContext.getExtension(name);
+      return this.canvas.proxyContext.getExtension(name);
     }
   } else if (name === 'ANGLE_instanced_arrays') {
     if (hasWebGL2) {
       return new ANGLE_instanced_arrays();
     } else {
-      return GlobalContext.proxyContext.getExtension(name);
+      return this.canvas.proxyContext.getExtension(name);
     }
   } else if ([
     'EXT_texture_filter_anisotropic',
@@ -249,7 +247,7 @@ ProxiedWebGLRenderingContext.prototype.getExtension = (_getExtension => function
     'EXT_disjoint_timer_query_webgl2',
     'KHR_parallel_shader_compile',
   ].includes(name)) {
-    return GlobalContext.proxyContext.getExtension(name);
+    return this.canvas.proxyContext.getExtension(name);
   } else {
     return {};
   }
@@ -265,7 +263,7 @@ ProxiedWebGLRenderingContext.prototype.disable = (oldDisable => function disable
   }
 })(ProxiedWebGLRenderingContext.prototype.disable);
 ProxiedWebGLRenderingContext.prototype.clear = (oldClear => function clear() {
-  const gl = GlobalContext.proxyContext;
+  const gl = this.canvas.proxyContext;
   if (this._enabled.clear || this.state.framebuffer[gl.DRAW_FRAMEBUFFER] !== null) {
     oldClear.apply(this, arguments);
   }
@@ -327,10 +325,10 @@ function setTextureUnits(gl, state, state2) {
   }
 }
 ProxiedWebGLRenderingContext.prototype.setProxyState = function setProxyState() {
-  const gl = GlobalContext.proxyContext;
-  if (GlobalContext.proxyContext.binding !== this) {
+  const gl = this.canvas.proxyContext;
+  if (gl.binding !== this) {
     const {state} = this;
-    const state2 = GlobalContext.proxyContext.binding ? GlobalContext.proxyContext.binding.state : new WebGLState();
+    const state2 = gl.binding ? gl.binding.state : new WebGLState(gl);
 
     if (hasWebGL2) {
       setValue(gl, gl.bindVertexArray, state.vao, state2.vao);
@@ -395,7 +393,7 @@ ProxiedWebGLRenderingContext.prototype.setProxyState = function setProxyState() 
 
     setTextureUnits(gl, state, state2);
 
-    GlobalContext.proxyContext.binding = this;
+    gl.binding = this;
   }
 };
 ProxiedWebGLRenderingContext.prototype.destroy = function destroy() {
@@ -453,7 +451,7 @@ ProxiedWebGLRenderingContext.prototype.deleteRenderbuffer = (_deleteRenderbuffer
   return _deleteRenderbuffer.apply(this, arguments);
 })(ProxiedWebGLRenderingContext.prototype.deleteRenderbuffer);
 ProxiedWebGLRenderingContext.prototype.bindFramebuffer = (_bindFramebuffer => function bindFramebuffer(target, fbo) {
-  const gl = GlobalContext.proxyContext;
+  const gl = this.canvas.proxyContext;
   if (hasWebGL2 && target === gl.FRAMEBUFFER) {
     this.state.framebuffer[gl.READ_FRAMEBUFFER] = fbo;
     this.state.framebuffer[gl.DRAW_FRAMEBUFFER] = fbo;
@@ -779,12 +777,12 @@ return ProxiedWebGLRenderingContext;
 });
 
 const getContext = (oldGetContext => function getContext(type, init = {}) {
-  // console.log('get context', new Error().stack);
   const match = type.match(/^(?:experimental-)?(webgl2?)$/);
   if (match && (hasWebGL2 || match[1] !== 'webgl2')) {
-    // window[symbols.ensureProxyContext]();
-
     const canvas = this;
+    if (!canvas.proxyContext) {
+      canvas.proxyContext = HTMLCanvasElement.proxyContext;
+    }
     const [WebGLRenderingContext, WebGL2RenderingContext] = gls;
     const gl = match[1] === 'webgl2' ? new WebGL2RenderingContext(canvas) : new WebGLRenderingContext(canvas);
 
@@ -797,8 +795,8 @@ const getContext = (oldGetContext => function getContext(type, init = {}) {
       canvas2.height = canvas.height;
       const ctx2 = oldGetContext.call(canvas2, '2d');
       ctx2.drawImage(
-        GlobalContext.proxyContext.canvas,
-        0, GlobalContext.proxyContext.canvas.height - canvas2.height, canvas.width, canvas.height,
+        this.proxyContext.canvas,
+        0, this.proxyContext.canvas.height - canvas2.height, canvas.width, canvas.height,
         0, 0, canvas.width, canvas.height
       );
       return canvas2.toBlob(cb, type, quality);
@@ -810,8 +808,9 @@ const getContext = (oldGetContext => function getContext(type, init = {}) {
   }
 })(HTMLCanvasElement.prototype.getContext);
 
-const hijackCanvas = () => {
+const hijackCanvas = proxyContext => {
 
+HTMLCanvasElement.proxyContext = proxyContext;
 HTMLCanvasElement.prototype.getContext = getContext;
 Object.defineProperty(HTMLCanvasElement.prototype, 'clientWidth', {
   get() {

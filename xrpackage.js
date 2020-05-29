@@ -316,7 +316,7 @@ const xrTypeAdders = {
       engine: this,
       pkg: p,
       indexHtml,
-      context: GlobalContext.proxyContext,
+      context: this.proxyContext,
       id: p.id,
       schema: p.schema,
       xrState,
@@ -370,15 +370,15 @@ export class XRPackageEngine extends EventTarget {
     const canvas = document.createElement('canvas');
     canvas.style.outline = 'none';
     this.domElement = canvas;
-
-    this.matrix = xrOffsetMatrix;
-
-    GlobalContext.proxyContext = canvas.getContext('webgl2', {
+    const proxyContext = canvas.getContext('webgl2', {
       antialias: true,
       alpha: true,
       xrCompatible: true,
     });
-    // GlobalContext.contexts = [];
+    canvas.proxyContext = proxyContext;
+    this.proxyContext = proxyContext;
+
+    this.matrix = xrOffsetMatrix;
     
     xrState.renderWidth[0] = options.width / 2 * options.devicePixelRatio;
     xrState.renderHeight[0] = options.height * options.devicePixelRatio;
@@ -566,7 +566,7 @@ export class XRPackageEngine extends EventTarget {
       await _loadReferenceSpace();
       this.loadReferenceSpaceInterval = setInterval(_loadReferenceSpace, 1000);
 
-      const baseLayer = new window.OldXR.XRWebGLLayer(realSession, GlobalContext.proxyContext);
+      const baseLayer = new window.OldXR.XRWebGLLayer(realSession, this.proxyContext);
       realSession.updateRenderState({baseLayer});
 
       await new Promise((accept, reject) => {
