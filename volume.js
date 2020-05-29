@@ -7,6 +7,9 @@ const voxelSize = 1;
 const pixelRatio = 3;
 const voxelResolution = voxelSize / voxelWidth;
 
+const localVector = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+
 function makePromise() {
   let accept, reject;
   const p = new Promise((a, r) => {
@@ -17,6 +20,7 @@ function makePromise() {
   p.reject = reject;
   return p;
 }
+
 const modulePromise = makePromise();
 self.wasmModule = (moduleName, moduleFn) => {
   if (moduleName === 'mc') {
@@ -42,8 +46,30 @@ self.wasmModule = (moduleName, moduleFn) => {
 };
 import('./bin/mc.js');
 
+class Allocator {
+  constructor() {
+    this.offsets = [];
+  }
+  alloc(constructor, size) {
+    const offset = self.Module._doMalloc(size * constructor.BYTES_PER_ELEMENT);
+    const b = new constructor(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + offset, size);
+    b.offset = offset;
+    this.offsets.push(offset);
+    return b;
+  }
+  freeAll() {
+    for (let i = 0; i < this.offsets.length; i++) {
+      self.Module._doFree(this.offsets[i]);
+    }
+    this.offsets.length = 0;
+  }
+}
+
 const getPreviewMesh = async p => {
   const pe = new XRPackageEngine({
+    width: voxelWidth,
+    height: voxelWidth,
+    devicePixelRatio: pixelRatio,
     autoStart: false,
   });
   const camera = new THREE.OrthographicCamera(Math.PI, Math.PI, Math.PI, Math.PI, 0.001, 1000);
@@ -54,12 +80,12 @@ const getPreviewMesh = async p => {
   
   const colorRenderbuffer = gl.createRenderbuffer();
   gl.bindRenderbuffer(gl.RENDERBUFFER, colorRenderbuffer);
-  gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.RGBA8, pe.options.width * pe.options.devicePixelRatio, pe.options.height * pe.options.devicePixelRatio);
+  gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.RGBA8, voxelWidth * pixelRatio, voxelWidth * pixelRatio);
   gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, colorRenderbuffer);
 
   const depthRenderbuffer = gl.createRenderbuffer();
   gl.bindRenderbuffer(gl.RENDERBUFFER, depthRenderbuffer);
-  gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.DEPTH32F_STENCIL8, pe.options.width * pe.options.devicePixelRatio, pe.options.height * pe.options.devicePixelRatio);
+  gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.DEPTH32F_STENCIL8, voxelWidth * pixelRatio, voxelWidth * pixelRatio);
   gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, depthRenderbuffer);
 
   gl.bindRenderbuffer(gl.RENDERBUFFER, null);
@@ -76,7 +102,7 @@ const getPreviewMesh = async p => {
   
   const tex = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, tex);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, pe.options.width * pe.options.devicePixelRatio, pe.options.height * pe.options.devicePixelRatio, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, voxelWidth * pixelRatio, voxelWidth * pixelRatio, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -84,8 +110,7 @@ const getPreviewMesh = async p => {
   
   const depthTex = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, depthTex);
-  // gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH24_STENCIL8, pe.options.width * pe.options.devicePixelRatio, pe.options.height * pe.options.devicePixelRatio, 0, gl.DEPTH_STENCIL, gl.UNSIGNED_INT_24_8, null);
-  gl.texStorage2D(gl.TEXTURE_2D, 1, gl.DEPTH32F_STENCIL8, pe.options.width * pe.options.devicePixelRatio, pe.options.height * pe.options.devicePixelRatio);
+  gl.texStorage2D(gl.TEXTURE_2D, 1, gl.DEPTH32F_STENCIL8, voxelWidth * pixelRatio, voxelWidth * pixelRatio);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
@@ -185,14 +210,14 @@ void main() {
 
   const vShader = compileShader(gl, vsh, gl.VERTEX_SHADER);
   const fShader = compileShader(gl, fsh, gl.FRAGMENT_SHADER);
-  const program = createProgram(gl, vShader, fShader);
+  const shaderProgram = createProgram(gl, vShader, fShader);
   const vertexAttributes = {
-    vertexPositionNDC: gl.getAttribLocation(program, 'vertexPositionNDC'),
+    vertexPositionNDC: gl.getAttribLocation(shaderProgram, 'vertexPositionNDC'),
   };
   const uniforms = {
-    colorMap: gl.getUniformLocation(program, 'colorMap'),
-    uNear: gl.getUniformLocation(program, 'uNear'),
-    uFar: gl.getUniformLocation(program, 'uFar'),
+    colorMap: gl.getUniformLocation(shaderProgram, 'colorMap'),
+    uNear: gl.getUniformLocation(shaderProgram, 'uNear'),
+    uFar: gl.getUniformLocation(shaderProgram, 'uFar'),
   };
   
   const verts = [
@@ -211,23 +236,6 @@ void main() {
   gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
   {
-    const pixels = new Uint8Array(pe.options.width * pe.options.devicePixelRatio * pe.options.height * pe.options.devicePixelRatio * 4);
-    gl.readPixels(0, 0, pe.options.width * pe.options.devicePixelRatio, pe.options.height * pe.options.devicePixelRatio, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
- 
-    const depths = new Float32Array(pe.options.width * pe.options.devicePixelRatio * pe.options.height * pe.options.devicePixelRatio);
-    let j = 0;
-    for (let i = 0; i < depths.length; i++) {
-      let v = 
-        pixels[j++]/255.0 +
-        pixels[j++] +
-        pixels[j++]*255.0 +
-        pixels[j++]*255.0*255.0;
-      if (v > camera.far) {
-        v = Infinity;
-      }
-      depths[i] = v;
-    }
-
     const updateView = (p, q) => {
       if (!camera.position.equals(p) || !camera.quaternion.equals(q)) {
         camera.position.copy(p);
@@ -252,8 +260,8 @@ void main() {
       gl.bindFramebuffer(gl.READ_FRAMEBUFFER, xrfb);
       gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, rfb);
       gl.blitFramebuffer(
-        0, 0, pe.options.width * pe.options.devicePixelRatio, pe.options.height * pe.options.devicePixelRatio,
-        0, 0, pe.options.width * pe.options.devicePixelRatio, pe.options.height * pe.options.devicePixelRatio,
+        0, 0, voxelWidth, voxelWidth,
+        0, 0, voxelWidth, voxelWidth,
         gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT, gl.NEAREST
       );
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -276,7 +284,22 @@ void main() {
       gl.bindBuffer(gl.ARRAY_BUFFER, null);
     };
     const getDepthPixels = (i, depthTextures, offset) => {
-      gl.readPixels(0, 0, width * pixelRatio, height * pixelRatio, new Float32Array(depthTextures.buffer, depthTextures.byteOffset + offset * Float32Array.BYTES_PER_ELEMENT, width * pixelRatio * height * pixelRatio * 4), 0);
+      const pixels = new Uint8Array(voxelWidth * pixelRatio * voxelWidth * pixelRatio * 4);
+      gl.readPixels(0, 0, voxelWidth * pixelRatio, voxelWidth * pixelRatio, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+   
+      const depths = new Float32Array(depthTextures.buffer, depthTextures.byteOffset + offset * Float32Array.BYTES_PER_ELEMENT, voxelWidth * pixelRatio * voxelWidth * pixelRatio);
+      let j = 0;
+      for (let i = 0; i < depths.length; i++) {
+        let v = 
+          pixels[j++]/255.0 +
+          pixels[j++] +
+          pixels[j++]*255.0 +
+          pixels[j++]*255.0*255.0;
+        if (v > camera.far) {
+          v = Infinity;
+        }
+        depths[i] = v;
+      }
     };
     
     /* const aabb = new THREE.Box3().setFromObject(m);
@@ -290,7 +313,7 @@ void main() {
 
     const _multiplyLength = (a, b) => a.x*b.x + a.y*b.y + a.z*b.z;
 
-    const depthTextures = new Float32Array(voxelWidth * pixelRatio * voxelWidth * pixelRatio * 4 * 6);
+    const depthTextures = new Float32Array(voxelWidth * pixelRatio * voxelWidth * pixelRatio * 6);
     [
       [center.x, center.y, center.z + size.z/2, 0, 0, new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1)],
       [center.x + size.x/2, center.y, center.z, Math.PI/2, 0, new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0)],
@@ -299,6 +322,7 @@ void main() {
       [center.x, center.y + size.y/2, center.z, 0, -Math.PI/2, new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 1, 0)],
       [center.x, center.y - size.y/2, center.z, 0, Math.PI/2, new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 1, 0)],
     ].forEach(([x, y, z, ry, rx, sx, sy, sz], i) => {
+      localVector.set(x, y, z);
       if (ry !== 0) {
         localQuaternion.setFromAxisAngle(localVector.set(0, 1, 0), ry);
       } else if (rx !== 0) {
@@ -306,18 +330,86 @@ void main() {
       } else {
         localQuaternion.set(0, 0, 0, 1);
       }
-      updateView(x, y, z, localQuaternion);
+      updateView(localVector, localQuaternion);
       updateSize(_multiplyLength(size, sx), _multiplyLength(size, sy), _multiplyLength(size, sz));
       renderDepth();
-      getDepthPixels(i, depthTextures, voxelWidth * pixelRatio * voxelWidth * pixelRatio * 4 * i);
+      getDepthPixels(i, depthTextures, voxelWidth * voxelWidth * 4 * i);
     });
 
-    this.scene.remove(m);
+    async function marchPotentials(data) {
+      const {depthTextures: depthTexturesData, dims: dimsData, shift: shiftData, size: sizeData, pixelRatio, value, nvalue} = data;
 
-    // const {arrayBuffer} = this;
-    // this.arrayBuffer = null;
-    const res = await this.marchPotentials({
-      // method: 'marchPotentials',
+      const allocator = new Allocator();
+
+      const depthTextures = allocator.alloc(Float32Array, depthTexturesData.length);
+      depthTextures.set(depthTexturesData);
+
+      const positions = allocator.alloc(Float32Array, 1024*1024*Float32Array.BYTES_PER_ELEMENT);
+      const barycentrics = allocator.alloc(Float32Array, 1024*1024*Float32Array.BYTES_PER_ELEMENT);
+
+      const numPositions = allocator.alloc(Uint32Array, 1);
+      numPositions[0] = positions.length;
+      const numBarycentrics = allocator.alloc(Uint32Array, 1);
+      numBarycentrics[0] = barycentrics.length;
+
+      const dims = allocator.alloc(Int32Array, 3);
+      dims.set(Int32Array.from(dimsData));
+
+      const shift = allocator.alloc(Float32Array, 3);
+      shift.set(Float32Array.from(shiftData));
+
+      const size = allocator.alloc(Float32Array, 3);
+      size.set(Float32Array.from(sizeData));
+
+      self.Module._doMarchPotentials(
+        depthTextures.offset,
+        dims.offset,
+        shift.offset,
+        size.offset,
+        pixelRatio,
+        value,
+        nvalue,
+        positions.offset,
+        barycentrics.offset,
+        numPositions.offset,
+        numBarycentrics.offset
+      );
+
+      // console.log('out num positions', numPositions[0], numBarycentrics[0]);
+
+      const arrayBuffer2 = new ArrayBuffer(
+        Uint32Array.BYTES_PER_ELEMENT +
+        numPositions[0]*Float32Array.BYTES_PER_ELEMENT +
+        Uint32Array.BYTES_PER_ELEMENT +
+        numBarycentrics[0]*Uint32Array.BYTES_PER_ELEMENT
+      );
+      let index = 0;
+
+      const outP = new Float32Array(arrayBuffer2, index, numPositions[0]);
+      outP.set(new Float32Array(positions.buffer, positions.byteOffset, numPositions[0]));
+      index += Float32Array.BYTES_PER_ELEMENT * numPositions[0];
+
+      const outB = new Float32Array(arrayBuffer2, index, numBarycentrics[0]);
+      outB.set(new Float32Array(barycentrics.buffer, barycentrics.byteOffset, numBarycentrics[0]));
+      index += Float32Array.BYTES_PER_ELEMENT * numBarycentrics[0];
+
+      return {
+        result: {
+          positions: outP,
+          barycentrics: outB,
+        },
+        cleanup: () => {
+          allocator.freeAll();
+
+          this.running = false;
+          if (this.queue.length > 0) {
+            const fn = this.queue.shift();
+            fn();
+          }
+        },
+      };
+    }
+    const res = await marchPotentials({
       depthTextures,
       dims: [voxelWidth, voxelWidth, voxelWidth],
       shift: [voxelResolution.x/2 + center.x - size.x/2, voxelResolution.y/2 + center.y - size.y/2, voxelResolution.z/2 + center.z - size.z/2],
