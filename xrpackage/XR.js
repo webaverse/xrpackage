@@ -276,23 +276,6 @@ class XRSession extends EventTarget {
     }
   }
 
-  /* get layers() {
-    return this._layers;
-  }
-  set layers(layers) {
-    this._layers = layers;
-
-    if (this.onlayers) {
-      this.onlayers(layers);
-    }
-  }
-  get texture() {
-    return {
-      id: GlobalContext.xrState.tex[0],
-    };
-  }
-  set texture(texture) {} */
-
   get onblur() {
     return _elementGetter(this, 'blur');
   }
