@@ -93,7 +93,7 @@ const _initSw = async () => {
 };
 const swLoadPromise = _initSw().then(() => {});
 
-const xrState = (() => {
+const _makeXrState = () => {
   const _makeSab = size => {
     const sab = new ArrayBuffer(size);
     let index = 0;
@@ -186,8 +186,7 @@ const xrState = (() => {
   })();
 
   return result;
-})();
-GlobalContext.xrState = xrState;
+};
 const xrOffsetMatrix = new THREE.Matrix4();
 GlobalContext.getXrOffsetMatrix = () => xrOffsetMatrix;
 GlobalContext.xrFramebuffer = null;
@@ -319,7 +318,7 @@ const xrTypeAdders = {
       context: this.proxyContext,
       id: p.id,
       schema: p.schema,
-      xrState,
+      xrState: this.xrState,
       XRPackage,
     });
 
@@ -380,8 +379,9 @@ export class XRPackageEngine extends EventTarget {
 
     this.matrix = xrOffsetMatrix;
     
-    xrState.renderWidth[0] = options.width / 2 * options.devicePixelRatio;
-    xrState.renderHeight[0] = options.height * options.devicePixelRatio;
+    this.xrState = _makeXrState();
+    this.xrState.renderWidth[0] = options.width / 2 * options.devicePixelRatio;
+    this.xrState.renderHeight[0] = options.height * options.devicePixelRatio;
 
     const context = this.getContext('webgl2');
     this.context = context;
@@ -479,8 +479,8 @@ export class XRPackageEngine extends EventTarget {
     this.renderer.xr.isPresenting = false;
 
     this.renderer.setSize(width, height);
-    xrState.renderWidth[0] = width / 2 * devicePixelRatio;
-    xrState.renderHeight[0] = height * devicePixelRatio;
+    this.xrState.renderWidth[0] = width / 2 * devicePixelRatio;
+    this.xrState.renderHeight[0] = height * devicePixelRatio;
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
 
@@ -585,10 +585,10 @@ export class XRPackageEngine extends EventTarget {
                 return result;
               })(); */
 
-              GlobalContext.xrState.isPresentingReal[0] = 1;
-              GlobalContext.xrState.stereo[0] = 1;
-              GlobalContext.xrState.renderWidth[0] = width;
-              GlobalContext.xrState.renderHeight[0] = height;
+              this.xrState.isPresentingReal[0] = 1;
+              this.xrState.stereo[0] = 1;
+              this.xrState.renderWidth[0] = width;
+              this.xrState.renderHeight[0] = height;
 
               const animate = (timestamp, frame) => {
                 const frameId = realSession.requestAnimationFrame(animate);
@@ -645,10 +645,8 @@ export class XRPackageEngine extends EventTarget {
     this.dispatchEvent(new CustomEvent('tick'));
 
     // update pose
-    const {realSession} = this;
+    const {realSession, xrState} = this;
     if (realSession) {
-      // console.log('animate session', realSession, frame, referenceSpace);
-      // debugger;
       const pose = frame.getViewerPose(this.referenceSpace);
       if (pose) {
         const inputSources = Array.from(realSession.inputSources);
@@ -894,13 +892,13 @@ export class XRPackageEngine extends EventTarget {
     p.context.requestPresentPromise.resolve();
   }
   setCamera(camera) {
-    camera.matrixWorld.toArray(xrState.poseMatrix);
+    camera.matrixWorld.toArray(this.xrState.poseMatrix);
 
-    camera.matrixWorldInverse.toArray(xrState.leftViewMatrix);
-    camera.projectionMatrix.toArray(xrState.leftProjectionMatrix);
+    camera.matrixWorldInverse.toArray(this.xrState.leftViewMatrix);
+    camera.projectionMatrix.toArray(this.xrState.leftProjectionMatrix);
 
-    xrState.rightViewMatrix.set(xrState.leftViewMatrix);
-    xrState.rightProjectionMatrix.set(xrState.leftProjectionMatrix);
+    this.xrState.rightViewMatrix.set(this.xrState.leftViewMatrix);
+    this.xrState.rightProjectionMatrix.set(this.xrState.leftProjectionMatrix);
   }
   setRigMatrix(rigMatrix) {
     if (rigMatrix) {
@@ -911,8 +909,8 @@ export class XRPackageEngine extends EventTarget {
     }
   }
   setGamepadsConnected(connected) {
-    for (let i = 0; i < xrState.gamepads.length; i++) {
-      xrState.gamepads[i].connected[0] = connected ? 1 : 0;
+    for (let i = 0; i < this.xrState.gamepads.length; i++) {
+      this.xrState.gamepads[i].connected[0] = connected ? 1 : 0;
     }
   }
   grabdown(handedness) {
@@ -948,7 +946,7 @@ export class XRPackageEngine extends EventTarget {
   }
   grabtriggerdown(handedness) {
     const index = handedness === 'right' ? 1 : 0;
-    const xrGamepad = xrState.gamepads[index];
+    const xrGamepad = this.xrState.gamepads[index];
     const button = xrGamepad.buttons[0];
     button.touched[0] = 1;
     button.pressed[0] = 1;
@@ -956,7 +954,7 @@ export class XRPackageEngine extends EventTarget {
   }
   grabtriggerup(handedness) {
     const index = handedness === 'right' ? 1 : 0;
-    const xrGamepad = xrState.gamepads[index];
+    const xrGamepad = this.xrState.gamepads[index];
     const button = xrGamepad.buttons[0];
     button.touched[0] = 0;
     button.pressed[0] = 0;
