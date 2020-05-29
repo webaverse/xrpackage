@@ -280,7 +280,7 @@ function animate(timestamp, frame) {
       velocity.y = 0;
       jumpState = null;
     }
-    localVector.set(-velocity.x, 0, -velocity.z).multiplyScalar(15 * timeDiff);
+    localVector.set(-velocity.x, 0, -velocity.z).multiplyScalar(10 * timeDiff);
     velocity.add(localVector);
     pe.camera.updateMatrixWorld();
 
