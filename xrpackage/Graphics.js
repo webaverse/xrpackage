@@ -110,8 +110,6 @@ function ProxiedWebGLRenderingContext(canvas) {
       extension.bindVertexArrayOES(vao);
     }
   }
-
-  // GlobalContext.contexts.push(this);
 }
 ProxiedWebGLRenderingContext.prototype = Object.create(WebGLRenderingContext.prototype);
 
@@ -400,7 +398,7 @@ ProxiedWebGLRenderingContext.prototype.setProxyState = function setProxyState() 
   }
 };
 ProxiedWebGLRenderingContext.prototype.destroy = function destroy() {
-  // GlobalContext.contexts.splice(GlobalContext.contexts.indexOf(this), 1);
+  // nothing
 };
 
 // state memoization
