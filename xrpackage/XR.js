@@ -177,8 +177,8 @@ class XRSession extends EventTarget {
     this._frame = new XRFrame(this);
     this._referenceSpace = new XRBoundedReferenceSpace(this);
     this._gamepadInputSources = [
-      new XRInputSource('left', 'tracked-pointer', this.xrState.gamepads[0]),
-      new XRInputSource('right', 'tracked-pointer', this.xrState.gamepads[1]),
+      new XRInputSource('left', 'tracked-pointer', this),
+      new XRInputSource('right', 'tracked-pointer', this),
     ];
     this._inputSources = this._gamepadInputSources;
     this._lastPresseds = [false, false];
@@ -556,37 +556,39 @@ class XRViewerPose extends XRPose {
 }
 
 class XRInputSource {
-  constructor(handedness, targetRayMode, xrStateGamepad) {
+  constructor(handedness, targetRayMode, session) {
+    this.session = session; // non-standard
+    this.xrStateGamepad = this.session.xrState.gamepads[this.handedness === 'right' ? 1 : 0]; // non-standard
+
     this.handedness = handedness;
     this.targetRayMode = targetRayMode;
-    this._xrStateGamepad = xrStateGamepad;
 
-    this.targetRaySpace = new XRSpace();
-    this.targetRaySpace._pose.transform.position._buffer = xrStateGamepad.position;
-    this.targetRaySpace._pose.transform.orientation._buffer = xrStateGamepad.orientation;
-    this.targetRaySpace._pose._realViewMatrix = xrStateGamepad.transformMatrix;
+    this.targetRaySpace = new XRSpace(session);
+    this.targetRaySpace._pose.transform.position._buffer = this.xrStateGamepad.position;
+    this.targetRaySpace._pose.transform.orientation._buffer = this.xrStateGamepad.orientation;
+    this.targetRaySpace._pose._realViewMatrix = this.xrStateGamepad.transformMatrix;
     this.targetRaySpace._pose._localViewMatrix = this.targetRaySpace._pose.transform.inverse.matrix;
 
-    this.gripSpace = new XRSpace();
-    this.gripSpace._pose.transform.position._buffer = xrStateGamepad.gripPosition;
-    this.gripSpace._pose.transform.orientation._buffer = xrStateGamepad.gripOrientation;
-    this.gripSpace._pose._realViewMatrix = xrStateGamepad.gripTransformMatrix;
+    this.gripSpace = new XRSpace(session);
+    this.gripSpace._pose.transform.position._buffer = this.xrStateGamepad.gripPosition;
+    this.gripSpace._pose.transform.orientation._buffer = this.xrStateGamepad.gripOrientation;
+    this.gripSpace._pose._realViewMatrix = this.xrStateGamepad.gripTransformMatrix;
     this.gripSpace._pose._localViewMatrix = this.gripSpace._pose.transform.inverse.matrix;
 
     /* this._inputPose = new XRInputPose();
-    this._inputPose.targetRay.origin.values = xrStateGamepad.position;
-    this._inputPose.targetRay.direction.values = xrStateGamepad.direction;
-    this._inputPose._realViewMatrix = xrStateGamepad.transformMatrix;
+    this._inputPose.targetRay.origin.values = this.xrStateGamepad.position;
+    this._inputPose.targetRay.direction.values = this.xrStateGamepad.direction;
+    this._inputPose._realViewMatrix = this.xrStateGamepad.transformMatrix;
     this._inputPose._localViewMatrix = Float32Array.from([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]); */
     
-    this.gamepad = new Gamepad(handedness === 'right' ? 1 : 0, 'WebXR Gamepad', handedness, xrStateGamepad, false);
+    this.gamepad = new Gamepad(handedness === 'right' ? 1 : 0, 'WebXR Gamepad', handedness, this.xrStateGamepad, false);
     this.profiles = ['webxr'];
   }
   get connected() {
-    return this._xrStateGamepad.connected[0] !== 0;
+    return this.xrStateGamepad.connected[0] !== 0;
   }
   set connected(connected) {
-    this._xrStateGamepad.connected[0] = connected ? 1 : 0;
+    this.xrStateGamepad.connected[0] = connected ? 1 : 0;
   }
 }
 
