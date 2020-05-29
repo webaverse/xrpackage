@@ -5,11 +5,6 @@ import utils from './utils.js';
 const {hasWebGL2, WebGLStateFramebuffer, WebGLStateRenderBuffer, WebGLStateTextureUnit} = utils;
 import GlobalContext from './GlobalContext.js';
 
-/* const {OffscreenCanvasRenderingContext2D, WebGLRenderingContext: OffscreenWebGLRenderingContext, WebGL2RenderingContext: OffscreenWebGL2RenderingContext} = self;
-self.OffscreenCanvasRenderingContext2D = undefined;
-self.WebGLRenderingContext = undefined;
-self.WebGL2RenderingContext = undefined; */
-
 let {WebGLRenderingContext, WebGL2RenderingContext, CanvasRenderingContext2D} = globalThis;
 
 class WebGLState {
