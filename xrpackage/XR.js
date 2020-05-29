@@ -164,19 +164,21 @@ class XR extends EventTarget {
 } */
 
 class XRSession extends EventTarget {
-  constructor() {
+  constructor(xrState) {
     super();
 
+    this.xrState = xrState;
+
     this.environmentBlendMode = 'opaque';
-    this.renderState = new XRRenderState();
-    this.viewerSpace = new XRSpace();
+    this.renderState = new XRRenderState(this);
+    this.viewerSpace = new XRSpace(this);
     // this.isPresenting = false; // non-standard
 
     this._frame = new XRFrame(this);
-    this._referenceSpace = new XRReferenceSpace();
+    this._referenceSpace = new XRBoundedReferenceSpace(this);
     this._gamepadInputSources = [
-      new XRInputSource('left', 'tracked-pointer', GlobalContext.xrState.gamepads[0]),
-      new XRInputSource('right', 'tracked-pointer', GlobalContext.xrState.gamepads[1]),
+      new XRInputSource('left', 'tracked-pointer', this.xrState.gamepads[0]),
+      new XRInputSource('right', 'tracked-pointer', this.xrState.gamepads[1]),
     ];
     this._inputSources = this._gamepadInputSources;
     this._lastPresseds = [false, false];
@@ -321,23 +323,25 @@ class XRSession extends EventTarget {
 }
 
 class XRRenderState {
-  constructor() {
+  constructor(session) {
+    this.session = session;
+
     this._inlineVerticalFieldOfView = 90;
     this._baseLayer = null;
     this._outputContext = null;
   }
 
   get depthNear() {
-    return GlobalContext.xrState.depthNear[0];
+    return this.session.xrState.depthNear[0];
   }
   set depthNear(depthNear) {
-    GlobalContext.xrState.depthNear[0] = depthNear;
+    this.session.xrState.depthNear[0] = depthNear;
   }
   get depthFar() {
-    return GlobalContext.xrState.depthFar[0];
+    return this.session.xrState.depthFar[0];
   }
   set depthFar(depthFar) {
-    GlobalContext.xrState.depthFar[0] = depthFar;
+    this.session.xrState.depthFar[0] = depthFar;
   }
   get inlineVerticalFieldOfView() {
     return this._inlineVerticalFieldOfView;
@@ -402,12 +406,12 @@ class XRWebGLLayer {
   set framebuffer(framebuffer) {}
 
   get framebufferWidth() {
-    return GlobalContext.xrState.renderWidth[0]*2;
+    return this.session.xrState.renderWidth[0]*2;
   }
   set framebufferWidth(framebufferWidth) {}
   
   get framebufferHeight() {
-    return GlobalContext.xrState.renderHeight[0];
+    return this.session.xrState.renderHeight[0];
   }
   set framebufferHeight(framebufferHeight) {}
 }
@@ -428,7 +432,7 @@ class XRFrame {
   constructor(session) {
     this.session = session;
 
-    this._viewerPose = new XRViewerPose(this);
+    this._viewerPose = new XRViewerPose(this, session);
   }
   getViewerPose(coordinateSystem) {
     const xrOffsetMatrix = GlobalContext.getXrOffsetMatrix();
@@ -458,12 +462,14 @@ class XRFrame {
 }
 
 class XRView {
-  constructor(eye = 'left') {
-    this.eye = eye;
-    this.transform = new XRRigidTransform(eye);
-    this.projectionMatrix = eye === 'left' ? GlobalContext.xrState.leftProjectionMatrix : GlobalContext.xrState.rightProjectionMatrix;
+  constructor(eye = 'left', session) {
+    this.session = session; // non-standard
 
-    this._viewport = new XRViewport(eye);
+    this.eye = eye;
+    this.transform = new XRRigidTransform(eye, session);
+    this.projectionMatrix = eye === 'left' ? session.xrState.leftProjectionMatrix : session.xrState.rightProjectionMatrix;
+
+    this._viewport = new XRViewport(eye, session);
     this._realViewMatrix = this.transform.inverse.matrix;
     this._localViewMatrix = Float32Array.from([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
     this.transform.inverse.matrix = this._localViewMatrix;
@@ -473,14 +479,16 @@ class XRView {
 }
 
 class XRViewport {
-  constructor(eye) {
+  constructor(eye, session) {
+    this.session = session; // non-standard
+
     this.eye = eye;
   }
   get x() {
-    if (GlobalContext.xrState.stereo[0]) {
-      return this.eye === 'left' ? 0 : GlobalContext.xrState.renderWidth[0];
+    if (this.session.xrState.stereo[0]) {
+      return this.eye === 'left' ? 0 : this.session.xrState.renderWidth[0];
     } else {
-      return this.eye === 'left' ? 0 : GlobalContext.xrState.renderWidth[0] * 2;
+      return this.eye === 'left' ? 0 : this.session.xrState.renderWidth[0] * 2;
     }
   }
   set x(x) {}
@@ -489,11 +497,11 @@ class XRViewport {
   }
   set y(y) {}
   get width() {
-    if (GlobalContext.xrState.stereo[0]) {
-      return GlobalContext.xrState.renderWidth[0];
+    if (this.session.xrState.stereo[0]) {
+      return this.session.xrState.renderWidth[0];
     } else {
       if (this.eye === 'left') {
-        return GlobalContext.xrState.renderWidth[0] * 2;
+        return this.session.xrState.renderWidth[0] * 2;
       } else {
         return 0;
       }
@@ -501,32 +509,34 @@ class XRViewport {
   }
   set width(width) {}
   get height() {
-    return GlobalContext.xrState.renderHeight[0];
+    return this.session.xrState.renderHeight[0];
   }
   set height(height) {}
 }
 
 class XRPose {
-  constructor() {
+  constructor(session) {
+    this.session = session; // non-standard
+
     this.transform = new XRRigidTransform();
     this.emulatedPosition = false;
 
     this._realViewMatrix = this.transform.inverse.matrix;
     this._localViewMatrix = Float32Array.from([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
     this.transform.inverse.matrix = this._localViewMatrix;
-    this.transform.matrix = GlobalContext.xrState.poseMatrix;
+    this.transform.matrix = session.xrState.poseMatrix;
   }
 }
 
 class XRViewerPose extends XRPose {
-  constructor(frame) {
-    super();
+  constructor(frame, session) {
+    super(session);
 
     this.frame = frame; // non-standard
 
     this._views = [
-      new XRView('left'),
-      new XRView('right'),
+      new XRView('left', session),
+      new XRView('right', session),
     ];
 
     // this.poseModelMatrix = Float32Array.from([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]); // non-standard
@@ -648,9 +658,10 @@ class XRRigidTransform extends EventTarget {
       this.initialize(position, inverse);
     } else if (typeof position === 'string') {
       const eye = position;
+      const session = orientation;
 
       const result = new XRRigidTransform();
-      result.inverse.matrix = eye === 'left' ? GlobalContext.xrState.leftViewMatrix : GlobalContext.xrState.rightViewMatrix; // XXX share all other XRRigidTransform properties
+      result.inverse.matrix = eye === 'left' ? session.xrState.leftViewMatrix : session.xrState.rightViewMatrix; // XXX share all other XRRigidTransform properties
       return result;
     } else {
       this.initialize();
@@ -791,14 +802,19 @@ class XRRigidTransform extends EventTarget {
 }
 
 class XRSpace extends EventTarget {
-  constructor() {
+  constructor(session) {
     super();
+
+    this.session = session; // non-standard
     
-    this._pose = new XRPose();
+    this._pose = new XRPose(session);
   }
 }
 
 class XRReferenceSpace extends XRSpace {
+  constructor(session) {
+    super(session);
+  }
   getOffsetReferenceSpace(originOffset) {
     return this; // XXX do the offsetting
   }
@@ -811,8 +827,8 @@ class XRReferenceSpace extends XRSpace {
 }
 
 class XRBoundedReferenceSpace extends XRReferenceSpace {
-  constructor() {
-    super();
+  constructor(session) {
+    super(session);
 
     this.boundsGeometry = [
       new DOMPoint(-3, -3),
