@@ -910,9 +910,7 @@ export class XRPackageEngine extends EventTarget {
     };
     _tickRafs();
 
-    // console.log('render context 1');
     this.renderer.render(this.scene, this.camera);
-    // console.log('render context 2', GlobalContext.proxyContext.getError());
   }
   packageRequestAnimationFrame(fn, win) {
     this.rafs.push(fn);
