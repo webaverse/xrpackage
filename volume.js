@@ -274,7 +274,7 @@ void main() {
       gl.useProgram(shaderProgram);
 
       gl.activeTexture(gl.TEXTURE0);
-      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.bindTexture(gl.TEXTURE_2D, depthTex);
       gl.uniform1i(uniforms.colorMap, 0);
       gl.uniform1f(uniforms.uNear, camera.near);
       gl.uniform1f(uniforms.uFar, camera.far);
