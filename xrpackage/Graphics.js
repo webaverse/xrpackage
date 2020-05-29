@@ -118,7 +118,7 @@ function ProxiedWebGLRenderingContext(canvas) {
     }
   }
 
-  GlobalContext.contexts.push(this);
+  // GlobalContext.contexts.push(this);
 }
 ProxiedWebGLRenderingContext.prototype = Object.create(WebGLRenderingContext.prototype);
 
@@ -404,7 +404,7 @@ ProxiedWebGLRenderingContext.prototype.setProxyState = function setProxyState() 
   }
 };
 ProxiedWebGLRenderingContext.prototype.destroy = function destroy() {
-  GlobalContext.contexts.splice(GlobalContext.contexts.indexOf(this), 1);
+  // GlobalContext.contexts.splice(GlobalContext.contexts.indexOf(this), 1);
 };
 
 // state memoization

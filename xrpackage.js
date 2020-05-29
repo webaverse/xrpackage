@@ -378,7 +378,7 @@ export class XRPackageEngine extends EventTarget {
       alpha: true,
       xrCompatible: true,
     });
-    GlobalContext.contexts = [];
+    // GlobalContext.contexts = [];
     
     xrState.renderWidth[0] = options.width / 2 * options.devicePixelRatio;
     xrState.renderHeight[0] = options.height * options.devicePixelRatio;
