@@ -8,6 +8,7 @@ const pixelRatio = 3;
 const voxelResolution = voxelSize / voxelWidth;
 
 const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 
 function makePromise() {
@@ -163,10 +164,11 @@ vec4 encodePixelDepth(float v) {
   // }
 }
 void main() {
-  float z_b = texture2D(colorMap, vTexCoords).r;
+  gl_FragColor = texture2D(colorMap, vTexCoords);
+  /* float z_b = texture2D(colorMap, vTexCoords).r;
   float z_n = 2.0 * z_b - 1.0;
   float z_e = 2.0 * uNear * uFar / (uFar + uNear - z_n * (uFar - uNear));
-  gl_FragColor = encodePixelDepth(z_e);
+  gl_FragColor = encodePixelDepth(z_e); */
 }`;
   function compileShader(gl, shaderSource, shaderType) {
     // Create the shader object
@@ -237,11 +239,11 @@ void main() {
 
   {
     const updateView = (p, q) => {
-      if (!camera.position.equals(p) || !camera.quaternion.equals(q)) {
+      // if (!camera.position.equals(p) || !camera.quaternion.equals(q)) {
         camera.position.copy(p);
         camera.quaternion.copy(q);
         camera.updateMatrixWorld();
-      }
+      // }
     };
     const updateSize = (uSize, vSize, dSize) => {
       camera.left = uSize / -2;
@@ -260,17 +262,19 @@ void main() {
       gl.bindFramebuffer(gl.READ_FRAMEBUFFER, xrfb);
       gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, rfb);
       gl.blitFramebuffer(
-        0, 0, voxelWidth, voxelWidth,
-        0, 0, voxelWidth, voxelWidth,
+        0, 0, voxelWidth * pixelRatio, voxelWidth * pixelRatio,
+        0, 0, voxelWidth * pixelRatio, voxelWidth * pixelRatio,
         gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT, gl.NEAREST
       );
-      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+      gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
+      gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
 
       // read
       gl.useProgram(shaderProgram);
 
       gl.activeTexture(gl.TEXTURE0);
-      gl.bindTexture(gl.TEXTURE_2D, depthTex);
+      gl.bindTexture(gl.TEXTURE_2D, tex);
       gl.uniform1i(uniforms.colorMap, 0);
       gl.uniform1f(uniforms.uNear, camera.near);
       gl.uniform1f(uniforms.uFar, camera.far);
@@ -283,11 +287,11 @@ void main() {
 
       gl.bindBuffer(gl.ARRAY_BUFFER, null);
     };
-    const getDepthPixels = (i, depthTextures, offset) => {
+    const getDepthPixels = (depthTextures, i) => {
       const pixels = new Uint8Array(voxelWidth * pixelRatio * voxelWidth * pixelRatio * 4);
       gl.readPixels(0, 0, voxelWidth * pixelRatio, voxelWidth * pixelRatio, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
    
-      const depths = new Float32Array(depthTextures.buffer, depthTextures.byteOffset + offset * Float32Array.BYTES_PER_ELEMENT, voxelWidth * pixelRatio * voxelWidth * pixelRatio);
+      const depths = new Float32Array(depthTextures.buffer, depthTextures.byteOffset + i * voxelWidth * voxelWidth * Float32Array.BYTES_PER_ELEMENT, voxelWidth * voxelWidth);
       let j = 0;
       for (let i = 0; i < depths.length; i++) {
         let v = 
@@ -324,16 +328,25 @@ void main() {
     ].forEach(([x, y, z, ry, rx, sx, sy, sz], i) => {
       localVector.set(x, y, z);
       if (ry !== 0) {
-        localQuaternion.setFromAxisAngle(localVector.set(0, 1, 0), ry);
+        localQuaternion.setFromAxisAngle(localVector2.set(0, 1, 0), ry);
       } else if (rx !== 0) {
-        localQuaternion.setFromAxisAngle(localVector.set(1, 0, 0), rx);
+        localQuaternion.setFromAxisAngle(localVector2.set(1, 0, 0), rx);
       } else {
         localQuaternion.set(0, 0, 0, 1);
       }
+      // console.log('render', localVector.toArray().join(','), localQuaternion.toArray().join(','));
       updateView(localVector, localQuaternion);
       updateSize(_multiplyLength(size, sx), _multiplyLength(size, sy), _multiplyLength(size, sz));
       renderDepth();
-      getDepthPixels(i, depthTextures, voxelWidth * voxelWidth * 4 * i);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = voxelWidth * pixelRatio;
+      canvas.height = voxelWidth * pixelRatio;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(pe.domElement, 0, 0);
+      document.body.appendChild(canvas);
+
+      getDepthPixels(depthTextures, i);
     });
 
     async function marchPotentials(data) {
@@ -421,7 +434,6 @@ void main() {
     console.log('got res', res);
   }
 
-  document.body.appendChild(pe.domElement);
   const server = new MesherServer();
   return new THREE.Object3D();
 };
