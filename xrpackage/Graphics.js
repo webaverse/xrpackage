@@ -217,14 +217,17 @@ class OES_vertex_array_object {
   }
 }
 class ANGLE_instanced_arrays {
+  constructor(gl) {
+    this.gl = gl;
+  }
   drawArraysInstancedANGLE(mode, first, count, primcount) {
-    return this.canvas.proxyContext.drawArraysInstanced(mode, first, count, primcount);
+    return this.gl.canvas.proxyContext.drawArraysInstanced(mode, first, count, primcount);
   }
   drawElementsInstancedANGLE(mode, count, type, offset, primcount) {
-    return this.canvas.proxyContext.drawElementsInstanced(mode, count, type, offset, primcount);
+    return this.gl.canvas.proxyContext.drawElementsInstanced(mode, count, type, offset, primcount);
   }
   vertexAttribDivisorANGLE(index, divisor) {
-    return this.canvas.proxyContext.vertexAttribDivisor(index, divisor);
+    return this.gl.canvas.proxyContext.vertexAttribDivisor(index, divisor);
   }
 }
 ProxiedWebGLRenderingContext.prototype.getExtension = (_getExtension => function getExtension(name) {
@@ -236,7 +239,7 @@ ProxiedWebGLRenderingContext.prototype.getExtension = (_getExtension => function
     }
   } else if (name === 'ANGLE_instanced_arrays') {
     if (hasWebGL2) {
-      return new ANGLE_instanced_arrays();
+      return new ANGLE_instanced_arrays(this);
     } else {
       return this.canvas.proxyContext.getExtension(name);
     }
