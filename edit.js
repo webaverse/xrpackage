@@ -472,7 +472,6 @@ const _resetKeys = () => {
   }
 };
 window.addEventListener('keydown', e => {
-  console.log('key down', e.which);
   switch (e.which) {
     case 49: // 1
     case 50:
@@ -546,14 +545,12 @@ window.addEventListener('keydown', e => {
       break;
     }
     case 32: { // space
-      console.log('got space', !!document.pointerLockElement);
       if (document.pointerLockElement) {
         if (!jumpState) {
           jumpState = {
             air: true,
           };
           velocity.y += 5;
-          console.log('got velocity', velocity.toArray().join(','));
         }
       }
       break;
