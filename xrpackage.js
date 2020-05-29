@@ -316,7 +316,7 @@ const xrTypeAdders = {
       engine: this,
       pkg: p,
       indexHtml,
-      context: this.proxyContext,
+      context: GlobalContext.proxyContext,
       id: p.id,
       schema: p.schema,
       xrState,
