@@ -291,7 +291,7 @@ void main() {
       const pixels = new Uint8Array(voxelWidth * pixelRatio * voxelWidth * pixelRatio * 4);
       gl.readPixels(0, 0, voxelWidth * pixelRatio, voxelWidth * pixelRatio, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
    
-      const depths = new Float32Array(depthTextures.buffer, depthTextures.byteOffset + i * voxelWidth * voxelWidth * Float32Array.BYTES_PER_ELEMENT, voxelWidth * voxelWidth);
+      const depths = new Float32Array(depthTextures.buffer, depthTextures.byteOffset + i * voxelWidth * pixelRatio * voxelWidth * pixelRatio * Float32Array.BYTES_PER_ELEMENT, voxelWidth * pixelRatio * voxelWidth * pixelRatio);
       let j = 0;
       for (let i = 0; i < depths.length; i++) {
         let v = 
