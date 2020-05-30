@@ -170,7 +170,6 @@ const _makeTargetMesh = () => {
   b.name = 'model.vrm';
   const d = await XRPackage.compileFromFile(b);
   const p = new XRPackage(d);
-  // pe.add(p);
   pe.wearAvatar(p);
 })();
 // pe.defaultAvatar();
