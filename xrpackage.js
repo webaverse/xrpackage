@@ -623,7 +623,7 @@ export class XRPackageEngine extends EventTarget {
     this.setXrFramebuffer(xrfb);
   }
   setXrFramebuffer(xrfb) {
-    this.xrFramebuffer = xrfb;
+    this.fakeSession.xrFramebuffer = xrfb;
     for (let i = 0; i < this.packages.length; i++) {
       this.packages[i].setXrFramebuffer(xrfb);
     }
