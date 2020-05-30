@@ -1,6 +1,6 @@
-import THREE from './three.module.js';
+import THREE from './xrpackage/three.module.js';
 import {XRPackageEngine} from './xrpackage.js';
-import {MesherServer} from './mesher.js';
+// import {MesherServer} from './mesher.js';
 
 const voxelWidth = 100;
 const voxelSize = 1;
