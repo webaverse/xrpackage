@@ -1,7 +1,7 @@
 import path from './modules/path-browserify.js';
 import parseIntStrict from './modules/parse-int.js';
 import symbols from './symbols.js';
-import GlobalContext from './GlobalContext.js';
+
 
 const module = {exports: {}};
 
