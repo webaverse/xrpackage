@@ -8,7 +8,6 @@ import * as XR from './xrpackage/XR.js';
 import GlobalContext from './xrpackage/GlobalContext.js';
 
 GlobalContext.xrOffsetMatrix = new THREE.Matrix4();
-GlobalContext.xrFramebuffer = null;
 
 console.log('iframe script');
 (() => {
@@ -138,7 +137,7 @@ class XRPackageManager extends EventTarget {
     this.loadPromise.resolve({});
   }
   setXrFramebuffer(xrfb) {
-    GlobalContext.xrFramebuffer = xrfb;
+    this.session.xrFrambuffer = xrfb;
   }
   get packages() {
     return this._engine.packages.slice();

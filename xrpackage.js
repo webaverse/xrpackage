@@ -187,7 +187,6 @@ const _makeXrState = () => {
   return result;
 };
 GlobalContext.xrOffsetMatrix = new THREE.Matrix4();
-GlobalContext.xrFramebuffer = null;
 
 const xrTypeLoaders = {
   'webxr-site@0.0.1': async function(p) {
@@ -305,7 +304,7 @@ const xrTypeAdders = {
     p.matrixWorldNeedsUpdate = true;
     
     p.context.requestPresentPromise = makePromise();
-    p.setXrFramebuffer(GlobalContext.xrFramebuffer);
+    p.setXrFramebuffer(this.xrFramebuffer);
     
     const d = p.getMainData();
     const indexHtml = d.toString('utf8');
@@ -436,6 +435,7 @@ export class XRPackageEngine extends EventTarget {
     this.packages = [];
     this.ids = 0;
     this.rafs = [];
+    this.xrFramebuffer = null;
     this.grabs = {
       left: null,
       right: null,
@@ -626,7 +626,7 @@ export class XRPackageEngine extends EventTarget {
     this.setXrFramebuffer(xrfb);
   }
   setXrFramebuffer(xrfb) {
-    GlobalContext.xrFramebuffer = xrfb;
+    this.xrFramebuffer = xrfb;
     for (let i = 0; i < this.packages.length; i++) {
       this.packages[i].setXrFramebuffer(xrfb);
     }

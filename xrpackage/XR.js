@@ -167,7 +167,8 @@ class XRSession extends EventTarget {
   constructor(xrState) {
     super();
 
-    this.xrState = xrState;
+    this.xrState = xrState; // non-standard
+    this.xrFramebuffer = null; // non-standard
 
     this.environmentBlendMode = 'opaque';
     this.renderState = new XRRenderState(this);
@@ -371,7 +372,7 @@ class XRWebGLLayer {
   }
   
   get framebuffer() {
-    return GlobalContext.xrFramebuffer;
+    return this.session.xrFramebuffer;
   }
   set framebuffer(framebuffer) {}
 
