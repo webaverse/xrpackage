@@ -109,10 +109,12 @@ orbitControls.enableMiddleZoom = false;
 orbitControls.update();
 
 const o = await getPreviewMesh(p);
-const geometry = new THREE.BufferGeometry();
+let geometry = new THREE.BufferGeometry();
 geometry.setAttribute('position', new THREE.BufferAttribute(o.positions, 3));
+geometry.setIndex(new THREE.BufferAttribute(o.indices, 1));
+geometry = geometry.toNonIndexed();
 const barycentrics = (() => {
-  const barycentrics = new Float32Array(o.positions.length);
+  const barycentrics = new Float32Array(geometry.attributes.position.array.length);
   for (let i = 0; i < barycentrics.length;) {
     barycentrics[i++] = 1;
     barycentrics[i++] = 0;
@@ -127,7 +129,6 @@ const barycentrics = (() => {
   return barycentrics;
 })();
 geometry.setAttribute('barycentric', new THREE.BufferAttribute(barycentrics, 3));
-geometry.setIndex(new THREE.BufferAttribute(o.indices, 1));
 const material = makeWireframeMaterial();
 const wireframeMesh = new THREE.Mesh(geometry, material);
 wireframeMesh.frustumCulled = false;
