@@ -358,12 +358,12 @@ void main() {
       depthTextures.set(depthTexturesData);
 
       const positions = allocator.alloc(Float32Array, 1024*1024*Float32Array.BYTES_PER_ELEMENT);
-      const barycentrics = allocator.alloc(Float32Array, 1024*1024*Float32Array.BYTES_PER_ELEMENT);
+      const indices = allocator.alloc(Uint16Array, 1024*1024*Uint16Array.BYTES_PER_ELEMENT);
 
       const numPositions = allocator.alloc(Uint32Array, 1);
       numPositions[0] = positions.length;
-      const numBarycentrics = allocator.alloc(Uint32Array, 1);
-      numBarycentrics[0] = barycentrics.length;
+      const numIndices = allocator.alloc(Uint32Array, 1);
+      numIndices[0] = indices.length;
 
       const dims = allocator.alloc(Int32Array, 3);
       dims.set(Int32Array.from(dimsData));
@@ -383,18 +383,18 @@ void main() {
         value,
         nvalue,
         positions.offset,
-        barycentrics.offset,
+        indices.offset,
         numPositions.offset,
-        numBarycentrics.offset
+        numIndices.offset
       );
 
-      // console.log('out num positions', numPositions[0], numBarycentrics[0]);
+      console.log('got out', numPositions[0], numIndices[0]);
 
       const arrayBuffer2 = new ArrayBuffer(
         Uint32Array.BYTES_PER_ELEMENT +
         numPositions[0]*Float32Array.BYTES_PER_ELEMENT +
         Uint32Array.BYTES_PER_ELEMENT +
-        numBarycentrics[0]*Uint32Array.BYTES_PER_ELEMENT
+        numIndices[0]*Uint16Array.BYTES_PER_ELEMENT
       );
       let index = 0;
 
@@ -402,14 +402,14 @@ void main() {
       outP.set(new Float32Array(positions.buffer, positions.byteOffset, numPositions[0]));
       index += Float32Array.BYTES_PER_ELEMENT * numPositions[0];
 
-      const outB = new Float32Array(arrayBuffer2, index, numBarycentrics[0]);
-      outB.set(new Float32Array(barycentrics.buffer, barycentrics.byteOffset, numBarycentrics[0]));
-      index += Float32Array.BYTES_PER_ELEMENT * numBarycentrics[0];
+      const outI = new Uint16Array(arrayBuffer2, index, numIndices[0]);
+      outI.set(new Uint16Array(indices.buffer, indices.byteOffset, numIndices[0]));
+      index += Uint16Array.BYTES_PER_ELEMENT * numIndices[0];
 
       return {
         // result: {
           positions: outP,
-          barycentrics: outB,
+          indices: outI,
         /* },
         cleanup: () => {
           allocator.freeAll();
