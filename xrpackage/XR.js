@@ -247,36 +247,6 @@ class XRSession extends EventTarget {
     await this.onexitpresent();
     this.dispatchEvent(new CustomEvent('end'));
   }
-  /* update() {
-    const {inputSources} = this;
-    const gamepads = GlobalContext.getGamepads();
-
-    for (let i = 0; i < inputSources.length; i++) {
-      const inputSource = inputSources[i];
-      const gamepad = gamepads[i];
-
-      if (gamepad) {
-        const pressed = gamepad.buttons[1].pressed;
-        const lastPressed = this._lastPresseds[i];
-        if (pressed && !lastPressed) {
-          this.dispatchEvent(new XRInputSourceEvent('selectstart', {
-            frame: this._frame,
-            inputSource,
-          }));
-          this.dispatchEvent(new XRInputSourceEvent('select', {
-            frame: this._frame,
-            inputSource,
-          }));
-        } else if (lastPressed && !pressed) {
-          this.dispatchEvent(new XRInputSourceEvent('selectend', {
-            frame: this._frame,
-            inputSource,
-          }));
-        }
-        this._lastPresseds[i] = pressed;
-      }
-    }
-  } */
 
   get onblur() {
     return _elementGetter(this, 'blur');
