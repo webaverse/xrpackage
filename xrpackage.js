@@ -527,7 +527,7 @@ export class XRPackageEngine extends EventTarget {
     }
   }
   setMatrix(m) {
-    xrOffsetMatrix.copy(m);
+    GlobalContext.xrOffsetMatrix.copy(m);
     // this.container.matrix.getInverse(m).decompose(this.container.position, this.container.quaternion, this.container.scale);
 
     for (let i = 0; i < this.packages.length; i++) {
@@ -916,7 +916,7 @@ export class XRPackageEngine extends EventTarget {
       const input = this.rig.inputs[_oppositeHand(handedness) + 'Gamepad'];
       const inputPosition = localVector
         .copy(input.position)
-        // .applyMatrix4(localMatrix.getInverse(xrOffsetMatrix));
+        // .applyMatrix4(localMatrix.getInverse(GlobalContext.xrOffsetMatrix));
       const ps = this.packages
         .sort((a, b) => {
           a.matrix.decompose(localVector2, localQuaternion, localVector4);
@@ -966,7 +966,7 @@ export class XRPackageEngine extends EventTarget {
         const input = _getSlotInput(this.rig, slot);
         const inputPosition = localVector
           .copy(input.position)
-          // .applyMatrix4(localMatrix.getInverse(xrOffsetMatrix));
+          // .applyMatrix4(localMatrix.getInverse(GlobalContext.xrOffsetMatrix));
         const ps = this.packages
           .sort((a, b) => {
             a.matrix.decompose(localVector2, localQuaternion, localVector4);
@@ -1420,7 +1420,7 @@ export class XRPackage extends EventTarget {
 
       localMatrix
         .copy(this.matrix)
-        .premultiply(xrOffsetMatrix);
+        .premultiply(GlobalContext.xrOffsetMatrix);
 
       this.context.object &&
         this.context.object.matrix

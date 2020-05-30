@@ -7,7 +7,7 @@ import {hijackCanvas, getExports} from './xrpackage/Graphics.js';
 import * as XR from './xrpackage/XR.js';
 import GlobalContext from './xrpackage/GlobalContext.js';
 
-GlobalContext.xrOffsetMatrix = xrOffsetMatrix;
+GlobalContext.xrOffsetMatrix = new THREE.Matrix4();
 GlobalContext.xrFramebuffer = null;
 
 console.log('iframe script');
