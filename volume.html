@@ -160,17 +160,16 @@ const wireframeMaterial = makeWireframeMaterial();
 const wireframeMesh = new THREE.Mesh(geometry, wireframeMaterial);
 wireframeMesh.frustumCulled = false;
 
-const pe = new XRPackageEngine();
+const pe = new XRPackageEngine({
+  width: 512,
+  height: 512,
+});
 pe.add(p);
 await p.waitForLoad();
 pe.scene.add(wireframeMesh);
 document.body.appendChild(pe.domElement);
-pe.domElement.style.position = 'absolute';
-pe.domElement.style.left = '0';
-pe.domElement.style.top = '0';
-pe.domElement.style.width = '100%';
-pe.domElement.style.height = '100%';
-pe.domElement.style.background = '#000';
+pe.domElement.style.backgroundColor = '#EEE';
+pe.domElement.style.borderRadius = '10px';
 
 function animate(timestamp, frame) {
   orbitControls.update();
