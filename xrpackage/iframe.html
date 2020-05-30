@@ -68,7 +68,11 @@ class XRPackageManager extends EventTarget {
     this.session = session;
 
     delete Navigator.prototype.xr;
-    window.navigator.xr = new XR.XR(window);
+    Object.define(window.navigator, 'xr', {
+      get() {
+        new XR.XR(window)
+      },
+    });
     window.navigator.xr.onrequestpresent = () => {
       setTimeout(() => { // resolve promise first
         engine.packageRequestPresent(pkg);
