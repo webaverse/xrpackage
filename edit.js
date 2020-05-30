@@ -1,4 +1,4 @@
-import * as THREE from './three.module.js';
+import * as THREE from './xrpackage/three.module.js';
 import {XRPackageEngine, XRPackage} from './xrpackage.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import {TransformControls} from './TransformControls.js';
