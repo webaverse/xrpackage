@@ -5,9 +5,6 @@
 import * as THREE from './xrpackage/three.module.js';
 import {hijackCanvas, getExports} from './xrpackage/Graphics.js';
 import * as XR from './xrpackage/XR.js';
-import GlobalContext from './xrpackage/GlobalContext.js';
-
-GlobalContext.xrOffsetMatrix = new THREE.Matrix4();
 
 console.log('iframe script');
 (() => {
@@ -28,6 +25,8 @@ class XRPackageManager extends EventTarget {
 
     this.session = null;
     this.schema = null;
+
+    this.xrOffsetMatrix = new THREE.Matrix4();
 
     this.loadPromise = makePromise();
     this.seenEvents = {};
@@ -53,10 +52,8 @@ class XRPackageManager extends EventTarget {
     this._package = pkg;
     this.schema = schema;
 
-    GlobalContext.xrState = xrState;
-    GlobalContext.proxyContext = context;
-    GlobalContext.contexts = [];
-    
+    this.xrState = xrState;
+
     window.requestAnimationFrame = fn => engine.packageRequestAnimationFrame(fn, globalThis);
     window.cancelAnimationFrame = engine.packageCancelAnimationFrame.bind(engine);
     
@@ -67,7 +64,8 @@ class XRPackageManager extends EventTarget {
     window.WebGLRenderingContext = WebGLRenderingContext;
     window.WebGL2RenderingContext = WebGL2RenderingContext;
 
-    const session = new XR.XRSession();
+
+    const session = new XR.XRSession(this.xrState, this.xrOffsetMatrix);
     session.onrequestanimationframe = fn => engine.packageRequestAnimationFrame(fn, globalThis);
     session.oncancelanimationframe = engine.packageCancelAnimationFrame.bind(engine);
     this.session = session;
@@ -152,7 +150,7 @@ class XRPackageManager extends EventTarget {
     return this._engine.remove(p);
   }
   setMatrix(matrixArray) {
-    GlobalContext.xrOffsetMatrix.fromArray(matrixArray);
+    this.xrOffsetMatrix.fromArray(matrixArray);
   }
   setSchema(key, value) {
     this.schema[key] = value;
