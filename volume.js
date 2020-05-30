@@ -1,6 +1,5 @@
 import THREE from './xrpackage/three.module.js';
 import {XRPackageEngine} from './xrpackage.js';
-// import {MesherServer} from './mesher.js';
 
 const voxelWidth = 100;
 const voxelSize = 1;
@@ -334,17 +333,16 @@ void main() {
       } else {
         localQuaternion.set(0, 0, 0, 1);
       }
-      // console.log('render', localVector.toArray().join(','), localQuaternion.toArray().join(','));
       updateView(localVector, localQuaternion);
       updateSize(_multiplyLength(size, sx), _multiplyLength(size, sy), _multiplyLength(size, sz));
       renderDepth();
 
-      const canvas = document.createElement('canvas');
+      /* const canvas = document.createElement('canvas');
       canvas.width = voxelWidth * pixelRatio;
       canvas.height = voxelWidth * pixelRatio;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(pe.domElement, 0, 0);
-      document.body.appendChild(canvas);
+      document.body.appendChild(canvas); */
 
       getDepthPixels(depthTextures, i);
     });
@@ -387,8 +385,6 @@ void main() {
         numPositions.offset,
         numIndices.offset
       );
-
-      console.log('got out', numPositions[0], numIndices[0]);
 
       const arrayBuffer2 = new ArrayBuffer(
         Uint32Array.BYTES_PER_ELEMENT +
@@ -434,7 +430,6 @@ void main() {
       value: 1,
       nvalue: -1,
     });
-    console.log('got res', res);
     return res;
   }
 };
