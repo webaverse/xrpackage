@@ -616,7 +616,6 @@ class XRInputSourceEvent extends Event {
     this.inputSource = init.inputSource !== undefined ? init.inputSource : null;
   }
 }
-// GlobalContext.XRInputSourceEvent = XRInputSourceEvent;
 
 class XRRigidTransform extends EventTarget {
   constructor(position, orientation, scale) {
