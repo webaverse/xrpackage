@@ -22,13 +22,20 @@ function parseQuery(queryString) {
   }
   return query;
 }
-const {srcWbn, dstGif, dstGlb} = parseQuery(window.location.search);
+const {srcWbn, dstGif} = parseQuery(window.location.search);
 const req = await fetch(srcWbn);
 const arrayBuffer = await req.arrayBuffer();
 const uint8Array = new Uint8Array(arrayBuffer);
+const pe = new XRPackageEngine({
+  width: 256,
+  height: 256,
+  pixelRatio: 1,
+  autoStart: false,
+});
 const p = await (async () => {
   try {
     const p = new XRPackage(uint8Array);
+    await pe.add(p);
     await p.waitForLoad();
     return p;
   } catch(err) {
@@ -37,56 +44,23 @@ const p = await (async () => {
   }
 })();
 if (p) {
-  const o = p.getObject();
-  if (o) {
-    const gifBlob = await screenshotObject(o);
-    const data = await exportObject(o);
-    if (dstGif) {
-      const res = await fetch(dstGif, {
-        method: 'PUT',
-        body: gifBlob,
-      });
-      await res.blob();
-    }
-    if (dstGlb) {
-      const res = await fetch(dstGlb, {
-        method: 'PUT',
-        body: data,
-      });
-      await res.blob();
-    }
-
-    const img = document.createElement('img');
-    img.src = URL.createObjectURL(gifBlob);
-    img.style.backgroundColor = '#EEE';
-    img.style.borderRadius = '10px';
-    document.body.appendChild(img);
-  } else {
-    if (dstGif) {
-      const res = await fetch(dstGif, {
-        method: 'PUT',
-        body: '',
-      });
-      await res.blob();
-    }
-    if (dstGlb) {
-      const res = await fetch(dstGlb, {
-        method: 'PUT',
-        body: '',
-      });
-      await res.blob();
-    }
-  }
-} else {
+  const gifBlob = await screenshotEngine(pe);
   if (dstGif) {
     const res = await fetch(dstGif, {
       method: 'PUT',
-      body: '',
+      body: gifBlob,
     });
     await res.blob();
   }
-  if (dstGlb) {
-    const res = await fetch(dstGlb, {
+
+  const img = document.createElement('img');
+  img.src = URL.createObjectURL(gifBlob);
+  img.style.backgroundColor = '#EEE';
+  img.style.borderRadius = '10px';
+  document.body.appendChild(img);
+} else {
+  if (dstGif) {
+    const res = await fetch(dstGif, {
       method: 'PUT',
       body: '',
     });
