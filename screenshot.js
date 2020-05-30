@@ -1,4 +1,4 @@
-import THREE from './three.module.js';
+import THREE from './xrpackage/three.module.js';
 
 let renderer = null;
 let camera = null;
