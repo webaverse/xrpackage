@@ -302,7 +302,6 @@ const xrTypeAdders = {
     p.matrixWorldNeedsUpdate = true;
     
     p.context.requestPresentPromise = makePromise();
-    p.setXrFramebuffer(this.xrFramebuffer);
     
     const d = p.getMainData();
     const indexHtml = d.toString('utf8');
@@ -316,6 +315,7 @@ const xrTypeAdders = {
       xrState: this.xrState,
       XRPackage,
     });
+    p.setXrFramebuffer(this.xrFramebuffer);
 
     await p.context.requestPresentPromise;
   },
