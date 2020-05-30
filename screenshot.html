@@ -41,29 +41,35 @@ if (p) {
   if (o) {
     const gifBlob = await screenshotObject(o);
     const data = await exportObject(o);
-    {
+    if (dstGif) {
       const res = await fetch(dstGif, {
         method: 'PUT',
         body: gifBlob,
       });
       await res.blob();
     }
-    {
+    if (dstGlb) {
       const res = await fetch(dstGlb, {
         method: 'PUT',
         body: data,
       });
       await res.blob();
     }
+
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(gifBlob);
+    img.style.backgroundColor = '#EEE';
+    img.style.borderRadius = '10px';
+    document.body.appendChild(img);
   } else {
-    {
+    if (dstGif) {
       const res = await fetch(dstGif, {
         method: 'PUT',
         body: '',
       });
       await res.blob();
     }
-    {
+    if (dstGlb) {
       const res = await fetch(dstGlb, {
         method: 'PUT',
         body: '',
@@ -72,14 +78,14 @@ if (p) {
     }
   }
 } else {
-  {
+  if (dstGif) {
     const res = await fetch(dstGif, {
       method: 'PUT',
       body: '',
     });
     await res.blob();
   }
-  {
+  if (dstGlb) {
     const res = await fetch(dstGlb, {
       method: 'PUT',
       body: '',
