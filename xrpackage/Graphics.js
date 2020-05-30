@@ -3,7 +3,6 @@ import webGlToOpenGl from './modules/webgl-to-opengl.js';
 import symbols from './symbols.js';
 import utils from './utils.js';
 const {hasWebGL2, WebGLStateFramebuffer, WebGLStateRenderBuffer, WebGLStateTextureUnit} = utils;
-import GlobalContext from './GlobalContext.js';
 
 let {WebGLRenderingContext, WebGL2RenderingContext, CanvasRenderingContext2D} = globalThis;
 
@@ -93,7 +92,6 @@ function ProxiedWebGLRenderingContext(canvas) {
     // set(h) {}
   });
 
-  // this.id = ++GlobalContext.xrState.id[0];
   this.state = new WebGLState(canvas.proxyContext);
   this._enabled = {
     blend: true,
@@ -823,10 +821,10 @@ Object.defineProperty(HTMLCanvasElement.prototype, 'clientHeight', {
     return this.height;
   },
 });
-HTMLCanvasElement.prototype.getBoundingClientRect = function getBoundingClientRect() {
-  const {canvasViewport} = GlobalContext.xrState;
+/* HTMLCanvasElement.prototype.getBoundingClientRect = function getBoundingClientRect() {
+  const {canvasViewport} = this.session.xrState;
   return new DOMRect(canvasViewport[0], canvasViewport[1], canvasViewport[2], canvasViewport[3]);
-};
+}; */
 
 WebGLRenderingContext = gls[0];
 WebGL2RenderingContext = gls[1];
