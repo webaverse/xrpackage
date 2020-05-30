@@ -7,8 +7,7 @@ import {hijackCanvas, getExports} from './xrpackage/Graphics.js';
 import * as XR from './xrpackage/XR.js';
 import GlobalContext from './xrpackage/GlobalContext.js';
 
-const xrOffsetMatrix = new THREE.Matrix4();
-GlobalContext.getXrOffsetMatrix = () => xrOffsetMatrix;
+GlobalContext.xrOffsetMatrix = xrOffsetMatrix;
 GlobalContext.xrFramebuffer = null;
 
 console.log('iframe script');
@@ -154,7 +153,7 @@ class XRPackageManager extends EventTarget {
     return this._engine.remove(p);
   }
   setMatrix(matrixArray) {
-    xrOffsetMatrix.fromArray(matrixArray);
+    GlobalContext.xrOffsetMatrix.fromArray(matrixArray);
   }
   setSchema(key, value) {
     this.schema[key] = value;

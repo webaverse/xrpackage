@@ -435,7 +435,7 @@ class XRFrame {
     this._viewerPose = new XRViewerPose(this, session);
   }
   getViewerPose(coordinateSystem) {
-    const xrOffsetMatrix = GlobalContext.getXrOffsetMatrix();
+    const {xrOffsetMatrix} = GlobalContext;
     for (let i = 0; i < this._viewerPose.views.length; i++) {
       _applyXrOffsetToPose(this._viewerPose.views[i], xrOffsetMatrix, false, false);
     }
@@ -446,13 +446,13 @@ class XRFrame {
     return this.getViewerPose.apply(this, arguments);
   } */
   getPose(sourceSpace, destinationSpace) {
-    const xrOffsetMatrix = GlobalContext.getXrOffsetMatrix();
+    const {xrOffsetMatrix} = GlobalContext;
     _applyXrOffsetToPose(sourceSpace._pose, xrOffsetMatrix, true, true);
 
     return sourceSpace._pose;
   }
   /* getInputPose(inputSource, coordinateSystem) { // non-standard
-    const xrOffsetMatrix = GlobalContext.getXrOffsetMatrix();
+    const {xrOffsetMatrix} = GlobalContext;
     _applyXrOffsetToPose(inputSource._inputPose, xrOffsetMatrix, true, true);
     inputSource._inputPose.targetRay.transformMatrix.set(inputSource._inputPose._localViewMatrix);
     inputSource._inputPose.gripTransform.matrix.set(inputSource._inputPose._localViewMatrix);
@@ -548,9 +548,7 @@ class XRViewerPose extends XRPose {
   /* getViewMatrix(view) { // non-standard
     return localMatrix
       .fromArray(view._realViewMatrix)
-      .multiply(
-        GlobalContext.getXrOffsetMatrix()
-      )
+      .multiply(GlobalContext.xrOffsetMatrix)
       .toArray(view._localViewMatrix);
   } */
 }

@@ -186,8 +186,7 @@ const _makeXrState = () => {
 
   return result;
 };
-const xrOffsetMatrix = new THREE.Matrix4();
-GlobalContext.getXrOffsetMatrix = () => xrOffsetMatrix;
+GlobalContext.xrOffsetMatrix = new THREE.Matrix4();
 GlobalContext.xrFramebuffer = null;
 
 const xrTypeLoaders = {
@@ -376,7 +375,7 @@ export class XRPackageEngine extends EventTarget {
     canvas.proxyContext = proxyContext;
     this.proxyContext = proxyContext;
 
-    this.matrix = xrOffsetMatrix;
+    this.matrix = GlobalContext.xrOffsetMatrix;
     
     this.xrState = _makeXrState();
     this.xrState.renderWidth[0] = options.width / 2 * options.devicePixelRatio;
@@ -753,12 +752,12 @@ export class XRPackageEngine extends EventTarget {
       if (rig) {
         if (this.rigMatrixEnabled) {
           localMatrix.copy(this.rigMatrix)
-            .premultiply(localMatrix2.getInverse(xrOffsetMatrix))
+            .premultiply(localMatrix2.getInverse(GlobalContext.xrOffsetMatrix))
             .decompose(localVector, localQuaternion, localVector2);
         } else {
           const m = localMatrix.fromArray(xrState.leftViewMatrix);
           m.getInverse(m);
-          m.premultiply(localMatrix2.getInverse(xrOffsetMatrix));
+          m.premultiply(localMatrix2.getInverse(GlobalContext.xrOffsetMatrix));
           m.decompose(localVector, localQuaternion, localVector2);
         }
         rig.inputs.hmd.position.copy(localVector);
@@ -766,11 +765,11 @@ export class XRPackageEngine extends EventTarget {
         if (this.realSession) {
           localMatrix
             .compose(localVector.fromArray(xrState.gamepads[1].position), localQuaternion.fromArray(xrState.gamepads[1].orientation), localVector2.set(1, 1, 1))
-            .premultiply(localMatrix2.getInverse(xrOffsetMatrix))
+            .premultiply(localMatrix2.getInverse(GlobalContext.xrOffsetMatrix))
             .decompose(rig.inputs.leftGamepad.position, rig.inputs.leftGamepad.quaternion, localVector2);
           localMatrix
             .compose(localVector.fromArray(xrState.gamepads[0].position), localQuaternion.fromArray(xrState.gamepads[0].orientation), localVector2.set(1, 1, 1))
-            .premultiply(localMatrix2.getInverse(xrOffsetMatrix))
+            .premultiply(localMatrix2.getInverse(GlobalContext.xrOffsetMatrix))
             .decompose(rig.inputs.rightGamepad.position, rig.inputs.rightGamepad.quaternion, localVector2);
         } else {
           rig.inputs.leftGamepad.position.copy(localVector).add(localVector2.copy(leftHandOffset).applyQuaternion(localQuaternion));
