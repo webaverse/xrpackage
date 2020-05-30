@@ -68,7 +68,7 @@ class XRPackageManager extends EventTarget {
     this.session = session;
 
     delete Navigator.prototype.xr;
-    Object.define(window.navigator, 'xr', {
+    Object.defineProperty(window.navigator, 'xr', {
       get() {
         new XR.XR(window)
       },
