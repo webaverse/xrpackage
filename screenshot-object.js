@@ -69,3 +69,40 @@ export async function exportObject(o) {
   console.log('got gltf data', data);
   return data;
 }
+export async function screenshotEngine(pe) {
+  const center = new THREE.Vector3(0, 0, 0);
+  const size = new THREE.Vector3(3, 3, 3);
+
+  const gif = new GIF({
+    workers: 2,
+    quality: 10,
+  });
+  for (let i = 0; i < Math.PI*2; i += Math.PI*0.05) {
+    const position = center.clone()
+      .add(new THREE.Vector3(0, size.y / 2, 0))
+      .add(new THREE.Vector3(Math.cos(i + Math.PI/2), 0, Math.sin(i + Math.PI/2)).multiplyScalar(Math.max(size.x, size.z) * 1.2));
+    const quaternion = new THREE.Quaternion().setFromUnitVectors(
+      new THREE.Vector3(0, 0, -1),
+      position.clone().sub(center).normalize()
+    );
+    const scale = new THREE.Vector3(1, 1, 1);
+    const matrix = new THREE.Matrix4().compose(position, quaternion, scale);
+    pe.setMatrix(matrix);
+    pe.tick();
+
+    const canvas = document.createElement('canvas');
+    canvas.width = pe.domElement.width;
+    canvas.height = pe.domElement.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(pe.domElement, 0, 0);
+    document.body.appendChild(canvas);
+
+    gif.addFrame(canvas, {delay: 50});
+  }
+  gif.render();
+
+  const blob = await new Promise((accept, reject) => {
+    gif.on('finished', accept);
+  });
+  return blob;
+}

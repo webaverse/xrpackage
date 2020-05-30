@@ -1395,7 +1395,7 @@ export class XRPackage extends EventTarget {
       this.matrixWorldNeedsUpdate = false;
 
       localMatrix
-        .copy(this.matrix)
+        .copy(this.parent.matrix)
         .premultiply(this.matrix);
 
       this.context.object &&
