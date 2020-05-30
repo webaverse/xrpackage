@@ -247,7 +247,7 @@ class XRSession extends EventTarget {
     await this.onexitpresent();
     this.dispatchEvent(new CustomEvent('end'));
   }
-  update() {
+  /* update() {
     const {inputSources} = this;
     const gamepads = GlobalContext.getGamepads();
 
@@ -276,7 +276,7 @@ class XRSession extends EventTarget {
         this._lastPresseds[i] = pressed;
       }
     }
-  }
+  } */
 
   get onblur() {
     return _elementGetter(this, 'blur');
