@@ -1171,7 +1171,7 @@ export class XRPackage extends EventTarget {
           // status: response.status,
           // headers: response.headers,
           response,
-          // body: response.body.toString('utf-8')
+          // body: response.body.toString('utf8')
         });
       }
       this.files = files;
@@ -1182,7 +1182,7 @@ export class XRPackage extends EventTarget {
   load() {
     const manifestJsonFile = this.files.find(file => new URL(file.url).pathname === '/manifest.json');
     if (manifestJsonFile) {
-      const s = manifestJsonFile.response.body.toString('utf-8');
+      const s = manifestJsonFile.response.body.toString('utf8');
       const j = JSON.parse(s);
       if (j && typeof j.xr_type === 'string' && typeof j.start_url === 'string') {
         let {
