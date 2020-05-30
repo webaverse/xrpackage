@@ -39,7 +39,7 @@ const p = await (async () => {
   }
 })();
 
-const makeWireframeMaterial = () => new THREE.ShaderMaterial({
+const wireframeMaterial = new THREE.ShaderMaterial({
   uniforms: {},
   vertexShader: `\
     // attribute vec3 color;
@@ -156,7 +156,6 @@ const barycentrics = (() => {
   return barycentrics;
 })();
 geometry.setAttribute('barycentric', new THREE.BufferAttribute(barycentrics, 3));
-const wireframeMaterial = makeWireframeMaterial();
 const wireframeMesh = new THREE.Mesh(geometry, wireframeMaterial);
 wireframeMesh.frustumCulled = false;
 
