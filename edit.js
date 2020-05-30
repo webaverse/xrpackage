@@ -21,6 +21,8 @@ const web3 = new Web3(new Web3.providers.HttpProvider(rpcUrl));
 // window.web3 = web3;
 const contract = new web3.eth.Contract(abi, address);
 
+Ammo().then(async Ammo => {
+
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
@@ -1647,3 +1649,4 @@ window.addEventListener('popstate', e => {
   _handleUrl(window.location.href);
 });
 _handleUrl(window.location.href);
+});
