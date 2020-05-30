@@ -267,7 +267,7 @@ ProxiedWebGLRenderingContext.prototype.clear = (oldClear => function clear() {
     oldClear.apply(this, arguments);
   }
 })(ProxiedWebGLRenderingContext.prototype.clear);
-ProxiedWebGLRenderingContext.prototype.makeXrCompatible = function makeXrCompatible() {};
+ProxiedWebGLRenderingContext.prototype.makeXRCompatible = function makeXRCompatible() {};
 function enableDisable(gl, feature, enable, enable2) {
   if (enable !== enable2) {
     if (enable) {
