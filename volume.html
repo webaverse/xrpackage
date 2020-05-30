@@ -179,23 +179,6 @@ function animate(timestamp, frame) {
 }
 renderer.setAnimationLoop(animate);
 
-/* const gifBlob = await screenshotObject(o);
-const data = await exportObject(o);
-{
-  const res = await fetch(dstGif, {
-    method: 'PUT',
-    body: gifBlob,
-  });
-  await res.blob();
-}
-{
-  const res = await fetch(dstGlb, {
-    method: 'PUT',
-    body: data,
-  });
-  await res.blob();
-} */
-
 document.getElementById('text').innerText = 'Volumizing done. You can close this tab.';
 
 })().catch(err => {
