@@ -315,7 +315,7 @@ const xrTypeAdders = {
       xrState: this.xrState,
       XRPackage,
     });
-    p.setXrFramebuffer(this.xrFramebuffer);
+    p.setXrFramebuffer(this.fakeSession.xrFramebuffer);
 
     await p.context.requestPresentPromise;
   },
