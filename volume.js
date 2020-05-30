@@ -309,7 +309,7 @@ void main() {
     const center = aabb.getCenter(new THREE.Vector3());
     const size = aabb.getSize(new THREE.Vector3()); */
     const center = new THREE.Vector3(0, 0, 0);
-    const size = new THREE.Vector3(3, 3, 3);
+    const size = new THREE.Vector3(10, 10, 10);
     // size.multiplyScalar(1.5);
 
     const voxelResolution = size.clone().divideScalar(voxelWidth);
