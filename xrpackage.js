@@ -820,31 +820,10 @@ export class XRPackageEngine extends EventTarget {
       this.packages[i].updateMatrixWorld();
     }
 
-    /* for (let i = 0; i < GlobalContext.contexts.length; i++) {
-      const context =  GlobalContext.contexts[i];
-      context._exokitClearEnabled && context._exokitClearEnabled(true);
-      if (context._exokitBlendEnabled) {
-        if (highlight) {
-          context._exokitBlendEnabled(false);
-          context._exokitEnable(context.BLEND);
-          context._exokitBlendFuncSeparate(context.CONSTANT_COLOR, context.ONE_MINUS_SRC_ALPHA, context.CONSTANT_COLOR, context.ONE_MINUS_SRC_ALPHA);
-          context._exokitBlendEquationSeparate(context.FUNC_ADD, context.FUNC_ADD);
-          context._exokitBlendColor(highlight[0], highlight[1], highlight[2], highlight[3]);
-        } else {
-          context._exokitBlendEnabled(true);
-        }
-      }
-    }
-    const layerContext = layered ? vrPresentState.glContext : null;
-    if (layerContext) {
-      layerContext._exokitClearEnabled(false);
-    } */
     for (let i = 0; i < this.packages.length; i++) {
       const p = this.packages[i];
       if (p.context.iframe && p.context.iframe.contentWindow && p.context.iframe.contentWindow.xrpackage && p.context.iframe.contentWindow.xrpackage.session && p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer) {
         p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer.context._exokitClearEnabled(false);
-        // console.log('got iframe', p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer.context.canvas.transferToImageBitmap());
-        // debugger;
       }
       if (p.context.worker) {
         p.context.worker.postMessage({
