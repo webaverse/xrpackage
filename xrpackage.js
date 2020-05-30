@@ -1383,6 +1383,36 @@ export class XRPackage extends EventTarget {
   getObject() {
     return this.context.object;
   }
+  async getVolumeMesh() {
+    const manifestJsonFile = this.files.find(file => new URL(file.url).pathname === '/manifest.json');
+    if (manifestJsonFile) {
+      const s = manifestJsonFile.response.body.toString('utf8');
+      const j = JSON.parse(s);
+      const {icons = []} = j;
+      const previewIcon = icons.find(icon => icon.type === 'model/gltf-binary+preview');
+      if (previewIcon) {
+        const previewIconFile = this.files.find(file => new URL(file.url).pathname === '/' + previewIcon.src);
+        if (previewIconFile) {
+          const d = previewIconFile.response.body;
+          const b = new Blob([d], {
+            type: 'application/octet-stream',
+          });
+          const u = URL.createObjectURL(b);
+          const {scene} = await new Promise((accept, reject) => {
+            const loader = new GLTFLoader();
+            loader.load(u, accept, function onProgress() {}, reject);
+          });
+          return scene;
+        } else {
+          return null;
+        }
+      } else {
+        return null;
+      }
+    } else {
+      return null;
+    }
+  }
   setMatrix(m) {
     this.matrix.copy(m);
     this.matrixWorldNeedsUpdate = true;
