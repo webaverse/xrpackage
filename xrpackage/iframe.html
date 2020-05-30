@@ -31,9 +31,7 @@ class XRPackageManager extends EventTarget {
     this.loadPromise = makePromise();
     this.seenEvents = {};
   }
-  async iframeInit({engine, pkg, indexHtml, context, id, schema, xrState, XRPackage}) {
-    console.log('iframe init');
-
+  async iframeInit({engine, pkg, indexHtml, context, id, schema, xrState, xrFramebuffer, XRPackage}) {
     {
       const res = await fetch('/xrpackage/registerClient', {
         method: 'POST',
@@ -64,11 +62,12 @@ class XRPackageManager extends EventTarget {
     window.WebGLRenderingContext = WebGLRenderingContext;
     window.WebGL2RenderingContext = WebGL2RenderingContext;
 
-
     const session = new XR.XRSession(this.xrState, this.xrOffsetMatrix);
     session.onrequestanimationframe = fn => engine.packageRequestAnimationFrame(fn, globalThis);
     session.oncancelanimationframe = engine.packageCancelAnimationFrame.bind(engine);
     this.session = session;
+    
+    this.setXrFramebuffer(xrFramebuffer);
 
     delete Navigator.prototype.xr;
     window.navigator.xr = new XR.XR(window);

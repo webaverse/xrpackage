@@ -313,9 +313,9 @@ const xrTypeAdders = {
       id: p.id,
       schema: p.schema,
       xrState: this.xrState,
+      xrFramebuffer: this.xrFramebuffer,
       XRPackage,
     });
-    p.setXrFramebuffer(this.xrFramebuffer);
 
     await p.context.requestPresentPromise;
   },
