@@ -34,6 +34,25 @@ function makePromise() {
   result.reject = reject;
   return result;
 }
+const _cloneBundle = (bundle, options = {}) => {
+  const except = options.except || [];
+  const urlSpec = new url.URL(bundle.primaryURL);
+  const primaryUrl = urlSpec.origin;
+  const startUrl = urlSpec.pathname.replace(/^\//, '');
+  const builder = new wbn.BundleBuilder(primaryUrl + '/' + startUrl);
+  for (const u of bundle.urls) {
+    const {pathname} = new url.URL(u);
+    if (!except.includes(pathname)) {
+      const res = bundle.getResponse(u);
+      const type = res.headers['content-type'];
+      const data = res.body;
+      builder.addExchange(primaryUrl + pathname, 200, {
+        'Content-Type': type,
+      }, data);
+    }
+  }
+  return builder;
+};
 
 const HANDS = ['left', 'right'];
 const _oppositeHand = handedness => {
@@ -1316,6 +1335,45 @@ export class XRPackage extends EventTarget {
     const mainPath = '/' + this.main;
     const mainFile = this.files.find(file => new URL(file.url).pathname === mainPath);
     return mainFile.response.body;
+  }
+  addFile(pathname, data = '', type = 'application/octet-stream') {
+    let bundle = new wbn.Bundle(this.data);
+    const builder = _cloneBundle(bundle, {
+      except: [pathname],
+    });
+    builder.addExchange(primaryUrl + '/' + pathname, 200, {
+      'Content-Type': type,
+    }, data);
+    this.data = builder.createBundle();
+    bundle = new wbn.Bundle(this.data);
+
+    const files = [];
+    for (const url of bundle.urls) {
+      const response = bundle.getResponse(url);
+      files.push({
+        url,
+        response,
+      });
+    }
+    this.files = files;
+  }
+  removeFile(pathname) {
+    let bundle = new wbn.Bundle(this.data);
+    const builder = _cloneBundle(bundle, {
+      except: [pathname],
+    });
+    this.data = builder.createBundle();
+    bundle = new wbn.Bundle(this.data);
+
+    const files = [];
+    for (const url of bundle.urls) {
+      const response = bundle.getResponse(url);
+      files.push({
+        url,
+        response,
+      });
+    }
+    this.files = files;
   }
   static async compileFromFile(file) {
     const _createFile = async (file, xrType, mimeType) => {
