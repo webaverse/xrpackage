@@ -17,8 +17,7 @@ body {
   --color2: #ffa726;
 }
 
-.header,
-.subheader
+.header
 {
   position: fixed;
   display: flex;
@@ -36,18 +35,7 @@ body {
   box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
 }
 
-.subheader {
-  border-bottom: 1px solid #EEE;
-}
-
-.subheader + .subheader {
-  top: 50px;
-  /* width: 300px; */
-  margin-left: 150px;
-}
-
-.header .icon,
-.subheader .icon
+.header .icon
 {
   display: flex;
   width: 50px;
@@ -247,6 +235,27 @@ body {
 
 .header-gap {
   margin-top: 50px;
+}
+
+.subheader {
+  display: flex;
+  margin-top: 50px;
+  margin-left: 100px;
+  /* border-bottom: 1px solid #EEE; */
+}
+.subheader .subtab {
+  padding: 10px;
+  font-size: 20px;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+}
+.subheader .subtab:hover,
+.subheader .subtab.open
+{
+  border-bottom-color: #000;
+}
+.subheader .subtab.open {
+  cursor: default;
 }
 
 .loader {
@@ -1145,8 +1154,7 @@ header.unlocking + .main .blocker .button
 
 .preview {
   display: flex;
-  padding: 30px;
-  padding-top: calc(30px + 50px);
+  padding: 0 30px;
   max-height: 100vh;
   overflow: auto;
 }
