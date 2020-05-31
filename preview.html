@@ -54,6 +54,13 @@
     </nav> -->
   </header>
 
+<div class=preview>
+  <section class=views id=views>
+  </section>
+  <section class=files id=files>
+  </section>
+</div>
+
 <script type=module>
   import THREE from './xrpackage/three.module.js';
   window.THREE = THREE;
@@ -69,7 +76,6 @@ const pe = new XRPackageEngine({
   pixelRatio: 1,
   autoListen: false,
 });
-document.body.appendChild(pe.domElement);
 
 const _makeScene = () => {
   const renderer = new THREE.WebGLRenderer({
@@ -249,13 +255,17 @@ const _getWireframeMesh = o => {
     throw 'No package to preview';
   }
 
+  const views = document.getElementById('views');
+  {
+    views.appendChild(pe.domElement);
+  }
   {
     const screenshotImage = await p.getScreenshotImage();
     if (screenshotImage) {
       screenshotImage.style.width = `${size}px`;
       screenshotImage.style.height = `${size}px`;
       screenshotImage.style.objectFit = 'contain';
-      document.body.appendChild(screenshotImage);
+      views.appendChild(screenshotImage);
     }
   }
   {
@@ -277,7 +287,7 @@ const _getWireframeMesh = o => {
     }
     renderer.setAnimationLoop(animate);
 
-    document.body.appendChild(renderer.domElement);
+    views.appendChild(renderer.domElement);
   }
 })();
 </script>
