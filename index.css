@@ -250,7 +250,8 @@ a:hover {
   display: flex;
   margin-top: 50px;
   margin-left: 130px;
-  /* border-bottom: 1px solid #EEE; */
+  margin-bottom: 10px;
+  border-bottom: 1px solid #EEE;
 }
 .subheader .subtab {
   padding: 10px;
@@ -1208,6 +1209,7 @@ header.unlocking + .main .blocker .button
   flex-direction: column;
 }
 .views .view {
+  background-color: #F8F8F8;
   border-radius: 10px;
 }
 .details {
