@@ -1186,10 +1186,7 @@ export class XRPackage extends EventTarget {
         const response = bundle.getResponse(url);
         files.push({
           url,
-          // status: response.status,
-          // headers: response.headers,
           response,
-          // body: response.body.toString('utf8')
         });
       }
       this.files = files;
