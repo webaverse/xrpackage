@@ -71,20 +71,16 @@ export async function exportObject(o) {
 }
 export async function screenshotEngine(pe) {
   const center = new THREE.Vector3(0, 0, 0);
-  const size = new THREE.Vector3(3, 3, 3);
+  const size = new THREE.Vector3(3, 5, 3);
+  const up = new THREE.Vector3(0, 1, 0);
 
   const gif = new GIF({
     workers: 2,
     quality: 10,
   });
   for (let i = 0; i < Math.PI*2; i += Math.PI*0.05) {
-    const position = center.clone()
-      .add(new THREE.Vector3(0, size.y / 2, 0))
-      .add(new THREE.Vector3(Math.cos(i + Math.PI/2), 0, Math.sin(i + Math.PI/2)).multiplyScalar(Math.max(size.x, size.z) * 1.2));
-    const quaternion = new THREE.Quaternion().setFromUnitVectors(
-      new THREE.Vector3(0, 0, -1),
-      position.clone().sub(center).normalize()
-    );
+    const position = new THREE.Vector3(Math.cos(i), 0, Math.sin(i));
+    const quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -i);
     const scale = new THREE.Vector3(1, 1, 1);
     const matrix = new THREE.Matrix4().compose(position, quaternion, scale);
     pe.setMatrix(matrix);
