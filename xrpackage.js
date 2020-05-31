@@ -1285,7 +1285,7 @@ export class XRPackage extends EventTarget {
   set visible(visible) {
     this._visible = visible;
 
-    const o = this.getObject();
+    const o = this.context.object;
     if (o) {
       o.visible = visible;
     }
@@ -1389,9 +1389,6 @@ export class XRPackage extends EventTarget {
       }, data);
     }
     return builder.createBundle();
-  }
-  getObject() {
-    return this.context.object;
   }
   async getScreenshotImage() {
     const j = this.getManifestJson();

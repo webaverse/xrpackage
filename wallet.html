@@ -198,7 +198,7 @@ const _mintFile = async () => {
       });
     });
 
-    const o = p.getObject();
+    const o = p.context.object;
     const gifBlob = await screenshotObject(o);
     const glbUint8Array = await exportObject(o);
 
