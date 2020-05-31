@@ -71,6 +71,7 @@ const getPreviewMesh = async p => {
     height: voxelWidth,
     devicePixelRatio: pixelRatio,
     autoStart: false,
+    autoListen: false,
   });
   const camera = new THREE.OrthographicCamera(Math.PI, Math.PI, Math.PI, Math.PI, 0.001, 1000);
   pe.camera = camera;
