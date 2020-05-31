@@ -12,6 +12,8 @@ import utils from './xrpackage/utils.js';
 const {requestSw} = utils;
 export const apiHost = `https://ipfs.exokit.org/ipfs`;
 
+const primaryUrl = `https://xrpackage.org`;
+
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
@@ -1036,7 +1038,6 @@ export class XRPackageEngine extends EventTarget {
           console.log('load matrix 1', matrix);
           this.add(p);
         } else {
-          const primaryUrl = `https://xrpackage.org`;
           const idUrl = primaryUrl + '/' + id + '.wbn';
           const file = p.files.find(f => f.url === idUrl);
           if (file) {
@@ -1054,7 +1055,6 @@ export class XRPackageEngine extends EventTarget {
     }
   }
   async exportScene() {
-    const primaryUrl = `https://xrpackage.org`;
     const manifestJsonPath = primaryUrl + '/manifest.json';
     const builder = new wbn.BundleBuilder(manifestJsonPath);
     const manifestJson = {
@@ -1084,7 +1084,6 @@ export class XRPackageEngine extends EventTarget {
     return builder.createBundle();
   }
   async uploadScene() {
-    const primaryUrl = `https://xrpackage.org`;
     const manifestJsonPath = primaryUrl + '/manifest.json';
     const builder = new wbn.BundleBuilder(manifestJsonPath);
     const hashes = await Promise.all(this.packages.map(p => p.upload()));
@@ -1374,7 +1373,6 @@ export class XRPackage extends EventTarget {
     const j = this.getManifestJson();
     const {start_url: startUrl} = j;
 
-    const primaryUrl = `https://xrpackage.org`;
     // const manifestUrl = primaryUrl + '/manifest.json';
     const builder = new wbn.BundleBuilder(primaryUrl + '/' + startUrl);
       // .setManifestURL(manifestUrl);
