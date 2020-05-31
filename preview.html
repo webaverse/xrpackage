@@ -63,6 +63,12 @@
 
   <section class="subcontent open" id=subcontent-1>
     <div class=details-wrap>
+      <div class=side-tabs>
+        <nav class="side-tab open" id=side-tab-1>Live</nav>
+        <nav class=side-tab id=side-tab-2>Screenshot</nav>
+        <nav class=side-tab id=side-tab-3>Wireframe</nav>
+        <nav class=side-tab id=side-tab-4>Model</nav>
+      </div>
       <div class=views id=views>
       </div>
       <div class=details id=details>
@@ -110,6 +116,18 @@ for (let i = 0; i < subtabs.length; i++) {
     });
     subtab.classList.add('open');
     subcontent.classList.add('open');
+  });
+}
+
+const sidetabs = Array.from(document.querySelectorAll('.side-tab'));
+for (let i = 0; i < sidetabs.length; i++) {
+  const sidetab = sidetabs[i];
+  sidetab.addEventListener('click', e => {
+    sidetabs.forEach((sidetab, i) => {
+      sidetab.classList.remove('open');
+      // subcontents[i].classList.remove('open');
+    });
+    sidetab.classList.add('open');
   });
 }
 
