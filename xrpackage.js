@@ -36,12 +36,12 @@ function makePromise() {
 }
 const _cloneBundle = (bundle, options = {}) => {
   const except = options.except || [];
-  const urlSpec = new url.URL(bundle.primaryURL);
+  const urlSpec = new URL(bundle.primaryURL);
   const primaryUrl = urlSpec.origin;
   const startUrl = urlSpec.pathname.replace(/^\//, '');
   const builder = new wbn.BundleBuilder(primaryUrl + '/' + startUrl);
   for (const u of bundle.urls) {
-    const {pathname} = new url.URL(u);
+    const {pathname} = new URL(u);
     if (!except.includes(pathname)) {
       const res = bundle.getResponse(u);
       const type = res.headers['content-type'];
@@ -1336,7 +1336,7 @@ export class XRPackage extends EventTarget {
   addFile(pathname, data = '', type = 'application/octet-stream') {
     let bundle = new wbn.Bundle(this.data);
     const builder = _cloneBundle(bundle, {
-      except: [pathname],
+      except: ['/' + pathname],
     });
     builder.addExchange(primaryUrl + '/' + pathname, 200, {
       'Content-Type': type,
@@ -1357,7 +1357,7 @@ export class XRPackage extends EventTarget {
   removeFile(pathname) {
     let bundle = new wbn.Bundle(this.data);
     const builder = _cloneBundle(bundle, {
-      except: [pathname],
+      except: ['/' + pathname],
     });
     this.data = builder.createBundle();
     bundle = new wbn.Bundle(this.data);

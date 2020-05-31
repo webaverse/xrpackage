@@ -369,7 +369,7 @@ const _getWireframeMesh = o => {
   manifest.value = JSON.stringify(manifestJson, null, 2);
 
   const files = document.getElementById('files');
-  {
+  const _renderFiles = () => {
     files.innerHTML = p.files.map(f => {
       const u = f.url.replace(/^https:\/\/xrpackage\.org\//, '');
       return `
@@ -385,10 +385,12 @@ const _getWireframeMesh = o => {
       const pathname = f.getAttribute('pathname');
       const removeButton = f.querySelector('.remove-button');
       removeButton.addEventListener('click', e => {
-        console.log('click remove', pathname);
+        p.removeFile(pathname);
+        _renderFiles();
       });
     });
-  }
+  };
+  _renderFiles();
 })();
 </script>
 </body>
