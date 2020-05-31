@@ -15,6 +15,15 @@ body {
 
   --color: #ec407a;
   --color2: #ffa726;
+  --color3: #42a5f5;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+a:hover {
+  color: var(--color3);
 }
 
 .header
@@ -1241,9 +1250,13 @@ header.unlocking + .main .blocker .button
 }
 .files-wrap .files .file .name {
   flex: 1;
+  text-decoration: none;
 }
 .files-wrap .files .file .remove-button {
   cursor: pointer;
+}
+.files-wrap .files .file .remove-button:hover {
+  color: #ef5350;
 }
 .files-wrap .buttons {
   height: 30px;
