@@ -1,0 +1,275 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>xrpackage | run</title>
+  <link href="index.css" rel=stylesheet>
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/0735724151.js" crossorigin="anonymous"></script>
+  <script src="https://rawcdn.githack.com/ethereum/web3.js/a6ddec59e65116853435f203b25cb9c55824d084/dist/web3.min.js"></script>
+</head>
+
+<body>
+  <header class=header id=header>
+    <a href="/" class="nav icon">山</a>
+    <nav class="selector nav bar" id=selector>
+      <i class="fa fa-play head"></i>
+      <div class=header-label id=header-label>Run mode</div>
+      <i class="fa fa-chevron-down tail"></i>
+      <div class=selections id=selections>
+        <a href="run.html" class="selection dim" id=run-mode>
+          <i class="fa fa-play"></i>
+          <div class=wrap>
+            <h3>Run mode</h3>
+            <p>Switch to run mode</p>
+          </div>
+        </a>
+        <a href="edit.html" class=selection id=edit-mode>
+          <i class="fa fa-pencil"></i>
+          <div class=wrap>
+            <h3>Edit mode</h3>
+            <p>You are currently editing this world</p>
+          </div>
+        </a>
+        <a href="browse.html" class=selection>
+          <i class="fa fa-solar-system"></i>
+          <div class=wrap>
+            <h3>Browse packages</h3>
+            <p>Explore the XRPackage registry</p>
+          </div>
+        </a>
+        <a href="help.html" class=selection>
+          <i class="fa fa-book"></i>
+          <div class=wrap>
+            <h3>Documentation</h3>
+            <p>Learn how to make packages and worlds</p>
+          </div>
+        </a>
+      </div>
+    </nav>
+
+    <nav class="nav full" id=enter-xr-button>
+      <i class="fa fa-vr-cardboard"></i>
+      <span>Enter</span>
+    </nav>
+  </header>
+
+<script type=module>
+  import THREE from './xrpackage/three.module.js';
+  window.THREE = THREE;
+</script>
+<script type="module">
+import {XRPackage, XRPackageEngine} from './xrpackage.js';
+import {OrbitControls} from './xrpackage/OrbitControls.js';
+
+const pe = new XRPackageEngine({
+  width: 512,
+  height: 512,
+  pixelRatio: 1,
+});
+document.body.appendChild(pe.domElement);
+
+const _makeScene = () => {
+  const renderer = new THREE.WebGLRenderer({
+    // canvas: pe.domElement,
+    // context: pe.getContext('webgl'),
+    antialias: true,
+    alpha: true,
+    // preserveDrawingBuffer: true,
+  });
+  renderer.setSize(512, 512);
+  renderer.setPixelRatio(1);
+  // renderer.autoClear = false;
+  renderer.sortObjects = false;
+  renderer.physicallyCorrectLights = true;
+  renderer.xr.enabled = true;
+  document.body.appendChild(renderer.domElement);
+
+  const scene = new THREE.Scene();
+
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera.position.set(0, 0.5, 1);
+
+  const ambientLight = new THREE.AmbientLight(0xFFFFFF);
+  scene.add(ambientLight);
+  const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 3);
+  scene.add(directionalLight);
+  const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 3);
+  scene.add(directionalLight2);
+
+  return {renderer, scene, camera};
+};
+const wireframeMaterial = new THREE.ShaderMaterial({
+  uniforms: {},
+  vertexShader: `\
+    // attribute vec3 color;
+    attribute vec3 barycentric;
+    varying vec3 vPosition;
+    // varying vec3 vColor;
+    varying vec3 vBC;
+    void main() {
+      // vColor = color;
+      vBC = barycentric;
+      vec4 modelViewPosition = modelViewMatrix * vec4(position, 1.0);
+      vPosition = modelViewPosition.xyz;
+      gl_Position = projectionMatrix * modelViewPosition;
+    }
+  `,
+  fragmentShader: `\
+    uniform sampler2D uCameraTex;
+    varying vec3 vPosition;
+    // varying vec3 vColor;
+    varying vec3 vBC;
+    vec3 color = vec3(0.984313725490196, 0.5490196078431373, 0.0);
+    vec3 lightDirection = vec3(0.0, 0.0, 1.0);
+    float edgeFactor() {
+      vec3 d = fwidth(vBC);
+      vec3 a3 = smoothstep(vec3(0.0), d*1.5, vBC);
+      return min(min(a3.x, a3.y), a3.z);
+    }
+    void main() {
+      // vec3 color = vColor;
+      float barycentricFactor = (0.2 + (1.0 - edgeFactor()) * 0.8);
+      vec3 xTangent = dFdx( vPosition );
+      vec3 yTangent = dFdy( vPosition );
+      vec3 faceNormal = normalize( cross( xTangent, yTangent ) );
+      float lightFactor = dot(faceNormal, lightDirection);
+      gl_FragColor = vec4((0.5 + color * barycentricFactor) * lightFactor, 0.5 + barycentricFactor * 0.5);
+    }
+  `,
+  side: THREE.DoubleSide,
+  /* polygonOffset: true,
+  polygonOffsetFactor: -1,
+  polygonOffsetUnits: -4, */
+  transparent: true,
+  opacity: 0.5,
+  // depthWrite: false,
+  extensions: {
+    derivatives: true,
+  },
+});
+const _getWireframeMesh = o => {
+  let firstMesh = null;
+  o.traverse(o => {
+    if (firstMesh === null && o.isMesh) {
+      firstMesh = o;
+    }
+  });
+
+  if (firstMesh) {
+    const geometry = firstMesh.geometry.toNonIndexed();
+    const barycentrics = (() => {
+      const barycentrics = new Float32Array(geometry.attributes.position.array.length);
+      for (let i = 0; i < barycentrics.length;) {
+        barycentrics[i++] = 1;
+        barycentrics[i++] = 0;
+        barycentrics[i++] = 0;
+        barycentrics[i++] = 0;
+        barycentrics[i++] = 1;
+        barycentrics[i++] = 0;
+        barycentrics[i++] = 0;
+        barycentrics[i++] = 0;
+        barycentrics[i++] = 1;
+      }
+      return barycentrics;
+    })();
+    geometry.setAttribute('barycentric', new THREE.BufferAttribute(barycentrics, 3));
+    const mesh = new THREE.Mesh(geometry, wireframeMaterial);
+    mesh.frustumCulled = false;
+    return mesh;
+  } else {
+    return null;
+  }
+};
+
+(async () => {
+  function parseQuery(queryString) {
+    var query = {};
+    var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
+    for (var i = 0; i < pairs.length; i++) {
+      var pair = pairs[i].split('=');
+      query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+    }
+    return query;
+  }
+  const q = parseQuery(window.location.search);
+
+  let p = null;
+  if (q.i) { // index
+    const metadataHash = await contract.methods.getMetadata(parseInt(q.i, 10), 'hash').call();
+    const metadata = await fetch(`${apiHost}/${metadataHash}`)
+      .then(res => res.json());
+    const {dataHash} = metadata;
+
+    const arrayBuffer = await fetch(`${apiHost}/${dataHash}.wbn`)
+      .then(res => res.arrayBuffer());
+
+    p = new XRPackage(new Uint8Array(arrayBuffer));
+    await pe.add(p);
+  } else if (q.u) { // url
+    const arrayBuffer = await fetch(q.u)
+      .then(res => res.arrayBuffer());
+
+    p = new XRPackage(new Uint8Array(arrayBuffer));
+    await pe.add(p);
+  } else if (q.h) { // hash
+    p = await XRPackage.download(q.h);
+    await pe.add(p);
+  /* } else if (q.h) { // home
+    const [cubeHtml, cubeManifest] = await Promise.all([
+      (async () => {
+        const res = await fetch('examples/html/cube.html');
+        return await res.text();
+      })(),
+      (async () => {
+        const res = await fetch('examples/html/manifest.json');
+        return await res.text();
+      })(),
+    ]);
+
+    const d = XRPackage.compileRaw(
+      [
+        {
+          url: '/cube.html',
+          type: 'text/html',
+          data: cubeHtml,
+        },
+        {
+          url: '/manifest.json',
+          type: 'application/json',
+          data: cubeManifest,
+        }
+      ]
+    );
+    const p = new XRPackage(d);
+    await pe.add(p); */
+  } else {
+    throw 'No package to preview';
+  }
+
+  {
+    const {renderer, scene, camera} = _makeScene();
+
+    const volumeMesh = await p.getVolumeMesh();
+    const wireframeMesh = _getWireframeMesh(volumeMesh);
+    scene.add(wireframeMesh);
+
+    const orbitControls = new OrbitControls(camera, renderer.domElement, document);
+    orbitControls.screenSpacePanning = true;
+    orbitControls.enableMiddleZoom = false;
+    orbitControls.update();
+
+    function animate(timestamp, frame) {
+      orbitControls.update();
+
+      renderer.render(scene, camera);
+    }
+    renderer.setAnimationLoop(animate);
+
+    document.body.appendChild(renderer.domElement);
+  }
+})();
+</script>
+</body>
+
+</html>
