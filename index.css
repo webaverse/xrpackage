@@ -1217,20 +1217,17 @@ header.unlocking + .main .blocker .button
 .manifest {
   width: 400px;
   height: 200px;
+  margin-left: 100px;
   padding: 5px;
   background-color: #EEE;
   border: 0;
   border-radius: 5px;
   outline: none;
 }
-.exports {
-  display: flex;
-  margin: 0 30px;
-  flex-direction: column;
-}
 .files-wrap {
   display: flex;
   width: 250px;
+  margin-left: 100px;
   flex-direction: column;
 }
 .files-wrap .files {
@@ -1250,6 +1247,15 @@ header.unlocking + .main .blocker .button
 }
 .files-wrap .buttons {
   height: 30px;
+}
+.exports {
+  display: flex;
+  width: 200px;
+  margin-left: 100px;
+  flex-direction: column;
+}
+.exports .button {
+  margin-bottom: 5px;
 }
 
 .error {
