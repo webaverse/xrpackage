@@ -1145,7 +1145,40 @@ header.unlocking + .main .blocker .button
 
 .preview {
   display: flex;
-  margin-top: 50px;
+  padding: 30px;
+  padding-top: calc(30px + 50px);
+  max-height: 100vh;
+  overflow: auto;
+}
+.preview .views {
+  display: flex;
+  margin-right: 30px;
+  flex-direction: column;
+}
+.preview .views .view {
+
+}
+.preview .details {
+  display: flex;
+  margin-right: auto;
+  flex-direction: column;
+}
+.preview .details .name {
+  margin-bottom: 5px;
+  font-size: 30px;
+}
+.preview .details .description {
+  margin-bottom: 5px;
+  font-size: 16px;
+}
+.preview .details .manifest {
+  width: 400px;
+  height: 200px;
+  padding: 5px;
+  background-color: #EEE;
+  border: 0;
+  border-radius: 5px;
+  outline: none;
 }
 .preview .files {
   display: flex;
@@ -1158,11 +1191,8 @@ header.unlocking + .main .blocker .button
 .preview .files .file .name {
   flex: 1;
 }
-.preview .views {
-
-}
-.preview .views .views {
-
+.preview .files .file .remove-button {
+  cursor: pointer;
 }
 
 .error {

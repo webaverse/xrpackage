@@ -57,6 +57,11 @@
 <div class=preview>
   <section class=views id=views>
   </section>
+  <section class=details>
+    <div class=name id=name>name</div>
+    <div class=description id=description>description</div>
+    <textarea class=manifest id=manifest>{}</textarea>
+  </section>
   <section class=files id=files>
   </section>
 </div>
@@ -290,12 +295,20 @@ const _getWireframeMesh = o => {
     views.appendChild(renderer.domElement);
   }
 
+  const name = document.getElementById('name');
+  const description = document.getElementById('description');
+  const manifest = document.getElementById('manifest');
+  const manifestJson = p.getManifestJson();
+  name.innerText = manifestJson.name || '';
+  description.innerText = manifestJson.description || '';
+  manifest.value = JSON.stringify(manifestJson, null, 2);
+
   const files = document.getElementById('files');
   {
     files.innerHTML = p.files.map(f => {
       const u = f.url.replace(/^https:\/\/xrpackage\.org\//, '');
       return `
-        <div class=file>
+        <div class=file pathname="${u}"">
           <a class=name href="${u}">${u}</a>
           <nav class=remove-button>
             <i class="fa fa-times"></i>
@@ -303,10 +316,11 @@ const _getWireframeMesh = o => {
         </div>
       `;
     }).join('\n');
-    Array.from(files.querySelectorAll('file')).forEach(f => {
+    Array.from(files.querySelectorAll('.file')).forEach(f => {
+      const pathname = f.getAttribute('pathname');
       const removeButton = f.querySelector('.remove-button');
       removeButton.addEventListener('click', e => {
-        console.log('click remove');
+        console.log('click remove', pathname);
       });
     });
   }
