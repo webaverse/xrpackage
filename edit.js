@@ -21,7 +21,7 @@ const web3 = new Web3(new Web3.providers.HttpProvider(rpcUrl));
 // window.web3 = web3;
 const contract = new web3.eth.Contract(abi, address);
 
-Ammo().then(async Ammo => {
+// Ammo().then(async Ammo => {
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -786,9 +786,9 @@ const _getWireframeMesh = o => {
 pe.addEventListener('packageadd', async e => {
   const p = e.data;
 
-  const volumeMesh = await p.getVolumeMesh();
+  /* const volumeMesh = await p.getVolumeMesh();
   const wireframeMesh = _getWireframeMesh(volumeMesh);
-  scene.add(wireframeMesh);
+  scene.add(wireframeMesh); */
 
   if (shieldLevel === 0) {
     _placeholdPackage(p);
@@ -1736,4 +1736,4 @@ window.addEventListener('popstate', e => {
 });
 _handleUrl(window.location.href);
 
-});
+// });
