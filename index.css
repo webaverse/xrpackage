@@ -1160,7 +1160,7 @@ header.unlocking + .main .blocker .button
 }
 .preview .details {
   display: flex;
-  margin-right: auto;
+  flex: 1;
   flex-direction: column;
 }
 .preview .details .name {
@@ -1180,19 +1180,33 @@ header.unlocking + .main .blocker .button
   border-radius: 5px;
   outline: none;
 }
-.preview .files {
+.preview .exports {
+  display: flex;
+  margin: 0 30px;
+  flex-direction: column;
+}
+.preview .files-wrap {
   display: flex;
   width: 250px;
   flex-direction: column;
 }
-.preview .files .file {
+.preview .files-wrap .files {
+  display: flex;
+  height: calc(100vh - 50px - 30px - 30px);
+  flex-direction: column;
+  overflow: auto;
+}
+.preview .files-wrap .files .file {
   display: flex;
 }
-.preview .files .file .name {
+.preview .files-wrap .files .file .name {
   flex: 1;
 }
-.preview .files .file .remove-button {
+.preview .files-wrap .files .file .remove-button {
   cursor: pointer;
+}
+.preview .files-wrap .buttons {
+  height: 30px;
 }
 
 .error {
