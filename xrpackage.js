@@ -204,8 +204,7 @@ const xrTypeLoaders = {
     });
     const u = URL.createObjectURL(b);
     const {scene} = await new Promise((accept, reject) => {
-      const loader = new GLTFLoader();
-      loader.load(u, accept, function onProgress() {}, reject);
+      new GLTFLoader().load(u, accept, function onProgress() {}, reject);
     });
     URL.revokeObjectURL(u);
 
@@ -258,8 +257,7 @@ const xrTypeLoaders = {
     });
     const u = URL.createObjectURL(b);
     const o = await new Promise((accept, reject) => {
-      const loader = new GLTFLoader();
-      loader.load(u, accept, function onProgress() {}, reject);
+      new GLTFLoader().load(u, accept, function onProgress() {}, reject);
     });
     URL.revokeObjectURL(u);
 
@@ -277,8 +275,7 @@ const xrTypeLoaders = {
     });
     const u = URL.createObjectURL(b);
     const o = await new Promise((accept, reject) => {
-      const loader = new VOXLoader();
-      loader.load(u, accept, function onProgress() {}, reject);
+      new VOXLoader().load(u, accept, function onProgress() {}, reject);
     });
     URL.revokeObjectURL(u);
 
@@ -1437,8 +1434,35 @@ export class XRPackage extends EventTarget {
           });
           const u = URL.createObjectURL(b);
           const {scene} = await new Promise((accept, reject) => {
-            const loader = new GLTFLoader();
-            loader.load(u, accept, function onProgress() {}, reject);
+            new GLTFLoader().load(u, accept, function onProgress() {}, reject);
+          });
+          URL.revokeObjectURL(u);
+          return scene;
+        } else {
+          return null;
+        }
+      } else {
+        return null;
+      }
+    } else {
+      return null;
+    }
+  }
+  async getModel() {
+    const j = this.getManifestJson();
+    if (j) {
+      const {icons = []} = j;
+      const previewIcon = icons.find(icon => icon.type === 'model/gltf-binary');
+      if (previewIcon) {
+        const previewIconFile = this.files.find(file => new URL(file.url).pathname === '/' + previewIcon.src);
+        if (previewIconFile) {
+          const d = previewIconFile.response.body;
+          const b = new Blob([d], {
+            type: previewIcon.type,
+          });
+          const u = URL.createObjectURL(b);
+          const {scene} = await new Promise((accept, reject) => {
+            new GLTFLoader().load(u, accept, function onProgress() {}, reject);
           });
           URL.revokeObjectURL(u);
           return scene;

@@ -335,10 +335,8 @@ const _getWireframeMesh = o => {
   {
     const {renderer, scene, camera} = _makeScene();
 
-    // XXX render model preview here
-    /* const volumeMesh = await p.getVolumeMesh();
-    const wireframeMesh = _getWireframeMesh(volumeMesh);
-    scene.add(wireframeMesh); */
+    const modelMesh = await p.getModel();
+    scene.add(modelMesh);
 
     const orbitControls = new OrbitControls(camera, renderer.domElement, document);
     orbitControls.screenSpacePanning = true;
