@@ -13,8 +13,8 @@
   <header class=header id=header>
     <a href="/" class="nav icon">山</a>
     <nav class="selector nav bar" id=selector>
-      <i class="fa fa-play head"></i>
-      <div class=header-label id=header-label>Run mode</div>
+      <i class="fa fa-fingerprint head"></i>
+      <div class=header-label id=header-label>Preview mode</div>
       <i class="fa fa-chevron-down tail"></i>
       <div class=selections id=selections>
         <a href="run.html" class="selection dim" id=run-mode>
@@ -291,7 +291,9 @@ const _getWireframeMesh = o => {
 
   const views = document.getElementById('views');
   {
-    views.appendChild(pe.domElement);
+    const canvas = pe.domElement;
+    canvas.classList.add('view');
+    views.appendChild(canvas);
   }
   {
     const screenshotImage = await p.getScreenshotImage();
@@ -299,6 +301,7 @@ const _getWireframeMesh = o => {
       screenshotImage.style.width = `${size}px`;
       screenshotImage.style.height = `${size}px`;
       screenshotImage.style.objectFit = 'contain';
+      screenshotImage.classList.add('view');
       views.appendChild(screenshotImage);
     }
   }
@@ -321,7 +324,9 @@ const _getWireframeMesh = o => {
     }
     renderer.setAnimationLoop(animate);
 
-    views.appendChild(renderer.domElement);
+    const canvas = renderer.domElement;
+    canvas.classList.add('view');
+    views.appendChild(canvas);
   }
 
   const name = document.getElementById('name');
