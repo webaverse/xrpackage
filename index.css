@@ -1188,6 +1188,9 @@ header.unlocking + .main .blocker .button
 .side-tabs .side-tab.open {
   cursor: default;
 }
+.side-content:not(.open) {
+  display: none;
+}
 .views {
   display: flex;
   margin-right: 30px;

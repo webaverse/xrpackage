@@ -123,11 +123,14 @@ const sidetabs = Array.from(document.querySelectorAll('.side-tab'));
 for (let i = 0; i < sidetabs.length; i++) {
   const sidetab = sidetabs[i];
   sidetab.addEventListener('click', e => {
+    const sidecontents = Array.from(document.querySelectorAll('.side-content'));
+    const sidecontent = sidecontents[i];
     sidetabs.forEach((sidetab, i) => {
       sidetab.classList.remove('open');
-      // subcontents[i].classList.remove('open');
+      sidecontents[i].classList.remove('open');
     });
     sidetab.classList.add('open');
+    sidecontent.classList.add('open');
   });
 }
 
@@ -292,7 +295,8 @@ const _getWireframeMesh = o => {
   const views = document.getElementById('views');
   {
     const canvas = pe.domElement;
-    canvas.classList.add('view');
+    canvas.classList.add('side-content');
+    canvas.classList.add('open');
     views.appendChild(canvas);
   }
   {
@@ -301,7 +305,7 @@ const _getWireframeMesh = o => {
       screenshotImage.style.width = `${size}px`;
       screenshotImage.style.height = `${size}px`;
       screenshotImage.style.objectFit = 'contain';
-      screenshotImage.classList.add('view');
+      screenshotImage.classList.add('side-content');
       views.appendChild(screenshotImage);
     }
   }
@@ -325,7 +329,31 @@ const _getWireframeMesh = o => {
     renderer.setAnimationLoop(animate);
 
     const canvas = renderer.domElement;
-    canvas.classList.add('view');
+    canvas.classList.add('side-content');
+    views.appendChild(canvas);
+  }
+  {
+    const {renderer, scene, camera} = _makeScene();
+
+    // XXX render model preview here
+    /* const volumeMesh = await p.getVolumeMesh();
+    const wireframeMesh = _getWireframeMesh(volumeMesh);
+    scene.add(wireframeMesh); */
+
+    const orbitControls = new OrbitControls(camera, renderer.domElement, document);
+    orbitControls.screenSpacePanning = true;
+    orbitControls.enableMiddleZoom = false;
+    orbitControls.update();
+
+    function animate(timestamp, frame) {
+      orbitControls.update();
+
+      renderer.render(scene, camera);
+    }
+    renderer.setAnimationLoop(animate);
+
+    const canvas = renderer.domElement;
+    canvas.classList.add('side-content');
     views.appendChild(canvas);
   }
 
