@@ -1409,6 +1409,7 @@ export class XRPackage extends EventTarget {
             };
             img.onerror = reject;
           });
+          URL.revokeObjectURL(u);
           return img;
         } else {
           return null;
@@ -1439,6 +1440,7 @@ export class XRPackage extends EventTarget {
             const loader = new GLTFLoader();
             loader.load(u, accept, function onProgress() {}, reject);
           });
+          URL.revokeObjectURL(u);
           return scene;
         } else {
           return null;
