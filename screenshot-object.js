@@ -71,19 +71,21 @@ export async function exportObject(o) {
 }
 export async function screenshotEngine(pe) {
   const center = new THREE.Vector3(0, 0, 0);
-  const size = new THREE.Vector3(3, 5, 3);
+  const size = new THREE.Vector3(3, 3, 3);
   const up = new THREE.Vector3(0, 1, 0);
 
   const gif = new GIF({
     workers: 2,
     quality: 10,
   });
-  for (let i = 0; i < Math.PI*2; i += Math.PI*0.05) {
-    const position = new THREE.Vector3(Math.cos(i), 0, Math.sin(i));
-    const quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -i);
-    const scale = new THREE.Vector3(1, 1, 1);
-    const matrix = new THREE.Matrix4().compose(position, quaternion, scale);
-    pe.setMatrix(matrix);
+  for (let i = 0; i < Math.PI*2; i += Math.PI*0.025) {
+    pe.camera.position.copy(center).add(new THREE.Vector3(Math.cos(i) * size.x, size.y / 2, Math.sin(i) * size.z));
+    pe.camera.quaternion.setFromRotationMatrix(
+      new THREE.Matrix4().lookAt(pe.camera.position, center, up)
+    );
+    pe.camera.scale.set(1, 1, 1);
+    pe.camera.matrix.compose(pe.camera.position, pe.camera.quaternion, pe.camera.scale);
+    pe.setCamera(pe.camera);
     pe.tick();
 
     const canvas = document.createElement('canvas');
@@ -91,9 +93,9 @@ export async function screenshotEngine(pe) {
     canvas.height = pe.domElement.height;
     const ctx = canvas.getContext('2d');
     ctx.drawImage(pe.domElement, 0, 0);
-    document.body.appendChild(canvas);
+    // document.body.appendChild(canvas);
 
-    gif.addFrame(canvas, {delay: 50});
+    gif.addFrame(canvas, {delay: 30});
   }
   gif.render();
 
