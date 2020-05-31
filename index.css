@@ -1143,6 +1143,28 @@ header.unlocking + .main .blocker .button
   flex: 1;
 }
 
+.preview {
+  display: flex;
+  margin-top: 50px;
+}
+.preview .files {
+  display: flex;
+  width: 250px;
+  flex-direction: column;
+}
+.preview .files .file {
+  display: flex;
+}
+.preview .files .file .name {
+  flex: 1;
+}
+.preview .views {
+
+}
+.preview .views .views {
+
+}
+
 .error {
   font-family: monospace;
   white-space: nowrap;

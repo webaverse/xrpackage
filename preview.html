@@ -289,6 +289,27 @@ const _getWireframeMesh = o => {
 
     views.appendChild(renderer.domElement);
   }
+
+  const files = document.getElementById('files');
+  {
+    files.innerHTML = p.files.map(f => {
+      const u = f.url.replace(/^https:\/\/xrpackage\.org\//, '');
+      return `
+        <div class=file>
+          <a class=name href="${u}">${u}</a>
+          <nav class=remove-button>
+            <i class="fa fa-times"></i>
+          </nav>
+        </div>
+      `;
+    }).join('\n');
+    Array.from(files.querySelectorAll('file')).forEach(f => {
+      const removeButton = f.querySelector('.remove-button');
+      removeButton.addEventListener('click', e => {
+        console.log('click remove');
+      });
+    });
+  }
 })();
 </script>
 </body>
