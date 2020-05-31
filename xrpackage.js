@@ -1432,7 +1432,7 @@ export class XRPackage extends EventTarget {
         if (previewIconFile) {
           const d = previewIconFile.response.body;
           const b = new Blob([d], {
-            type: 'application/octet-stream',
+            type: previewIcon.type,
           });
           const u = URL.createObjectURL(b);
           const {scene} = await new Promise((accept, reject) => {
