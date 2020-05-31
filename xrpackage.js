@@ -1386,6 +1386,40 @@ export class XRPackage extends EventTarget {
   getObject() {
     return this.context.object;
   }
+  async getScreenshotImage() {
+    const manifestJsonFile = this.files.find(file => new URL(file.url).pathname === '/manifest.json');
+    if (manifestJsonFile) {
+      const s = manifestJsonFile.response.body.toString('utf8');
+      const j = JSON.parse(s);
+      const {icons = []} = j;
+      const previewIcon = icons.find(icon => icon.type === 'image/png' || icon.type === 'image/jpeg' || icon.type === 'image/gif');
+      if (previewIcon) {
+        const previewIconFile = this.files.find(file => new URL(file.url).pathname === '/' + previewIcon.src);
+        if (previewIconFile) {
+          const d = previewIconFile.response.body;
+          const b = new Blob([d], {
+            type: previewIcon.type,
+          });
+          const u = URL.createObjectURL(b);
+          const img = await new Promise((accept, reject) => {
+            const img = new Image();
+            img.src = u;
+            img.onload = () => {
+              accept(img);
+            };
+            img.onerror = reject;
+          });
+          return img;
+        } else {
+          return null;
+        }
+      } else {
+        return null;
+      }
+    } else {
+      return null;
+    }
+  }
   async getVolumeMesh() {
     const manifestJsonFile = this.files.find(file => new URL(file.url).pathname === '/manifest.json');
     if (manifestJsonFile) {
