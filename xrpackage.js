@@ -1183,10 +1183,8 @@ export class XRPackage extends EventTarget {
     this.load();
   }
   load() {
-    const manifestJsonFile = this.files.find(file => new URL(file.url).pathname === '/manifest.json');
-    if (manifestJsonFile) {
-      const s = manifestJsonFile.response.body.toString('utf8');
-      const j = JSON.parse(s);
+    const j = this.getManifestJson();
+    if (j) {
       if (j && typeof j.xr_type === 'string' && typeof j.start_url === 'string') {
         let {
           name,
@@ -1308,6 +1306,16 @@ export class XRPackage extends EventTarget {
       await parent.add(this);
     }
   }
+  getManifestJson() {
+    const manifestJsonFile = this.files.find(file => new URL(file.url).pathname === '/manifest.json');
+    if (manifestJsonFile) {
+      const s = manifestJsonFile.response.body.toString('utf8');
+      const j = JSON.parse(s);
+      return j;
+    } else {
+      return null;
+    }
+  }
   getMainData() {
     const mainPath = '/' + this.main;
     const mainFile = this.files.find(file => new URL(file.url).pathname === mainPath);
@@ -1366,8 +1374,7 @@ export class XRPackage extends EventTarget {
     }
   }
   static compileRaw(files) {
-    const manifestFile = files.find(file => file.url === '/manifest.json');
-    const j = JSON.parse(manifestFile.data);
+    const j = this.getManifestJson();
     const {start_url: startUrl} = j;
 
     const primaryUrl = `https://xrpackage.org`;
@@ -1387,10 +1394,8 @@ export class XRPackage extends EventTarget {
     return this.context.object;
   }
   async getScreenshotImage() {
-    const manifestJsonFile = this.files.find(file => new URL(file.url).pathname === '/manifest.json');
-    if (manifestJsonFile) {
-      const s = manifestJsonFile.response.body.toString('utf8');
-      const j = JSON.parse(s);
+    const j = this.getManifestJson();
+    if (j) {
       const {icons = []} = j;
       const previewIcon = icons.find(icon => icon.type === 'image/png' || icon.type === 'image/jpeg' || icon.type === 'image/gif');
       if (previewIcon) {
@@ -1422,10 +1427,8 @@ export class XRPackage extends EventTarget {
     }
   }
   async getVolumeMesh() {
-    const manifestJsonFile = this.files.find(file => new URL(file.url).pathname === '/manifest.json');
-    if (manifestJsonFile) {
-      const s = manifestJsonFile.response.body.toString('utf8');
-      const j = JSON.parse(s);
+    const j = this.getManifestJson();
+    if (j) {
       const {icons = []} = j;
       const previewIcon = icons.find(icon => icon.type === 'model/gltf-binary+preview');
       if (previewIcon) {
