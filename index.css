@@ -258,6 +258,14 @@ body {
   cursor: default;
 }
 
+.subcontent {
+  display: flex;
+  flex-direction: column;
+}
+.subcontent:not(.open) {
+  display: none;
+}
+
 .loader {
   text-align: center;
   margin-top: 100px;
@@ -1152,34 +1160,37 @@ header.unlocking + .main .blocker .button
   flex: 1;
 }
 
-.preview {
+.subcontent {
   display: flex;
   padding: 0 30px;
   max-height: 100vh;
   overflow: auto;
 }
-.preview .views {
+.details-wrap {
+  display: flex;
+}
+.views {
   display: flex;
   margin-right: 30px;
   flex-direction: column;
 }
-.preview .views .view {
+.views .view {
 
 }
-.preview .details {
+.details {
   display: flex;
   flex: 1;
   flex-direction: column;
 }
-.preview .details .name {
+.details .name {
   margin-bottom: 5px;
   font-size: 30px;
 }
-.preview .details .description {
+.details .description {
   margin-bottom: 5px;
   font-size: 16px;
 }
-.preview .details .manifest {
+.manifest {
   width: 400px;
   height: 200px;
   padding: 5px;
@@ -1188,32 +1199,32 @@ header.unlocking + .main .blocker .button
   border-radius: 5px;
   outline: none;
 }
-.preview .exports {
+.exports {
   display: flex;
   margin: 0 30px;
   flex-direction: column;
 }
-.preview .files-wrap {
+.files-wrap {
   display: flex;
   width: 250px;
   flex-direction: column;
 }
-.preview .files-wrap .files {
+.files-wrap .files {
   display: flex;
   height: calc(100vh - 50px - 30px - 30px);
   flex-direction: column;
   overflow: auto;
 }
-.preview .files-wrap .files .file {
+.files-wrap .files .file {
   display: flex;
 }
-.preview .files-wrap .files .file .name {
+.files-wrap .files .file .name {
   flex: 1;
 }
-.preview .files-wrap .files .file .remove-button {
+.files-wrap .files .file .remove-button {
   cursor: pointer;
 }
-.preview .files-wrap .buttons {
+.files-wrap .buttons {
   height: 30px;
 }
 

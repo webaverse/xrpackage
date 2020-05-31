@@ -56,31 +56,39 @@
 
   <header class=subheader>
     <nav class="subtab open" id=subtab-1>Details</nav>
-    <nav class=subtab id=subtab-1>Manifest</nav>
-    <nav class=subtab id=subtab-1>Files</nav>
-    <nav class=subtab id=subtab-1>Import/Export</nav>
+    <nav class=subtab id=subtab-2>Manifest</nav>
+    <nav class=subtab id=subtab-3>Files</nav>
+    <nav class=subtab id=subtab-4>Import/Export</nav>
   </header>
 
-  <header class=preview>
-    <section class=views id=views>
-    </section>
-    <section class=details>
-      <div class=name id=name>name</div>
-      <div class=description id=description>description</div>
-      <textarea class=manifest id=manifest>{}</textarea>
-    </section>
-    <section class=exports id=exports>
-      <nav class=button>Create from file</nav>
-      <nav class=button>Export package</nav>
-    </section>
-    <section class=files-wrap>
+  <section class="subcontent open" id=subcontent-1>
+    <div class=details-wrap>
+      <div class=views id=views>
+      </div>
+      <div class=details id=details>
+        <div class=name id=name>name</div>
+        <div class=description id=description>description</div>
+      </div>
+    </div>
+  </section>
+  <section class=subcontent id=subcontent-2>
+    <textarea class=manifest id=manifest>{}</textarea>
+  </section>
+  <section class=subcontent id=subcontent-3>
+    <div class=files-wrap>
       <div class=files id=files>
       </div>
       <div class=buttons>
         <nav class=button>Add file</nav>
       </div>
-    </section>
-  </div>
+    </div>
+  </section>
+  <section class=subcontent id=subcontent-4>
+    <div class=exports id=exports>
+      <nav class=button>Create from file</nav>
+      <nav class=button>Export package</nav>
+    </div>
+  </section>
 
 <script type=module>
   import THREE from './xrpackage/three.module.js';
@@ -89,6 +97,21 @@
 <script type="module">
 import {XRPackage, XRPackageEngine} from './xrpackage.js';
 import {OrbitControls} from './xrpackage/OrbitControls.js';
+
+const subtabs = Array.from(document.querySelectorAll('.subtab'));
+const subcontents = Array.from(document.querySelectorAll('.subcontent'));
+for (let i = 0; i < subtabs.length; i++) {
+  const subtab = subtabs[i];
+  const subcontent = subcontents[i];
+  subtab.addEventListener('click', e => {
+    subtabs.forEach((subtab, i) => {
+      subtab.classList.remove('open');
+      subcontents[i].classList.remove('open');
+    });
+    subtab.classList.add('open');
+    subcontent.classList.add('open');
+  });
+}
 
 const size = 256;
 const pe = new XRPackageEngine({
@@ -244,34 +267,6 @@ const _getWireframeMesh = o => {
   } else if (q.h) { // hash
     p = await XRPackage.download(q.h);
     await pe.add(p);
-  /* } else if (q.h) { // home
-    const [cubeHtml, cubeManifest] = await Promise.all([
-      (async () => {
-        const res = await fetch('examples/html/cube.html');
-        return await res.text();
-      })(),
-      (async () => {
-        const res = await fetch('examples/html/manifest.json');
-        return await res.text();
-      })(),
-    ]);
-
-    const d = XRPackage.compileRaw(
-      [
-        {
-          url: '/cube.html',
-          type: 'text/html',
-          data: cubeHtml,
-        },
-        {
-          url: '/manifest.json',
-          type: 'application/json',
-          data: cubeManifest,
-        }
-      ]
-    );
-    const p = new XRPackage(d);
-    await pe.add(p); */
   } else {
     throw 'No package to preview';
   }
