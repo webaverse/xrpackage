@@ -1193,11 +1193,13 @@ header.unlocking + .main .blocker .button
 }
 .views {
   display: flex;
+  width: 256px;
+  height: 256px;
   margin-right: 30px;
   flex-direction: column;
 }
 .views .view {
-
+  border-radius: 10px;
 }
 .details {
   display: flex;

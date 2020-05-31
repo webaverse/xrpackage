@@ -297,6 +297,7 @@ const _getWireframeMesh = o => {
   {
     const canvas = pe.domElement;
     canvas.classList.add('side-content');
+    canvas.classList.add('view');
     canvas.classList.add('open');
     views.appendChild(canvas);
   }
@@ -307,6 +308,7 @@ const _getWireframeMesh = o => {
       screenshotImage.style.height = `${size}px`;
       screenshotImage.style.objectFit = 'contain';
       screenshotImage.classList.add('side-content');
+      screenshotImage.classList.add('view');
       views.appendChild(screenshotImage);
     }
   }
@@ -331,6 +333,7 @@ const _getWireframeMesh = o => {
 
     const canvas = renderer.domElement;
     canvas.classList.add('side-content');
+    canvas.classList.add('view');
     views.appendChild(canvas);
   }
   {
@@ -353,6 +356,7 @@ const _getWireframeMesh = o => {
 
     const canvas = renderer.domElement;
     canvas.classList.add('side-content');
+    canvas.classList.add('view');
     views.appendChild(canvas);
   }
 
