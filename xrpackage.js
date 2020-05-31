@@ -358,7 +358,8 @@ export class XRPackageEngine extends EventTarget {
     options.width = typeof options.width === 'number' ? options.width : window.innerWidth;
     options.height = typeof options.height === 'number' ? options.height : window.innerHeight;
     options.devicePixelRatio = typeof options.devicePixelRatio === 'number' ? options.devicePixelRatio : window.devicePixelRatio;
-    options.autoStart = typeof options.autoStart === 'boolean' ? options.autoStart : true; 
+    options.autoStart = typeof options.autoStart === 'boolean' ? options.autoStart : true;
+    options.autoListen = typeof options.autoListen === 'boolean' ? options.autoListen : true;
     this.options = options;
 
     const canvas = document.createElement('canvas');
@@ -457,13 +458,15 @@ export class XRPackageEngine extends EventTarget {
     this.cancelFrame = null;
 
     options.autoStart && this.start();
+    options.autoListen && this.listen();
   }
   getContext(type, opts) {
     return getContext.call(this.domElement, type, opts);
   }
   start() {
     this.setSession(null);
-
+  }
+  listen() {
     window.addEventListener('resize', e => {
       if (!this.realSession) {
         this.resize(window.innerWidth, window.innerHeight);
