@@ -1290,13 +1290,22 @@ header.unlocking + .main .blocker .button
 }
 .exports {
   display: flex;
-  width: 200px;
+  width: 500px;
   margin-left: 100px;
   flex-direction: column;
-  align-items: flex-start;
 }
-.exports .button {
+.exports .export-button {
+  display: flex;
   margin-bottom: 5px;
+  background-color: #F8F8F8;
+  border-radius: 8px;
+}
+.exports .export-button .button {
+}
+.exports .export-button .label {
+  display: flex;
+  padding: 0 10px;
+  align-items: center;
 }
 
 .error {
