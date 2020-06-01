@@ -1,6 +1,6 @@
 import * as THREE from './xrpackage/three.module.js';
 import {XRPackageEngine, XRPackage} from './xrpackage.js';
-import {bindUploadFileButton} from './xrpackage/xrpackage.js';
+import {bindUploadFileButton} from './xrpackage/util.js';
 import './selector.js';
 
 const localVector = new THREE.Vector3();
