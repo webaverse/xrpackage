@@ -1533,7 +1533,7 @@ export class XRPackage extends EventTarget {
   getAabb() {
     const aabb = new THREE.Vector3();
     const j = this.getManifestJson();
-    if (j && typeof j.xr_details == 'object' && Array.isArray(j.xr_details.aabb) && j.xr_details.aabb.length === 3 && j.xr_details.aabb.evert(n => typeof n === 'number')) {
+    if (j && typeof j.xr_details == 'object' && Array.isArray(j.xr_details.aabb) && j.xr_details.aabb.length === 3 && j.xr_details.aabb.every(n => typeof n === 'number')) {
       aabb.fromArray(j.xr_details.aabb);
     }
     return aabb;
