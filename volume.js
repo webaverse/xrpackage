@@ -475,6 +475,7 @@ void main() {
       value: 1,
       nvalue: -1,
     });
+    console.log('geometry', res);
     return res;
   }
 };
