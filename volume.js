@@ -325,6 +325,10 @@ void main() {
       gl.bindBuffer(gl.ARRAY_BUFFER, oldArrayBuffer);
     };
     const getDepthPixels = (depthTextures, i) => {
+      // save state
+      const oldFbo = gl.getParameter(gl.FRAMEBUFFER_BINDING);
+
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       const pixels = new Uint8Array(voxelWidth * pixelRatio * voxelWidth * pixelRatio * 4);
       gl.readPixels(0, 0, voxelWidth * pixelRatio, voxelWidth * pixelRatio, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
    
@@ -341,6 +345,9 @@ void main() {
         }
         depths[i] = v;
       }
+
+      // restore state
+      gl.bindFramebuffer(gl.FRAMEBUFFER, oldFbo);
     };
     
     let aabb = p.getAabb();
