@@ -287,6 +287,7 @@ void main() {
       const oldProgram = gl.getParameter(gl.CURRENT_PROGRAM);
       const oldActiveTexture = gl.getParameter(gl.ACTIVE_TEXTURE);
       const oldArrayBuffer = gl.getParameter(gl.ARRAY_BUFFER_BINDING);
+      const oldViewport = gl.getParameter(gl.VIEWPORT);
 
       // resolve
       gl.bindFramebuffer(gl.READ_FRAMEBUFFER, xrfb);
@@ -314,6 +315,7 @@ void main() {
       gl.enableVertexAttribArray(vertexAttributes.vertexPositionNDC);
       gl.vertexAttribPointer(vertexAttributes.vertexPositionNDC, 2, gl.FLOAT, false, 0, 0);
 
+      gl.viewport(oldViewport[0], oldViewport[1], oldViewport[2], oldViewport[3]);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
 
       // restore state
