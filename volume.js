@@ -262,6 +262,13 @@ void main() {
       // render
       pe.tick();
 
+      // save state
+      const oldReadFbo = gl.getParameter(gl.READ_FRAMEBUFFER_BINDING);
+      const oldDrawFbo = gl.getParameter(gl.DRAW_FRAMEBUFFER_BINDING);
+      const oldProgram = gl.getParameter(gl.CURRENT_PROGRAM);
+      const oldActiveTexture = gl.getParameter(gl.ACTIVE_TEXTURE);
+      const oldBuffer = gl.getParameter(gl.ARRAY_BUFFER_BINDING);
+
       // resolve
       gl.bindFramebuffer(gl.READ_FRAMEBUFFER, xrfb);
       gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, rfb);
@@ -278,6 +285,7 @@ void main() {
       gl.useProgram(shaderProgram);
 
       gl.activeTexture(gl.TEXTURE0);
+      const oldTextureBinding = gl.getParameter(gl.TEXTURE_BINDING_2D);
       gl.bindTexture(gl.TEXTURE_2D, depthTex);
       gl.uniform1i(uniforms.colorMap, 0);
       gl.uniform1f(uniforms.uNear, camera.near);
@@ -289,7 +297,13 @@ void main() {
 
       gl.drawArrays(gl.TRIANGLES, 0, 6);
 
-      gl.bindBuffer(gl.ARRAY_BUFFER, null);
+      // restore state
+      gl.bindFramebuffer(gl.READ_FRAMEBUFFER, oldReadFbo);
+      gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, oldDrawFbo);
+      gl.useProgram(oldProgram);
+      gl.bindTexture(gl.TEXTURE_2D, oldTextureBinding);
+      gl.activeTexture(oldActiveTexture);
+      gl.bindBuffer(gl.ARRAY_BUFFER, oldBuffer);
     };
     const getDepthPixels = (depthTextures, i) => {
       const pixels = new Uint8Array(voxelWidth * pixelRatio * voxelWidth * pixelRatio * 4);
