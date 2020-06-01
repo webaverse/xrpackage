@@ -48,11 +48,11 @@ await new Promise((accept, reject) => {
   window.addEventListener('message', _message);
 });
 
-document.getElementById('text').innerText = 'Baking done. You can close this tab.';
-
-})().catch(err => {
+})().then(() => {
+  document.getElementById('text').innerText = 'Baking done. You can close this tab.';
+}).catch(err => {
   console.warn(err.stack);
-  document.getElementById('text').innerText = 'Error screenshotting. You can close this tab.';
+  document.getElementById('text').innerText = 'Error baking. You can close this tab.';
   document.getElementById('error').innerText = err.stack;
 });
 </script>
