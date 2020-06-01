@@ -1510,7 +1510,7 @@ export class XRPackage extends EventTarget {
       const _loadFileScene = async file => {
         const d = file.response.body;
         const b = new Blob([d], {
-          type: previewIcon.type,
+          type: 'application/octet-stream',
         });
         const u = URL.createObjectURL(b);
         const {scene} = await new Promise((accept, reject) => {
