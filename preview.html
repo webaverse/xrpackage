@@ -446,6 +446,14 @@ const _getWireframeMesh = o => {
     }
   });
 
+  const createFromFileInput = document.getElementById('create-from-file-input');
+  bindUploadFileButton(createFromFileInput, async file => {
+    const uint8Array = await XRPackage.compileFromFile(file);
+    const p = new XRPackage(uint8Array);
+    await p.waitForLoad();
+    console.log('got new package', p);
+  });
+
   const importPackageInput = document.getElementById('import-package-input');
   bindUploadFileButton(importPackageInput, async file => {
     const uint8Array = await readFile(file);
