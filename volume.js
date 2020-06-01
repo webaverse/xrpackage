@@ -77,54 +77,64 @@ const getPreviewMesh = async p => {
     autoStart: false,
     autoListen: false,
   });
+  await pe.add(p);
+
   const camera = new THREE.OrthographicCamera(Math.PI, Math.PI, Math.PI, Math.PI, 0.001, 1000);
   pe.camera = camera;
   const gl = pe.context;
+
   const xrfb = gl.createFramebuffer();
-  gl.bindFramebuffer(gl.FRAMEBUFFER, xrfb);
-  
-  const colorRenderbuffer = gl.createRenderbuffer();
-  gl.bindRenderbuffer(gl.RENDERBUFFER, colorRenderbuffer);
-  gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.RGBA8, voxelWidth * pixelRatio, voxelWidth * pixelRatio);
-  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, colorRenderbuffer);
-
-  const depthRenderbuffer = gl.createRenderbuffer();
-  gl.bindRenderbuffer(gl.RENDERBUFFER, depthRenderbuffer);
-  gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.DEPTH32F_STENCIL8, voxelWidth * pixelRatio, voxelWidth * pixelRatio);
-  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, depthRenderbuffer);
-
-  gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  
-  pe.setXrFramebuffer(xrfb);
-
-  await pe.add(p);
-
   const rfb = gl.createFramebuffer();
-  
-  gl.bindFramebuffer(gl.READ_FRAMEBUFFER, xrfb);
-  gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, rfb);
-  
+  const colorRenderbuffer = gl.createRenderbuffer();
+  const depthRenderbuffer = gl.createRenderbuffer();
   const tex = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, tex);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, voxelWidth * pixelRatio, voxelWidth * pixelRatio, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
-  
   const depthTex = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, depthTex);
-  gl.texStorage2D(gl.TEXTURE_2D, 1, gl.DEPTH32F_STENCIL8, voxelWidth * pixelRatio, voxelWidth * pixelRatio);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-  gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.TEXTURE_2D, depthTex, 0);
-  
-  gl.bindTexture(gl.TEXTURE_2D, null);
-  gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
-  gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+
+  {
+    // save state
+    const oldReadFbo = gl.getParameter(gl.READ_FRAMEBUFFER_BINDING);
+    const oldDrawFbo = gl.getParameter(gl.DRAW_FRAMEBUFFER_BINDING);
+    const oldRenderbufferBinding = gl.getParameter(gl.RENDERBUFFER_BINDING);
+    const oldTextureBinding = gl.getParameter(gl.TEXTURE_BINDING_2D);
+
+    // xrfb
+    gl.bindFramebuffer(gl.FRAMEBUFFER, xrfb);
+    
+    gl.bindRenderbuffer(gl.RENDERBUFFER, colorRenderbuffer);
+    gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.RGBA8, voxelWidth * pixelRatio, voxelWidth * pixelRatio);
+    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, colorRenderbuffer);
+
+    gl.bindRenderbuffer(gl.RENDERBUFFER, depthRenderbuffer);
+    gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.DEPTH32F_STENCIL8, voxelWidth * pixelRatio, voxelWidth * pixelRatio);
+    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, depthRenderbuffer);
+    
+    pe.setXrFramebuffer(xrfb);
+
+    // rfb
+    gl.bindFramebuffer(gl.READ_FRAMEBUFFER, xrfb);
+    gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, rfb);
+    
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, voxelWidth * pixelRatio, voxelWidth * pixelRatio, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+
+    gl.bindTexture(gl.TEXTURE_2D, depthTex);
+    gl.texStorage2D(gl.TEXTURE_2D, 1, gl.DEPTH32F_STENCIL8, voxelWidth * pixelRatio, voxelWidth * pixelRatio);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.TEXTURE_2D, depthTex, 0);
+
+    // restore state
+    gl.bindFramebuffer(gl.READ_FRAMEBUFFER, oldReadFbo);
+    gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, oldDrawFbo);
+    gl.bindRenderbuffer(gl.RENDERBUFFER, oldRenderbufferBinding);
+    gl.bindTexture(gl.TEXTURE_2D, oldTextureBinding);
+  }
 
   const vsh = `
 precision highp float;
@@ -185,7 +195,7 @@ void main() {
     gl.compileShader(shader);
    
     // Check if it compiled
-    var success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+    const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
     if (!success) {
       // Something went wrong during compilation; get the error
       throw "could not compile shader:" + gl.getShaderInfoLog(shader);
@@ -205,10 +215,10 @@ void main() {
     gl.linkProgram(program);
    
     // Check if it linked.
-    var success = gl.getProgramParameter(program, gl.LINK_STATUS);
+    const success = gl.getProgramParameter(program, gl.LINK_STATUS);
     if (!success) {
-        // something went wrong with the link
-        throw ("program failed to link:" + gl.getProgramInfoLog (program));
+      // something went wrong with the link
+      throw ("program failed to link:" + gl.getProgramInfoLog (program));
     }
    
     return program;
@@ -226,20 +236,29 @@ void main() {
     uFar: gl.getUniformLocation(shaderProgram, 'uFar'),
   };
   
-  const verts = [
-    // First triangle:
-     1.0,  1.0,
-    -1.0,  1.0,
-    -1.0, -1.0,
-    // Second triangle:
-    -1.0, -1.0,
-     1.0, -1.0,
-     1.0,  1.0,
-  ];
-  const screenQuadVBO = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, screenQuadVBO);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
-  gl.bindBuffer(gl.ARRAY_BUFFER, null);
+  const screenQuadVBO = (() => {
+    // save state
+    const oldArrayBuffer = gl.getParameter(gl.ARRAY_BUFFER_BINDING);
+
+    const vbo = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, screenQuadVBO);
+    const verts = Float32Array.from([
+      // First triangle:
+       1.0,  1.0,
+      -1.0,  1.0,
+      -1.0, -1.0,
+      // Second triangle:
+      -1.0, -1.0,
+       1.0, -1.0,
+       1.0,  1.0,
+    ]);
+    gl.bufferData(gl.ARRAY_BUFFER, verts, gl.STATIC_DRAW);
+
+    // restore state
+    gl.bindBuffer(gl.ARRAY_BUFFER, oldArrayBuffer);
+
+    return vbo;
+  })();
 
   {
     const updateView = (p, q) => {
@@ -267,7 +286,7 @@ void main() {
       const oldDrawFbo = gl.getParameter(gl.DRAW_FRAMEBUFFER_BINDING);
       const oldProgram = gl.getParameter(gl.CURRENT_PROGRAM);
       const oldActiveTexture = gl.getParameter(gl.ACTIVE_TEXTURE);
-      const oldBuffer = gl.getParameter(gl.ARRAY_BUFFER_BINDING);
+      const oldArrayBuffer = gl.getParameter(gl.ARRAY_BUFFER_BINDING);
 
       // resolve
       gl.bindFramebuffer(gl.READ_FRAMEBUFFER, xrfb);
@@ -303,7 +322,7 @@ void main() {
       gl.useProgram(oldProgram);
       gl.bindTexture(gl.TEXTURE_2D, oldTextureBinding);
       gl.activeTexture(oldActiveTexture);
-      gl.bindBuffer(gl.ARRAY_BUFFER, oldBuffer);
+      gl.bindBuffer(gl.ARRAY_BUFFER, oldArrayBuffer);
     };
     const getDepthPixels = (depthTextures, i) => {
       const pixels = new Uint8Array(voxelWidth * pixelRatio * voxelWidth * pixelRatio * 4);
