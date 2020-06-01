@@ -1,0 +1,61 @@
+<html>
+
+<body>
+  <h1 id=text>Bakings...</h1>
+  <pre><code id=error></code></pre>
+  <script type=module>
+(async () => {
+
+function parseQuery(queryString) {
+  var query = {};
+  var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
+  for (var i = 0; i < pairs.length; i++) {
+    var pair = pairs[i].split('=');
+    query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+  }
+  return query;
+}
+const {srcWbn, dstGif, dstVolume, dstAabb} = parseQuery(window.location.search);
+
+await new Promise((accept, reject) => {
+  const iframe = document.createElement('iframe');
+  iframe.src = `screenshot.html?srcWbn=${srcWbn}&dstGif=${dstGif}`;
+  document.body.appendChild(iframe);
+  const _message = e => {
+    if (e.data && e.data.method === 'result') {
+      accept(e.data.result);
+      window.removeEventListener('message', _message);
+    } else if (e.data && e.data.method === 'error') {
+      reject(e.data.error);
+      window.removeEventListener('message', _message);
+    }
+  };
+  window.addEventListener('message', _message);
+});
+await new Promise((accept, reject) => {
+  const iframe = document.createElement('iframe');
+  iframe.src = `volume.html?srcWbn=${srcWbn}&dstVolume=${dstVolume}&dstAabb=${dstAabb}`;
+  document.body.appendChild(iframe);
+  const _message = e => {
+    if (e.data && e.data.method === 'result') {
+      accept(e.data.result);
+      window.removeEventListener('message', _message);
+    } else if (e.data && e.data.method === 'error') {
+      reject(e.data.error);
+      window.removeEventListener('message', _message);
+    }
+  };
+  window.addEventListener('message', _message);
+});
+
+document.getElementById('text').innerText = 'Baking done. You can close this tab.';
+
+})().catch(err => {
+  console.warn(err.stack);
+  document.getElementById('text').innerText = 'Error screenshotting. You can close this tab.';
+  document.getElementById('error').innerText = err.stack;
+});
+</script>
+</body>
+
+</html>
