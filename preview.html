@@ -453,7 +453,11 @@ const _getWireframeMesh = o => {
     await p.waitForLoad();
     console.log('got new package', p);
   });
-
+  const publishPackageButton = document.getElementById('publish-package-button');
+  publishPackageButton.addEventListener('click', async e => {
+    const hash = await p.upload();
+    console.log('got hash', hash);
+  });
   const importPackageInput = document.getElementById('import-package-input');
   bindUploadFileButton(importPackageInput, async file => {
     const uint8Array = await readFile(file);
