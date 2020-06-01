@@ -22,7 +22,7 @@ const web3 = new Web3(new Web3.providers.HttpProvider(rpcUrl));
 // window.web3 = web3;
 const contract = new web3.eth.Contract(abi, address);
 
-// Ammo().then(async Ammo => {
+Ammo().then(async Ammo => {
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -159,12 +159,69 @@ const _makeTargetMesh = () => {
 // pe.defaultAvatar();
 // pe.setGamepadsConnected(true);
 
+let dynamicsWorld = null;
+const _setupPhysics = async () => {
+  var collisionConfiguration = new Ammo.btDefaultCollisionConfiguration();
+  var dispatcher = new Ammo.btCollisionDispatcher(collisionConfiguration);
+  var overlappingPairCache = new Ammo.btDbvtBroadphase();
+  var solver = new Ammo.btSequentialImpulseConstraintSolver();
+  dynamicsWorld = new Ammo.btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
+  dynamicsWorld.setGravity(new Ammo.btVector3(0, -9.8, 0));
+
+  {
+    var groundShape = new Ammo.btBoxShape(new Ammo.btVector3(10, 10, 10));
+
+    var groundTransform = new Ammo.btTransform();
+    groundTransform.setIdentity();
+    groundTransform.setOrigin(new Ammo.btVector3(0, -10, 0));
+
+    var mass = 0;
+    var localInertia = new Ammo.btVector3(0, 0, 0);
+    var myMotionState = new Ammo.btDefaultMotionState(groundTransform);
+    var rbInfo = new Ammo.btRigidBodyConstructionInfo(0, myMotionState, groundShape, localInertia);
+    var body = new Ammo.btRigidBody(rbInfo);
+
+    dynamicsWorld.addRigidBody(body);
+  }
+};
+_setupPhysics();
+
+const _makeConvexHullShape = object => {
+  const shape = new Ammo.btConvexHullShape();
+  let numPoints = 0;
+  object.updateMatrixWorld();
+  object.traverse(o => {
+    if (o.isMesh) {
+      const {geometry} = o;
+      const positions = geometry.attributes.position.array;
+      for (let i = 0; i < positions.length; i += 3) {
+        localVector.set(positions[i], positions[i+1], positions[i+2])
+          .applyMatrix4(o.matrixWorld);
+        // console.log('point', localVector.x, localVector.y, localVector.z);
+        ammoVector3.setValue(localVector.x, localVector.y, localVector.z);
+        const lastOne = i >= (positions.length - 3);
+        shape.addPoint(ammoVector3, lastOne);
+        numPoints++;
+      }
+    }
+  });
+  // console.log('sword points', numPoints);
+  return shape;
+};
+
 const velocity = new THREE.Vector3();
 const lastGrabs = [false, false];
 const lastAxes = [[0, 0], [0, 0]];
+const ammoVector3 = new Ammo.btVector3();
+const ammoQuaternion = new Ammo.btQuaternion();
+const ammoTransform = new Ammo.btTransform();
+let lastTimestamp = performance.now();
 function animate(timestamp, frame) {
   /* const timeFactor = 1000;
   targetMesh.material.uniforms.uTime.value = (Date.now() % timeFactor) / timeFactor; */
+
+  const timeDiff = (timestamp - lastTimestamp) / 1000;
+  lastTimestamp = timestamp;
 
   const currentSession = getSession();
   if (currentSession) {
@@ -289,8 +346,25 @@ function animate(timestamp, frame) {
     pe.setRigMatrix(null);
   }
 
-  // const f = Math.sin((Date.now()%1000)/1000*Math.PI*2);
-  // pe.setMatrix(localMatrix.compose(localVector.set(0, 0, 3 * f), localQuaternion.set(0, 0, 0, 1), localVector2.set(1, 1, 1)));
+  if (window.physics) {
+    dynamicsWorld.stepSimulation(timeDiff, 2);
+
+    for (let i = 0; i < pe.packages.length; i++) {
+      const p = pe.packages[i];
+      if (p.physicsBody) {
+        p.physicsBody.getMotionState().getWorldTransform(transform);
+        const origin = transform.getOrigin();
+        const rotation = transform.getRotation();
+        p.setMatrix(
+          localMatrix.compose(
+            localVector.set(origin.x(), origin.y(), origin.z()),
+            localQuaternion.set(rotation.x(), rotation.y(), rotation.z(), rotation.w()),
+            localVector2.set(1, 1, 1)
+          )
+        );
+      }
+    }
+  }
 
   renderer.render(scene, camera);
 
@@ -768,10 +842,6 @@ const _getWireframeMesh = o => {
 pe.addEventListener('packageadd', async e => {
   const p = e.data;
 
-  /* const volumeMesh = await p.getVolumeMesh();
-  const wireframeMesh = _getWireframeMesh(volumeMesh);
-  scene.add(wireframeMesh); */
-
   if (shieldLevel === 0) {
     _placeholdPackage(p);
   }
@@ -789,6 +859,50 @@ pe.addEventListener('packageadd', async e => {
     }
   }
   _bindObject(p);
+
+  if (p.type === 'webxr-site@0.0.1') {
+    /* const volumeMesh = await p.getVolumeMesh();
+
+    p.decompose(localVector, localQuaternion, localVector2);
+
+    var startTransform = new Ammo.btTransform();
+    startTransform.setIdentity();
+    const originVector = new Ammo.btVector3(localVector.x, localVector.y, localVector.z);
+    startTransform.setOrigin(originVector);
+    const originQuaternion = new Ammo.btQuaternion(localQuaternion.x, localQuaternion.y, localQuaternion.z, localQuaternion.w);
+    startTransform.setRotation(originQuaternion);
+    var mass = 1;
+    var localInertia = new Ammo.btVector3(0, 0, 0);
+    const boxShape = new Ammo.btBoxShape(new Ammo.btVector3(0.1/2, 0.1/2, 0.1/2));
+    boxShape.calculateLocalInertia(mass, localInertia);
+
+    var myMotionState = new Ammo.btDefaultMotionState(startTransform);
+    var rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, myMotionState, boxShape, localInertia);
+    p.physicsBody = new Ammo.btRigidBody(rbInfo); */
+    p.physicsBody = null;
+  } else{
+    const volumeMesh = await p.getVolumeMesh();
+
+    /* const wireframeMesh = _getWireframeMesh(volumeMesh);
+    scene.add(wireframeMesh); */
+
+    p.decompose(localVector, localQuaternion, localVector2);
+
+    var startTransform = new Ammo.btTransform();
+    startTransform.setIdentity();
+    const originVector = new Ammo.btVector3(localVector.x, localVector.y, localVector.z);
+    startTransform.setOrigin(originVector);
+    const originQuaternion = new Ammo.btQuaternion(localQuaternion.x, localQuaternion.y, localQuaternion.z, localQuaternion.w);
+    startTransform.setRotation(originQuaternion);
+    var mass = 1;
+    var localInertia = new Ammo.btVector3(0, 0, 0);
+    const shape = _makeConvexHullShape(volumeMesh);
+
+    var myMotionState = new Ammo.btDefaultMotionState(startTransform);
+    var rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, myMotionState, boxShape, localInertia);
+    p.physicsBody = new Ammo.btRigidBody(rbInfo);
+    dynamicsWorld.addRigidBody(p.physicsBody);
+  }
 });
 pe.addEventListener('packageremove', e => {
   const p = e.data;
@@ -1718,4 +1832,4 @@ window.addEventListener('popstate', e => {
 });
 _handleUrl(window.location.href);
 
-// });
+});
