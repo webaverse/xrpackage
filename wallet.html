@@ -74,6 +74,7 @@
   <script type=module>
 import {screenshotObject, exportObject} from './screenshot-object.js';
 import {XRPackage} from './xrpackage.js';
+import {bindUploadFileButton} from './xrpackage/util.js';
 import {contractManager, getContract} from './wallet.js';
 import address from 'https://contracts.webaverse.com/address.js';
 import abi from 'https://contracts.webaverse.com/abi.js';
@@ -97,29 +98,9 @@ function makePromise() {
 }
 
 let file = null;
-const _handleUpload = f => {
+bindUploadFileButton(document.getElementById('input-file'), f => {
   file = f;
-};
-const _bindUploadFileButton = (inputFileEl, handleUpload) => {
-  inputFileEl.addEventListener('change', async e => {
-    const {files} = e.target;
-    if (files.length === 1) {
-      const [file] = files;
-      handleUpload(file)
-    }
-
-    const {parentNode} = inputFileEl;
-    const newInputFileEl = inputFileEl.ownerDocument.createElement('input');
-    newInputFileEl.type = 'file';
-    // newInputFileEl.id = 'upload-file-button';
-    // newInputFileEl.style.display = 'none';
-    parentNode.replaceChild(newInputFileEl, inputFileEl);
-    _bindUploadFileButton(newInputFileEl);
-
-    document.getElementById('file-name').innerText = file.name;
-  });
-};
-_bindUploadFileButton(document.getElementById('input-file'), _handleUpload);
+});
 
 const _mintFile = async () => {
   if (file) {
