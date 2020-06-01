@@ -190,6 +190,10 @@ document.body.appendChild(pe.domElement);
 pe.domElement.style.backgroundColor = '#EEE';
 pe.domElement.style.borderRadius = '10px';
 
+const aabbText = document.createElement('div');
+aabbText.innerText = 'AABB: ' + JSON.stringify(aabb, null, 2);
+document.body.appendChild(aabbText);
+
 function animate(timestamp, frame) {
   orbitControls.update();
 
