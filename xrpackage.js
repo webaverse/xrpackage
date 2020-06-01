@@ -1603,6 +1603,9 @@ export class XRPackage extends EventTarget {
   setXrFramebuffer(xrfb) {
     this.context.iframe && this.context.iframe.contentWindow.xrpackage.setXrFramebuffer(xrfb);
   }
+  async export() {
+    return this.data.slice();
+  }
   async upload() {
     const res = await fetch(`${apiHost}/`, {
       method: 'PUT',
