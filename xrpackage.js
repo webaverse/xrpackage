@@ -416,7 +416,7 @@ export class XRPackageEngine extends EventTarget {
     const scene = new THREE.Scene();
     this.scene = scene;
 
-    const camera = new THREE.PerspectiveCamera(110, options.width / options.height, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(60, options.width / options.height, 0.1, 1000);
     camera.position.set(0, 1, 2);
     camera.rotation.order = 'YXZ';
     this.camera = camera;
