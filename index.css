@@ -1226,14 +1226,15 @@ header.unlocking + .main .blocker .button
   font-size: 16px;
 }
 .manifest {
-  width: 400px;
-  height: 200px;
+  width: 600px;
+  height: 400px;
   margin-left: 100px;
   padding: 5px;
   background-color: #EEE;
   border: 0;
   border-radius: 5px;
   outline: none;
+  resize: none;
 }
 .files-wrap {
   display: flex;
