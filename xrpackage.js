@@ -1530,6 +1530,14 @@ export class XRPackage extends EventTarget {
       return null;
     }
   }
+  getSize() {
+    const size = new THREE.Vector3();
+    const j = this.getManifestJson();
+    if (j && typeof j.xr_details == 'object' && Array.isArray(j.xr_details.bounds) && j.xr_details.bounds.length === 3 && j.xr_details.bounds.evert(n => typeof n === 'number')) {
+      size.fromArray(j.xr_details.bounds);
+    }
+    return size;
+  }
   setMatrix(m) {
     this.matrix.copy(m);
     this.matrixWorldNeedsUpdate = true;
