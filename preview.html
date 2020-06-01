@@ -131,7 +131,7 @@
 </script>
 <script type="module">
 import {XRPackage, XRPackageEngine} from './xrpackage.js';
-import {readFile, bindUploadFileButton} from './xrpackage/util.js';
+import {downloadFile, readFile, bindUploadFileButton} from './xrpackage/util.js';
 import {OrbitControls} from './xrpackage/OrbitControls.js';
 
 const subtabs = Array.from(document.querySelectorAll('.subtab'));
@@ -444,6 +444,22 @@ const _getWireframeMesh = o => {
       file = null;
       fileName.value = '';
     }
+  });
+
+  const importPackageInput = document.getElementById('import-package-input');
+  bindUploadFileButton(importPackageInput, async file => {
+    const uint8Array = await readFile(file);
+    p = new XRPackage(uint8Array);
+    await p.waitForLoad();
+    console.log('got new package', p);
+  });
+  const exportPackageButton = document.getElementById('export-package-button');
+  exportPackageButton.addEventListener('click', async e => {
+    const uint8Array = await p.export();
+    const file = new Blob([uint8Array], {
+      type: 'application/webbundle',
+    });
+    downloadFile(file, 'package.wbn');
   });
 })();
 </script>
