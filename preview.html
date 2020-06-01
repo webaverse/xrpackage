@@ -84,8 +84,16 @@
     <div class=files-wrap>
       <div class=files id=files>
       </div>
-      <div class=buttons>
-        <nav class=button>Add file</nav>
+      <div class=files-side>
+        <div class=heading>Add file</div>
+        <div class=file-input>
+          <input type=text placeholder="File name" id=file-name>
+          <nav class=button>
+            <span>Choose file</span>
+            <input type=file class=hidden id=file-upload-input>
+          </nav>
+        </div>
+        <nav class=button id=add-file-button>Add file</nav>
       </div>
     </div>
   </section>

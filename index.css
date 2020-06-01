@@ -1237,13 +1237,14 @@ header.unlocking + .main .blocker .button
 }
 .files-wrap {
   display: flex;
-  width: 250px;
   margin-left: 100px;
-  flex-direction: column;
+  align-items: flex-start;
 }
 .files-wrap .files {
   display: flex;
+  width: 250px;
   height: calc(100vh - 50px - 30px - 30px);
+  margin-right: 30px;
   flex-direction: column;
   overflow: auto;
 }
@@ -1263,11 +1264,35 @@ header.unlocking + .main .blocker .button
 .files-wrap .buttons {
   height: 30px;
 }
+.files-side {
+  display: flex;
+  padding: 10px;
+  background-color: #F8F8F8;
+  border-radius: 10px;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.files-side .heading {
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+.files-side .button {
+  overflow: hidden;
+}
+.files-side .file-input {
+  display: flex;
+  margin-bottom: 10px;
+}
+.files-side .file-input input[type=text] {
+  margin-right: 10px;
+  flex: 1;
+}
 .exports {
   display: flex;
   width: 200px;
   margin-left: 100px;
   flex-direction: column;
+  align-items: flex-start;
 }
 .exports .button {
   margin-bottom: 5px;
