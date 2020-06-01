@@ -8,7 +8,7 @@ import {JSONClient} from 'https://sync.webaverse.com/sync-client.js';
 import address from 'https://contracts.webaverse.com/address.js';
 import abi from 'https://contracts.webaverse.com/abi.js';
 import {pe, renderer, scene, camera, container, floorMesh, getSession} from './run.js';
-import {downloadFile, readFile, bindUploadFileButton} from './util.js';
+import {downloadFile, readFile, bindUploadFileButton} from './xrpackage/util.js';
 
 const apiHost = `https://ipfs.exokit.org/ipfs`;
 const presenceEndpoint = `wss://presence.exokit.org`;
