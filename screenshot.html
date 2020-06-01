@@ -69,12 +69,22 @@ if (p) {
   }
 }
 
-document.getElementById('text').innerText = 'Screenshotting done. You can close this tab.';
+})().then(() => {
+  document.getElementById('text').innerText = 'Screenshotting done. You can close this tab.';
 
-})().catch(err => {
+  window.parent.postMessage({
+    method: 'result',
+    result: null,
+  }, '*');
+}).catch(err => {
   console.warn(err.stack);
   document.getElementById('text').innerText = 'Error screenshotting. You can close this tab.';
   document.getElementById('error').innerText = err.stack;
+
+  window.parent.postMessage({
+    method: 'error',
+    error: err.stack,
+  }, '*');
 });
 </script>
 </body>
