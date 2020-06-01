@@ -131,6 +131,7 @@
 </script>
 <script type="module">
 import {XRPackage, XRPackageEngine} from './xrpackage.js';
+import {readFile, bindUploadFileButton} from './xrpackage/util.js';
 import {OrbitControls} from './xrpackage/OrbitControls.js';
 
 const subtabs = Array.from(document.querySelectorAll('.subtab'));
@@ -423,6 +424,27 @@ const _getWireframeMesh = o => {
     });
   };
   _renderFiles();
+
+  const fileName = document.getElementById('file-name');
+  const fileUploadInput = document.getElementById('file-upload-input');
+  let file = null;
+  bindUploadFileButton(fileUploadInput, f => {
+    if (!fileName.value) {
+      fileName.value = f.name;
+    }
+    file = f;
+  });
+  const addFileButton = document.getElementById('add-file-button');
+  addFileButton.addEventListener('click', async e => {
+    if (file && fileName.value) {
+      const uint8Array = await readFile(file);
+      p.addFile(fileName.value, uint8Array, file.type);
+      _renderFiles();
+
+      file = null;
+      fileName.value = '';
+    }
+  });
 })();
 </script>
 </body>

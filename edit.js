@@ -7,7 +7,8 @@ import {XRChannelConnection} from 'https://metartc.com/xrrtc.js';
 import {JSONClient} from 'https://sync.webaverse.com/sync-client.js';
 import address from 'https://contracts.webaverse.com/address.js';
 import abi from 'https://contracts.webaverse.com/abi.js';
-import {pe, renderer, scene, camera, container, floorMesh, bindUploadFileButton, getSession} from './run.js';
+import {pe, renderer, scene, camera, container, floorMesh, getSession} from './run.js';
+import {downloadFile, readFile, bindUploadFileButton} from './util.js';
 
 const apiHost = `https://ipfs.exokit.org/ipfs`;
 const presenceEndpoint = `wss://presence.exokit.org`;
@@ -43,25 +44,6 @@ function parseQuery(queryString) {
   }
   return query;
 }
-function downloadFile(file, filename) {
-  const blobURL = URL.createObjectURL(file);
-  const tempLink = document.createElement('a');
-  tempLink.style.display = 'none';
-  tempLink.href = blobURL;
-  tempLink.setAttribute('download', filename);
-
-  document.body.appendChild(tempLink);
-  tempLink.click();
-  document.body.removeChild(tempLink);
-}
-const readFile = file => new Promise((accept, reject) => {
-  const fr = new FileReader();
-  fr.onload = () => {
-    accept(new Uint8Array(fr.result));
-  };
-  fr.onerror = reject;
-  fr.readAsArrayBuffer(file);
-});
 
 const targetMeshGeometry = (() => {
   const targetGeometry = BufferGeometryUtils.mergeBufferGeometries([
