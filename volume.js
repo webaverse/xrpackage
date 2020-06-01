@@ -310,7 +310,7 @@ void main() {
       }
     };
     
-    let aabb = p.getAaab();
+    let aabb = p.getAabb();
     if (!aabb) {
       aabb = getDefaultAabb();
     }
