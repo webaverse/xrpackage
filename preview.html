@@ -413,7 +413,7 @@ const _getWireframeMesh = o => {
     Array.from(files.querySelectorAll('.file')).forEach(f => {
       const pathname = f.getAttribute('pathname');
       const removeButton = f.querySelector('.remove-button');
-      removeButton.addEventListener('click', e => {
+      removeButton && removeButton.addEventListener('click', e => {
         p.removeFile(pathname);
         _renderFiles();
       });
