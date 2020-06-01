@@ -241,7 +241,7 @@ void main() {
     const oldArrayBuffer = gl.getParameter(gl.ARRAY_BUFFER_BINDING);
 
     const vbo = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, screenQuadVBO);
+    gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
     const verts = Float32Array.from([
       // First triangle:
        1.0,  1.0,
