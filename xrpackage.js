@@ -1505,26 +1505,40 @@ export class XRPackage extends EventTarget {
   async getModel() {
     const j = this.getManifestJson();
     if (j) {
-      const {icons = []} = j;
+      const {start_url: startUrl, icons = []} = j;
+
+      const _loadFileScene = async file => {
+        const d = file.response.body;
+        const b = new Blob([d], {
+          type: previewIcon.type,
+        });
+        const u = URL.createObjectURL(b);
+        const {scene} = await new Promise((accept, reject) => {
+          new GLTFLoader().load(u, accept, function onProgress() {}, reject);
+        });
+        URL.revokeObjectURL(u);
+        return scene;
+      };
+
       const previewIcon = icons.find(icon => icon.type === 'model/gltf-binary');
       if (previewIcon) {
         const previewIconFile = this.files.find(file => new URL(file.url).pathname === '/' + previewIcon.src);
         if (previewIconFile) {
-          const d = previewIconFile.response.body;
-          const b = new Blob([d], {
-            type: previewIcon.type,
-          });
-          const u = URL.createObjectURL(b);
-          const {scene} = await new Promise((accept, reject) => {
-            new GLTFLoader().load(u, accept, function onProgress() {}, reject);
-          });
-          URL.revokeObjectURL(u);
-          return scene;
+          return await _loadFileScene(previewIconFile);
         } else {
           return null;
         }
       } else {
-        return null;
+        if (this.type === 'gltf@0.0.1' || this.type === 'vrm@0.0.1') {
+          const mainModelFile = this.files.find(file => new URL(file.url).pathname === '/' + startUrl);
+          if (mainModelFile) {
+            return await _loadFileScene(mainModelFile);
+          } else {
+            return null;
+          }
+        } else {
+          return null;
+        }
       }
     } else {
       return null;
