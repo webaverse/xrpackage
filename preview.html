@@ -72,6 +72,7 @@
       <div class=views id=views>
       </div>
       <div class=details id=details>
+        <div class=type id=type>type</div>
         <div class=name id=name>name</div>
         <div class=description id=description>description</div>
       </div>
@@ -387,10 +388,12 @@ const _getWireframeMesh = o => {
     views.appendChild(canvas);
   }
 
+  const type = document.getElementById('type');
   const name = document.getElementById('name');
   const description = document.getElementById('description');
   const manifest = document.getElementById('manifest');
   const manifestJson = p.getManifestJson();
+  type.innerText = manifestJson.xr_type;
   name.innerText = manifestJson.name || '';
   description.innerText = manifestJson.description || '';
   manifest.value = JSON.stringify(manifestJson, null, 2);

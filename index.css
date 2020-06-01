@@ -1214,8 +1214,14 @@ header.unlocking + .main .blocker .button
 }
 .details {
   display: flex;
-  flex: 1;
+  width: 400px;
   flex-direction: column;
+  align-items: flex-start;
+}
+.details .type {
+  padding: 2px 5px;
+  background-color: var(--color2);
+  border-radius: 5px;
 }
 .details .name {
   margin-bottom: 5px;
