@@ -376,6 +376,8 @@ const _getWireframeMesh = o => {
   description.innerText = manifestJson.description || '';
   manifest.value = JSON.stringify(manifestJson, null, 2);
 
+  const {start_url: startUrl} = manifestJson;
+
   const files = document.getElementById('files');
   const _renderFiles = () => {
     files.innerHTML = p.files.map(f => {
@@ -383,9 +385,9 @@ const _getWireframeMesh = o => {
       return `
         <div class=file pathname="${u}"">
           <a class=name href="${u}">${u}</a>
-          <nav class=remove-button>
+          ${u !== startUrl ? `<nav class=remove-button>
             <i class="fa fa-times"></i>
-          </nav>
+          </nav>` : ''}
         </div>
       `;
     }).join('\n');
