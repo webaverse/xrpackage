@@ -11,7 +11,7 @@ window.THREE = THREE;
 import {XRPackage, XRPackageEngine} from './xrpackage.js';
 import {GLTFExporter} from './GLTFExporter.js';
 import {OrbitControls} from './xrpackage/OrbitControls.js';
-import {getPreviewMesh} from './volume.js';
+import {getDefaultAabb, getPreviewMesh} from './volume.js';
 
 (async () => {
 
@@ -24,7 +24,7 @@ function parseQuery(queryString) {
   }
   return query;
 }
-const {srcWbn, dstVolume} = parseQuery(window.location.search);
+const {srcWbn, dstVolume, dstAabb} = parseQuery(window.location.search);
 const req = await fetch(srcWbn);
 const arrayBuffer = await req.arrayBuffer();
 const uint8Array = new Uint8Array(arrayBuffer);
@@ -112,14 +112,24 @@ const o = await getPreviewMesh(p);
 let geometry = new THREE.BufferGeometry();
 geometry.setAttribute('position', new THREE.BufferAttribute(o.positions, 3));
 geometry.setIndex(new THREE.BufferAttribute(o.indices, 1));
+const collisionMaterial = new THREE.MeshStandardMaterial({
+  color: 0xFFFFFF,
+});
+const collisionMesh = new THREE.Mesh(geometry, collisionMaterial);
+collisionMesh.frustumCulled = false;
+
+let aabb = p.getAabb();
+if (!aabb) {
+  const {type} = p;
+  if (type === 'gltf@0.0.1' || type === 'vrm@0.0.1') {
+    const model = await p.getModel();
+    aabb = new THREE.Box3().setFromObject(model);
+  } else {
+    aabb = getDefaultAabb();
+  }
+}
 
 if (dstVolume) {
-  const collisionMaterial = new THREE.MeshStandardMaterial({
-    color: 0xFFFFFF,
-  });
-  const collisionMesh = new THREE.Mesh(geometry, collisionMaterial);
-  collisionMesh.frustumCulled = false;
-
   const data = await new Promise((accept, reject) => {
     const exporter = new GLTFExporter();
     const exportScene = new THREE.Scene();
@@ -135,6 +145,16 @@ if (dstVolume) {
   const res = await fetch(dstVolume, {
     method: 'PUT',
     body: blob,
+  });
+  await res.blob();
+}
+if (dstAabb) {
+  const res = await fetch(dstAabb, {
+    method: 'PUT',
+    body: JSON.stringify([
+      aabb.min.toArray(),
+      aabb.max.toArray(),
+    ]),
   });
   await res.blob();
 }

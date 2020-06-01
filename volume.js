@@ -65,6 +65,10 @@ class Allocator {
   }
 }
 
+const getDefaultAabb = () => new THREE.Box3().setFromCenterAndSize(
+  new THREE.Vector3(0, 0, 0),
+  new THREE.Vector3(10, 10, 10)
+);
 const getPreviewMesh = async p => {
   const pe = new XRPackageEngine({
     width: voxelWidth,
@@ -306,12 +310,12 @@ void main() {
       }
     };
     
-    /* const aabb = new THREE.Box3().setFromObject(m);
+    let aabb = p.getAaab();
+    if (!aabb) {
+      aabb = getDefaultAabb();
+    }
     const center = aabb.getCenter(new THREE.Vector3());
-    const size = aabb.getSize(new THREE.Vector3()); */
-    const center = new THREE.Vector3(0, 0, 0);
-    const size = new THREE.Vector3(10, 10, 10);
-    // size.multiplyScalar(1.5);
+    const size = aabb.getSize(new THREE.Vector3());
 
     const voxelResolution = size.clone().divideScalar(voxelWidth);
 
@@ -435,5 +439,6 @@ void main() {
   }
 };
 export {
+  getDefaultAabb,
   getPreviewMesh,
 };
