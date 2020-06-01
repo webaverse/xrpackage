@@ -176,7 +176,7 @@ void main() {
 }`;
   function compileShader(gl, shaderSource, shaderType) {
     // Create the shader object
-    var shader = gl.createShader(shaderType);
+    const shader = gl.createShader(shaderType);
    
     // Set the shader source code.
     gl.shaderSource(shader, shaderSource);
@@ -195,7 +195,7 @@ void main() {
   }
   function createProgram(gl, vertexShader, fragmentShader) {
     // create a program.
-    var program = gl.createProgram();
+    const program = gl.createProgram();
    
     // attach the shaders.
     gl.attachShader(program, vertexShader);
@@ -234,7 +234,7 @@ void main() {
     // Second triangle:
     -1.0, -1.0,
      1.0, -1.0,
-     1.0,  1.0
+     1.0,  1.0,
   ];
   const screenQuadVBO = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, screenQuadVBO);
