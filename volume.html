@@ -201,12 +201,22 @@ function animate(timestamp, frame) {
 }
 renderer.setAnimationLoop(animate);
 
-document.getElementById('text').innerText = 'Volumizing done. You can close this tab.';
+})().then(() => {
+  document.getElementById('text').innerText = 'Volumizing done. You can close this tab.';
 
-})().catch(err => {
+  window.parent.postMessage({
+    method: 'result',
+    result: null,
+  }, '*');
+}).catch(err => {
   console.warn(err.stack);
   document.getElementById('text').innerText = 'Error volumizing. You can close this tab.';
   document.getElementById('error').innerText = err.stack;
+
+  window.parent.postMessage({
+    method: 'error',
+    error: err.stack,
+  }, '*');
 });
 </script>
 </body>
