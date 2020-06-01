@@ -315,7 +315,7 @@ void main() {
       gl.enableVertexAttribArray(vertexAttributes.vertexPositionNDC);
       gl.vertexAttribPointer(vertexAttributes.vertexPositionNDC, 2, gl.FLOAT, false, 0, 0);
 
-      gl.viewport(oldViewport[0], oldViewport[1], oldViewport[2], oldViewport[3]);
+      gl.viewport(0, 0, voxelWidth * pixelRatio, voxelWidth * pixelRatio);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
 
       // restore state
@@ -325,6 +325,7 @@ void main() {
       gl.bindTexture(gl.TEXTURE_2D, oldTextureBinding);
       gl.activeTexture(oldActiveTexture);
       gl.bindBuffer(gl.ARRAY_BUFFER, oldArrayBuffer);
+      gl.viewport(oldViewport[0], oldViewport[1], oldViewport[2], oldViewport[3]);
     };
     const getDepthPixels = (depthTextures, i) => {
       // save state
