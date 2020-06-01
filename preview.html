@@ -79,7 +79,13 @@
     </div>
   </section>
   <section class=subcontent id=subcontent-2>
-    <textarea class=manifest id=manifest>{}</textarea>
+    <div class=manifest-wrap>
+      <textarea class=manifest id=manifest>{}</textarea>
+      <div class=manifest-side>
+        <div class=heading>Update manifest</div>
+        <nav class=button id=save-manifest-button>Save</nav>
+      </div>
+    </div>
   </section>
   <section class=subcontent id=subcontent-3>
     <div class=files-wrap>
@@ -389,15 +395,23 @@ const _getWireframeMesh = o => {
     views.appendChild(canvas);
   }
 
+  // manifest
+  let manifestJson = p.getManifestJson();
+
+  const manifest = document.getElementById('manifest');
+  manifest.value = JSON.stringify(manifestJson, null, 2);
+  const saveManifestButton = document.getElementById('save-manifest-button');
+  saveManifestButton.addEventListener('click', e => {
+    console.log('save manifest', manifest.value);
+  });
+
+  // files
   const type = document.getElementById('type');
   const name = document.getElementById('name');
   const description = document.getElementById('description');
-  const manifest = document.getElementById('manifest');
-  const manifestJson = p.getManifestJson();
   type.innerText = manifestJson.xr_type;
   name.innerText = manifestJson.name || '';
   description.innerText = manifestJson.description || '';
-  manifest.value = JSON.stringify(manifestJson, null, 2);
 
   const {start_url: startUrl} = manifestJson;
 
@@ -446,6 +460,7 @@ const _getWireframeMesh = o => {
     }
   });
 
+  // import/export
   const createFromFileInput = document.getElementById('create-from-file-input');
   bindUploadFileButton(createFromFileInput, async file => {
     const uint8Array = await XRPackage.compileFromFile(file);

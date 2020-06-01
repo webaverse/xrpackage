@@ -1231,16 +1231,33 @@ header.unlocking + .main .blocker .button
   margin-bottom: 5px;
   font-size: 16px;
 }
-.manifest {
+.manifest-wrap {
+  display: flex;
+  align-items: flex-start;
+}
+.manifest-wrap .manifest {
   width: 600px;
   height: 400px;
   margin-left: 100px;
+  margin-right: 10px;
   padding: 5px;
   background-color: #EEE;
   border: 0;
   border-radius: 5px;
   outline: none;
   resize: none;
+}
+.manifest-wrap .manifest-side {
+  display: flex;
+  padding: 10px;
+  background-color: #F8F8F8;
+  border-radius: 10px;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.manifest-wrap .manifest-side .heading {
+  margin-bottom: 10px;
+  font-size: 16px;
 }
 .files-wrap {
   display: flex;
