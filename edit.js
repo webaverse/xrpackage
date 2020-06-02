@@ -386,8 +386,7 @@ function animate(timestamp, frame) {
   if (physicsEnabled) {
     dynamicsWorld.stepSimulation(timeDiff, 2);
 
-    for (let i = 0; i < pe.packages.length; i++) {
-      const p = pe.packages[i];
+    for (const p of pe.packages) {
       if (p.physicsBody) {
         p.physicsBody.getMotionState().getWorldTransform(ammoTransform);
         const origin = ammoTransform.getOrigin();
