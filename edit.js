@@ -198,7 +198,7 @@ _setupPhysics();
 
 const _makeConvexHullShape = object => {
   const shape = new Ammo.btConvexHullShape();
-  let numPoints = 0;
+  // let numPoints = 0;
   object.updateMatrixWorld();
   object.traverse(o => {
     if (o.isMesh) {
@@ -211,7 +211,7 @@ const _makeConvexHullShape = object => {
         ammoVector3.setValue(localVector.x, localVector.y, localVector.z);
         const lastOne = i >= (positions.length - 3);
         shape.addPoint(ammoVector3, lastOne);
-        numPoints++;
+        // numPoints++;
       }
     }
   });
