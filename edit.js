@@ -695,7 +695,6 @@ document.getElementById('export-scene-button').addEventListener('click', async e
   });
   downloadFile(b, 'scene.wbn');
 });
-let shieldLevel = 1;
 const _placeholdPackage = p => {
   p.visible = false;
   if (!p.placeholderBox) {
@@ -711,7 +710,9 @@ const _unplaceholdPackage = p => {
     scene.remove(p.placeholderBox);
   }
 };
-document.getElementById('shield-slider').addEventListener('change', e => {
+const shieldSlider = document.getElementById('shield-slider');
+let shieldLevel = shieldSlider.value;
+shieldSlider.addEventListener('change', async e => {
   const newShieldLevel = parseInt(e.target.value, 10);
   const {packages} = pe;
   switch (newShieldLevel) {
