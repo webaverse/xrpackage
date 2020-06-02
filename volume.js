@@ -20,6 +20,88 @@ function makePromise() {
   p.reject = reject;
   return p;
 }
+const wireframeMaterial = new THREE.ShaderMaterial({
+  uniforms: {},
+  vertexShader: `\
+    // attribute vec3 color;
+    attribute vec3 barycentric;
+    varying vec3 vPosition;
+    // varying vec3 vColor;
+    varying vec3 vBC;
+    void main() {
+      // vColor = color;
+      vBC = barycentric;
+      vec4 modelViewPosition = modelViewMatrix * vec4(position, 1.0);
+      vPosition = modelViewPosition.xyz;
+      gl_Position = projectionMatrix * modelViewPosition;
+    }
+  `,
+  fragmentShader: `\
+    uniform sampler2D uCameraTex;
+    varying vec3 vPosition;
+    // varying vec3 vColor;
+    varying vec3 vBC;
+    vec3 color = vec3(0.984313725490196, 0.5490196078431373, 0.0);
+    vec3 lightDirection = vec3(0.0, 0.0, 1.0);
+    float edgeFactor() {
+      vec3 d = fwidth(vBC);
+      vec3 a3 = smoothstep(vec3(0.0), d*1.5, vBC);
+      return min(min(a3.x, a3.y), a3.z);
+    }
+    void main() {
+      // vec3 color = vColor;
+      float barycentricFactor = (0.2 + (1.0 - edgeFactor()) * 0.8);
+      vec3 xTangent = dFdx( vPosition );
+      vec3 yTangent = dFdy( vPosition );
+      vec3 faceNormal = normalize( cross( xTangent, yTangent ) );
+      float lightFactor = dot(faceNormal, lightDirection);
+      gl_FragColor = vec4((0.5 + color * barycentricFactor) * lightFactor, 0.5 + barycentricFactor * 0.5);
+    }
+  `,
+  side: THREE.DoubleSide,
+  /* polygonOffset: true,
+  polygonOffsetFactor: -1,
+  polygonOffsetUnits: -4, */
+  transparent: true,
+  opacity: 0.5,
+  // depthWrite: false,
+  extensions: {
+    derivatives: true,
+  },
+});
+export function getWireframeMesh(o) {
+  let firstMesh = null;
+  o.traverse(o => {
+    if (firstMesh === null && o.isMesh) {
+      firstMesh = o;
+    }
+  });
+
+  if (firstMesh) {
+    const geometry = firstMesh.geometry.toNonIndexed();
+    const barycentrics = (() => {
+      const barycentrics = new Float32Array(geometry.attributes.position.array.length);
+      for (let i = 0; i < barycentrics.length;) {
+        barycentrics[i++] = 1;
+        barycentrics[i++] = 0;
+        barycentrics[i++] = 0;
+        barycentrics[i++] = 0;
+        barycentrics[i++] = 1;
+        barycentrics[i++] = 0;
+        barycentrics[i++] = 0;
+        barycentrics[i++] = 0;
+        barycentrics[i++] = 1;
+      }
+      return barycentrics;
+    })();
+    geometry.setAttribute('barycentric', new THREE.BufferAttribute(barycentrics, 3));
+    const mesh = new THREE.Mesh(geometry, wireframeMaterial);
+    mesh.frustumCulled = false;
+    return mesh;
+  } else {
+    return o;
+  }
+}
 
 const modulePromise = makePromise();
 self.wasmModule = (moduleName, moduleFn) => {

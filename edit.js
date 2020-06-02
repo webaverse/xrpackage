@@ -9,6 +9,7 @@ import address from 'https://contracts.webaverse.com/address.js';
 import abi from 'https://contracts.webaverse.com/abi.js';
 import {pe, renderer, scene, camera, container, floorMesh, getSession} from './run.js';
 import {downloadFile, readFile, bindUploadFileButton} from './xrpackage/util.js';
+import {getWireframeMesh} from './volume.js';
 
 const apiHost = `https://ipfs.exokit.org/ipfs`;
 const presenceEndpoint = `wss://presence.exokit.org`;
@@ -102,7 +103,7 @@ const targetFsh = `
     gl_FragColor = vec4(vec3(f * uHighlight), 1.0);
   }
 `;
-const _makeTargetMesh = () => {
+const _makeTargetMesh = p => {
   const geometry = targetMeshGeometry;
   const material = new THREE.ShaderMaterial({
     uniforms: {
@@ -122,6 +123,15 @@ const _makeTargetMesh = () => {
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
   return mesh;
+};
+const _makeVolumeMesh = async p => {
+  const volumeMesh = await p.getVolumeMesh();
+  if (volumeMesh) {
+    volumeMesh.frustumCulled = false;
+    return volumeMesh;
+  } else {
+    return new THREE.Object3D();
+  }
 };
 
 /* window.downloadTargetMesh = async () => {
@@ -695,7 +705,7 @@ document.getElementById('export-scene-button').addEventListener('click', async e
   });
   downloadFile(b, 'scene.wbn');
 });
-const _placeholdPackage = p => {
+const _placeholdPackage = async p => {
   p.visible = false;
   if (!p.placeholderBox) {
     p.placeholderBox = _makeTargetMesh();
@@ -710,6 +720,28 @@ const _unplaceholdPackage = p => {
     scene.remove(p.placeholderBox);
   }
 };
+const _volumePackage = async p => {
+  p.visible = false;
+  if (!p.volumeMesh) {
+    p.volumeMesh = await _makeVolumeMesh(p);
+    p.volumeMesh = getWireframeMesh(p.volumeMesh);
+    p.volumeMesh.package = p;
+    p.volumeMesh.matrix.copy(p.matrix).decompose(p.volumeMesh.position, p.volumeMesh.quaternion, p.volumeMesh.scale);
+  }
+  scene.add(p.volumeMesh);
+};
+const _unvolumePackage = p => {
+  p.visible = true;
+  if (p.volumeMesh) {
+    scene.remove(p.volumeMesh);
+  }
+};
+const _unbindSelectTargets = () => {
+  for (let i = 0; i < selectTargets.length; i++) {
+    const selectTarget = selectTargets[i];
+    selectTarget.control && _unbindTransformControls(selectTarget);
+  }
+};
 const shieldSlider = document.getElementById('shield-slider');
 let shieldLevel = shieldSlider.value;
 shieldSlider.addEventListener('change', async e => {
@@ -718,7 +750,8 @@ shieldSlider.addEventListener('change', async e => {
   switch (newShieldLevel) {
     case 0: {
       for (const p of packages) {
-        _placeholdPackage(p);
+        _unvolumePackage(p);
+        await _placeholdPackage(p);
       }
       shieldLevel = newShieldLevel;
       hoverTarget = null;
@@ -728,13 +761,22 @@ shieldSlider.addEventListener('change', async e => {
     case 1: {
       for (const p of packages) {
         _unplaceholdPackage(p);
+        await _volumePackage(p);
       }
+      _unbindSelectTargets();
       shieldLevel = newShieldLevel;
       hoverTarget = null;
-      for (let i = 0; i < selectTargets.length; i++) {
-        const selectTarget = selectTargets[i];
-        selectTarget.control && _unbindTransformControls(selectTarget);
+      selectTargets = [];
+      break;
+    }
+    case 2: {
+      for (const p of packages) {
+        _unplaceholdPackage(p);
+        _unvolumePackage(p);
       }
+      _unbindSelectTargets();
+      shieldLevel = newShieldLevel;
+      hoverTarget = null;
       selectTargets = [];
       break;
     }
@@ -807,44 +849,14 @@ const wireframeMaterial = new THREE.ShaderMaterial({
     derivatives: true,
   },
 });
-const _getWireframeMesh = o => {
-  let firstMesh = null;
-  o.traverse(o => {
-    if (firstMesh === null && o.isMesh) {
-      firstMesh = o;
-    }
-  });
-
-  if (firstMesh) {
-    const geometry = firstMesh.geometry.toNonIndexed();
-    const barycentrics = (() => {
-      const barycentrics = new Float32Array(geometry.attributes.position.array.length);
-      for (let i = 0; i < barycentrics.length;) {
-        barycentrics[i++] = 1;
-        barycentrics[i++] = 0;
-        barycentrics[i++] = 0;
-        barycentrics[i++] = 0;
-        barycentrics[i++] = 1;
-        barycentrics[i++] = 0;
-        barycentrics[i++] = 0;
-        barycentrics[i++] = 0;
-        barycentrics[i++] = 1;
-      }
-      return barycentrics;
-    })();
-    geometry.setAttribute('barycentric', new THREE.BufferAttribute(barycentrics, 3));
-    const mesh = new THREE.Mesh(geometry, wireframeMaterial);
-    mesh.frustumCulled = false;
-    return mesh;
-  } else {
-    return null;
-  }
-};
 pe.addEventListener('packageadd', async e => {
   const p = e.data;
 
   if (shieldLevel === 0) {
-    _placeholdPackage(p);
+    await _placeholdPackage(p);
+  }
+  if (shieldLevel === 1) {
+    await _volumePackage(p);
   }
   _renderObjects();
 

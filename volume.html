@@ -11,7 +11,7 @@ window.THREE = THREE;
 import {XRPackage, XRPackageEngine} from './xrpackage.js';
 import {GLTFExporter} from './GLTFExporter.js';
 import {OrbitControls} from './xrpackage/OrbitControls.js';
-import {getDefaultAabb, getPreviewMesh} from './volume.js';
+import {getDefaultAabb, getPreviewMesh, getWireframeMesh} from './volume.js';
 
 (async () => {
 
@@ -159,24 +159,10 @@ if (dstAabb) {
   await res.blob();
 }
 
-geometry = geometry.toNonIndexed();
-const barycentrics = (() => {
-  const barycentrics = new Float32Array(geometry.attributes.position.array.length);
-  for (let i = 0; i < barycentrics.length;) {
-    barycentrics[i++] = 1;
-    barycentrics[i++] = 0;
-    barycentrics[i++] = 0;
-    barycentrics[i++] = 0;
-    barycentrics[i++] = 1;
-    barycentrics[i++] = 0;
-    barycentrics[i++] = 0;
-    barycentrics[i++] = 0;
-    barycentrics[i++] = 1;
-  }
-  return barycentrics;
-})();
-geometry.setAttribute('barycentric', new THREE.BufferAttribute(barycentrics, 3));
-const wireframeMesh = new THREE.Mesh(geometry, wireframeMaterial);
+let wireframeMesh = new THREE.Mesh(geometry, new THREE.MeshBasicMateroal({
+  color: 0xFFFFFF,
+}));
+wireframeMesh = getWireframeMesh(wireframeMesh);
 wireframeMesh.frustumCulled = false;
 
 const pe = new XRPackageEngine({
