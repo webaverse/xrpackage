@@ -87,7 +87,7 @@ The package manifest can contain an `xr_details` field which further specifies h
       "hand": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
       "back": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
     },
-     "physics": "none", // physics mode for the "none" (default), "static", or "dynamic"
+     "physics": "static", // physics mode for the packge: null (no physics, default), "static", or "dynamic"
    }
 }
 ```
