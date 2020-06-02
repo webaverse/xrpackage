@@ -854,12 +854,13 @@ export class XRPackageEngine extends EventTarget {
     const _tickRafs = () => {
       const rafs = this.rafs.slice();
       this.rafs.length = 0;
+      const timestamp = performance.now();
       for (let i = 0; i < rafs.length; i++) {
         const raf = rafs[i];
         const rafWindow = raf[symbols.windowSymbol];
         const rafPackage = this.packages.find(p => p.context.iframe && p.context.iframe.contentWindow === rafWindow);
         if (!rafPackage || rafPackage.visible) {
-          raf();
+          raf(timestamp);
         } else {
           this.rafs.push(raf);
         }
