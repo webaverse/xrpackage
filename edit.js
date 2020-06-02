@@ -931,6 +931,9 @@ pe.addEventListener('packageadd', async e => {
       const mass = physicsMode === 'dynamic' ? 1 : 0;
       const localInertia = new Ammo.btVector3(0, 0, 0);
       const shape = physicsMode === 'dynamic' ? _makeConvexHullShape(volumeMesh) : _makeTriangleMeshShape(volumeMesh);
+      if (physicsMode === 'dynamic') {
+        shape.calculateLocalInertia(mass, localInertia);
+      }
 
       const motionState = new Ammo.btDefaultMotionState(startTransform);
       const rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, shape, localInertia);
