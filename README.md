@@ -42,6 +42,56 @@ A WebXR package references the `index.html` entrypoint for the webXR application
 
 Because XRPackage is a spatial packaging format, the main additional requirement is that the WebXR application autoimatically starts its WebXR session upon receiving the `sessiongranted` event (see the [WebXR Navigation Specification](https://github.com/immersive-web/webxr/blob/master/designdocs/navigation.md) and the [example](https://github.com/webaverse/xrpackage/blob/88a87d296019530f4f76ec18ce64f9397cd4b27d/examples/html/cube.html#L25).
 
+## Package icons
+
+Packages can contain icons that represent them in previews. Multiple icons can be in the same package, with different types. The icon files are included along with the package as a regular part of the bundle and referenced in the manifest. This follows the web bundle standard.
+
+Icons are used not only for rendering a preview for the package, but also specify how it behaves in relation to other packages. For example, the collision mesh icon type (`"model/gltf-binary+preview"`) specifies the collision boundary geometry that the package uses, in GLTF form.
+
+```
+{
+  "xr_type": "webxr-site@0.0.1",
+   "start_url": "cube.html",
+  "icons": [
+    {
+      "src": "icon.gif",
+      "type": "image/gif" // screen capture
+    },
+    {
+      "src": "collision.glb",
+      "type": "model/gltf-binary+preview" // collision mesh
+    },
+    {
+      "src": "xrpackage_model.glb",
+      "type": "model/gltf-binary" // gltf preview
+    }
+  ]
+}
+```
+
+## Package configuration
+
+The package manifest can contain an `xr_details` field which further specifies how it should be treated by a compatible runtime.
+
+```
+{
+  "xr_type": "webxr-site@0.0.1",
+   "start_url": "cube.html",
+   "xr_details": {
+     "aabb": [ // axis-aligned bounding box
+       [-1, -1, -1], // min point
+       [1, 1, 1] // max point
+    ],
+    "wearable": { // how this package can be worn on an avatar
+      "head": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], // matrix offset from specified bone to package
+      "hand": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+      "back": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+    },
+     "physics": "none", // physics mode for the "none" (default), "static", or "dynamic"
+   }
+}
+```
+
 ## Building a package
 
 Regardless of package type, packages are built with the `xrpk` tool which you can get on `npm`:
