@@ -813,6 +813,18 @@ const enablePhysycsCheckbox = document.getElementById('enable-physics-checkbox')
 let physicsEnabled = enablePhysycsCheckbox.checked;
 enablePhysycsCheckbox.addEventListener('click', e => {
   physicsEnabled = enablePhysycsCheckbox.checked;
+  if (physicsEnabled) {
+    for (const p of pe.packages) {
+      if (p.physicsBody) {
+        p.matrix.decompose(localVector, localQuaternion, localVector2);
+        const packageTransform = p.physicsBody.getWorldTransform(ammoTransform);
+        ammoVector3.setValue(localVector.x, localVector.y, localVector.z);
+        packageTransform.setOrigin(ammoVector3);
+        ammoQuaternion.setValue(localQuaternion.x, localQuaternion.y, localQuaternion.z, localQuaternion.w);
+        packageTransform.setRotation(ammoQuaternion);
+      }
+    }
+  }
 });
 document.getElementById('toggle-stage-button').addEventListener('click', e => {
   floorMesh.visible = !floorMesh.visible;
