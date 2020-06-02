@@ -187,8 +187,8 @@ const _setupPhysics = async () => {
 
     var mass = 0;
     var localInertia = new Ammo.btVector3(0, 0, 0);
-    var myMotionState = new Ammo.btDefaultMotionState(groundTransform);
-    var rbInfo = new Ammo.btRigidBodyConstructionInfo(0, myMotionState, groundShape, localInertia);
+    var motionState = new Ammo.btDefaultMotionState(groundTransform);
+    var rbInfo = new Ammo.btRigidBodyConstructionInfo(0, motionState, groundShape, localInertia);
     var body = new Ammo.btRigidBody(rbInfo);
 
     dynamicsWorld.addRigidBody(body);
