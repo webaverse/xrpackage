@@ -383,15 +383,15 @@ function animate(timestamp, frame) {
     pe.setRigMatrix(null);
   }
 
-  if (window.physics) {
+  if (physicsEnabled) {
     dynamicsWorld.stepSimulation(timeDiff, 2);
 
     for (let i = 0; i < pe.packages.length; i++) {
       const p = pe.packages[i];
       if (p.physicsBody) {
-        p.physicsBody.getMotionState().getWorldTransform(transform);
-        const origin = transform.getOrigin();
-        const rotation = transform.getRotation();
+        p.physicsBody.getMotionState().getWorldTransform(ammoTransform);
+        const origin = ammoTransform.getOrigin();
+        const rotation = ammoTransform.getRotation();
         p.setMatrix(
           localMatrix.compose(
             localVector.set(origin.x(), origin.y(), origin.z()),
@@ -808,6 +808,11 @@ shieldSlider.addEventListener('change', async e => {
       break;
     }
   }
+});
+const enablePhysycsCheckbox = document.getElementById('enable-physics-checkbox');
+let physicsEnabled = enablePhysycsCheckbox.checked;
+enablePhysycsCheckbox.addEventListener('click', e => {
+  physicsEnabled = enablePhysycsCheckbox.checked;
 });
 document.getElementById('toggle-stage-button').addEventListener('click', e => {
   floorMesh.visible = !floorMesh.visible;
