@@ -90,17 +90,6 @@ let totalObjects = 0;
 let totalPages = 0;
 let objectResults = [];
 
-function makePromise() {
-  let accept, reject;
-  const p = new Promise((a, r) => {
-    accept = a;
-    reject = r;
-  });
-  p.accept = accept;
-  p.reject = reject;
-  return p;
-}
-
 function drawCard(cardData) {
   const {index, name, img, metadataHash, dataHash, modelHash} = cardData;
   const div = document.createElement('div');
