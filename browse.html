@@ -175,6 +175,8 @@ paginations.forEach(pagination => {
         const p = ps[i];
         drawPackage(p);
       }
+      loader.style.display = 'none';
+      grid.style.display = 'flex';
     } else if (srcName === 'ethereum') {
       const getObjectByIndex = async index => {
         const metadataHash = await contract.methods.getMetadata(index, 'hash').call();
