@@ -250,7 +250,7 @@ a:hover {
   display: flex;
   margin-top: 50px;
   margin-left: 130px;
-  margin-bottom: 10px;
+  /* margin-bottom: 10px; */
   border-bottom: 1px solid #EEE;
 }
 .subheader .subtab {
@@ -271,6 +271,7 @@ a:hover {
 .subcontent {
   display: flex;
   padding: 0 30px;
+  padding-top: 15px;
   max-height: 100vh;
   flex-direction: column;
 }
@@ -786,7 +787,8 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   display: flex;
   position: relative;
   flex-direction: column;
-  margin: 15px;
+  margin-right: 15px;
+  margin-bottom: 15px;
   border: 1px solid #EEE;
   border-radius: 7px;
   overflow: hidden;
@@ -960,8 +962,9 @@ input[type=file].hidden {
 
 .main {
   display: flex;
-  padding-left: 150px;
-  height: calc(100vh - 50px);
+  padding-left: 130px;
+  padding-top: 15px;
+  height: calc(100vh - 100px);
   flex-direction: column;
   overflow: auto;
 }

@@ -51,21 +51,41 @@
     </nav>
   </header>
 
-  <div class=loader id=loader>
-    <h1>Loading...</h1>
-  </div>
+  <header class=subheader>
+    <nav class="subtab open" id=subtab-1>IPFS</nav>
+    <nav class=subtab id=subtab-2>Ethereum</nav>
+  </header>
 
-  <div class=main>
-    <aside class=sidebar></aside>
+  <div class="main subtab-content open">
+    <section class=tokens id=packages></section>
+
+    <div class="loader packages-loader">
+      <h1>Loading...</h1>
+    </div>
+
+    <div class="pagination buttons" for=packages>
+      <div class="button pagination-control first">First</div>
+      <div class="button pagination-control prev">Prev</div>
+
+      <div class="page-display pagination-control pageNum">1</div>
+      <div class="button pagination-control next">Next</div>
+      <div class="button pagination-control last">Last</div>
+    </div>
+  </div>
+  <div class="main subtab-content">
     <section class=tokens id=tokens></section>
 
-    <div class="pagination buttons" id=pagination>
-      <div class="button pagination-control" id=first>First</div>
-      <div class="button pagination-control" id=prev>Prev</div>
+    <div class="loader tokens-loader">
+      <h1>Loading...</h1>
+    </div>
 
-      <div class="page-display pagination-control" id=pageNumEl>1</div>
-      <div class="button pagination-control" id=next>Next</div>
-      <div class="button pagination-control" id=last>Last</div>
+    <div class="pagination buttons" for=tokens>
+      <div class="button pagination-control first">First</div>
+      <div class="button pagination-control prev">Prev</div>
+
+      <div class="page-display pagination-control pageNum">1</div>
+      <div class="button pagination-control next">Next</div>
+      <div class="button pagination-control last">Last</div>
     </div>
   </div>
 
@@ -90,117 +110,145 @@ let totalObjects = 0;
 let totalPages = 0;
 let objectResults = [];
 
-function drawCard(cardData) {
-  const {index, name, img, metadataHash, dataHash, modelHash} = cardData;
-  const div = document.createElement('div');
-  div.classList.add('token');
-  div.classList.add('card');
-  div.innerHTML = `\
-    <a href="/run.html?i=${index}">
-      <img src="${img}" width=256 height=256>
-    </a>
-    <div class=text>
-      <div class="name cardTitle">${name}</div>
-      <input type=text value="xrpk install ${index}" readonly class="cardCode">
-      <a href="/run.html?i=${index}" class="cardAction"><span>Run</span><i class="fa fa-chevron-right"></i></a>
-      <a href="https://cryptopolys.com/create.html?o=${encodeURIComponent(metadataHash)}" class="cardAction"><span>Edit</span><i class="fa fa-chevron-right"></i></a>
-      <a href="https://ipfs.exokit.org/ipfs/${dataHash}.wbn" class="cardAction"><span>Download package</span><i class="fa fa-chevron-right"></i></a>
-      <a href="https://ipfs.exokit.org/ipfs/${modelHash}.glb" class="cardAction"><span>Download model</span><i class="fa fa-chevron-right"></i></a>
-      <a href="https://${network}.opensea.io/assets/${address}/${index}" class="cardAction"><span>Opensea</span><i class="fa fa-chevron-right"></i></a>
-    </div>
-  `;
-  const input = div.querySelector('input');
-  input.addEventListener('click', e => {
-    input.select();
+const subtabs = Array.from(document.querySelectorAll('.subtab'));
+const subtabContents = Array.from(document.querySelectorAll('.subtab-content'));
+for (let i = 0; i < subtabs.length; i++) {
+  const subtab = subtabs[i];
+  const subtabContent = subtabContents[i];
+  subtab.addEventListener('click', e => {
+    for (let i = 0; i < subtabs.length; i++) {
+      subtabs[i].classList.remove('open');
+      subtabContents[i].classList.remove('open');
+    }
+
+    subtab.classList.add('open');
+    subtabContent.classList.add('open');
   });
-  tokens.appendChild(div);
 }
 
-async function setCurrentPage(pageNum) {
-  if (pageNum > totalPages) pageNum = totalPages;
-  if (pageNum < 0) pageNum = 0;
+const paginations = Array.from(document.querySelectorAll('.pagination'));
+paginations.forEach(pagination => {
+  const targetName = pagination.getAttribute('for');
+  const grid = document.getElementById(targetName);
+  const loader = document.querySelector('.' + targetName + '-loader');
+  const first = pagination.querySelector('.first');
+  const prev = pagination.querySelector('.prev');
+  const next = pagination.querySelector('.next');
+  const last = pagination.querySelector('.last');
+  const pageNumEl = pagination.querySelector('.pageNum');
 
-  let startIndex = pageNum * resultsPerPage;
-  let endIndex = (startIndex + resultsPerPage);
-  if (!startIndex) startIndex = 1
-  else startIndex += 1
-  if (endIndex >= totalObjects) endIndex = totalObjects;
-  currentPage = pageNum;
+  function drawCard(cardData) {
+    const {index, name, img, metadataHash, dataHash, modelHash} = cardData;
+    const div = document.createElement('div');
+    div.classList.add('token');
+    div.classList.add('card');
+    div.innerHTML = `\
+      <a href="/run.html?i=${index}">
+        <img src="${img}" width=256 height=256>
+      </a>
+      <div class=text>
+        <div class="name cardTitle">${name}</div>
+        <input type=text value="xrpk install ${index}" readonly class="cardCode">
+        <a href="/run.html?i=${index}" class="cardAction"><span>Run</span><i class="fa fa-chevron-right"></i></a>
+        <a href="https://cryptopolys.com/create.html?o=${encodeURIComponent(metadataHash)}" class="cardAction"><span>Edit</span><i class="fa fa-chevron-right"></i></a>
+        <a href="https://ipfs.exokit.org/ipfs/${dataHash}.wbn" class="cardAction"><span>Download package</span><i class="fa fa-chevron-right"></i></a>
+        <a href="https://ipfs.exokit.org/ipfs/${modelHash}.glb" class="cardAction"><span>Download model</span><i class="fa fa-chevron-right"></i></a>
+        <a href="https://${network}.opensea.io/assets/${address}/${index}" class="cardAction"><span>Opensea</span><i class="fa fa-chevron-right"></i></a>
+      </div>
+    `;
+    const input = div.querySelector('input');
+    input.addEventListener('click', e => {
+      input.select();
+    });
+    grid.appendChild(div);
+  }
 
-  tokens.style.display = 'none';
-  loader.style.display = 'block';
-  pagination.style.display = 'none';
-  objectResults = [];
-  tokens.innerHTML = '';
-  window.scrollTo(0, 0);
+  async function setCurrentPage(pageNum) {
+    if (pageNum > totalPages) pageNum = totalPages;
+    if (pageNum < 0) pageNum = 0;
 
-  for (let i = startIndex; i <= endIndex; i++) {
-    let object = await getObjectByIndex(i);
-    objectResults.push(object);
-    drawCard(object);
+    let startIndex = pageNum * resultsPerPage;
+    let endIndex = (startIndex + resultsPerPage);
+    if (!startIndex) startIndex = 1
+    else startIndex += 1
+    if (endIndex >= totalObjects) endIndex = totalObjects;
+    currentPage = pageNum;
 
-    if (i === startIndex) {
-      loader.style.display = 'none';
-      tokens.style.display = 'flex';
+    grid.style.display = 'none';
+    loader.style.display = 'block';
+    pagination.style.display = 'none';
+    objectResults = [];
+    grid.innerHTML = '';
+    window.scrollTo(0, 0);
+
+    for (let i = startIndex; i <= endIndex; i++) {
+      let object = await getObjectByIndex(i);
+      objectResults.push(object);
+      drawCard(object);
+
+      if (i === startIndex) {
+        loader.style.display = 'none';
+        grid.style.display = 'flex';
+      }
+    }
+
+    pageNumEl.innerHTML = `Page ${currentPage + 1}/${totalPages}`;
+    pagination.style.display = 'flex';
+  }
+
+  async function getObjectByIndex(index) {
+    const metadataHash = await contract.methods.getMetadata(index, 'hash').call();
+    const metadata = await fetch(`${apiHost}/${metadataHash}`).then(res => res.json());
+    const {dataHash, screenshotHash, modelHash} = metadata;
+    return {
+      index: index,
+      name: metadata.objectName,
+      img: `${apiHost}/${screenshotHash}`,
+      metadataHash: metadataHash,
+      dataHash: dataHash,
+      modelHash: modelHash
     }
   }
 
-  pageNumEl.innerHTML = `Page ${currentPage + 1}/${totalPages}`;
-  pagination.style.display = 'flex';
-}
+  // contract.init();
 
-async function getObjectByIndex(index) {
-  const metadataHash = await contract.methods.getMetadata(index, 'hash').call();
-  const metadata = await fetch(`${apiHost}/${metadataHash}`).then(res => res.json());
-  const {dataHash, screenshotHash, modelHash} = metadata;
-  return {
-    index: index,
-    name: metadata.objectName,
-    img: `${apiHost}/${screenshotHash}`,
-    metadataHash: metadataHash,
-    dataHash: dataHash,
-    modelHash: modelHash
-  }
-}
+  (async () => {
+    totalObjects = await contract.methods.getNonce().call();
+    totalObjects = parseInt(totalObjects, 10);
+    totalPages = Math.ceil(totalObjects / resultsPerPage);
 
-// contract.init();
+    for (let i = 1; i <= resultsPerPage; i++) {
+      let object = await getObjectByIndex(i);
+      objectResults.push(object);
+      drawCard(object);
 
-const tokens = document.getElementById('tokens');
-(async () => {
-  totalObjects = await contract.methods.getNonce().call();
-  totalObjects = parseInt(totalObjects, 10);
-  totalPages = Math.ceil(totalObjects / resultsPerPage);
-
-  for (let i = 1; i <= resultsPerPage; i++) {
-    let object = await getObjectByIndex(i);
-    objectResults.push(object);
-    drawCard(object);
-
-    if (i === 1) {
-      loader.style.display = 'none';
-      tokens.style.display = 'flex';
+      if (i === 1) {
+        loader.style.display = 'none';
+        grid.style.display = 'flex';
+      }
     }
-  }
 
-  pageNumEl.innerHTML = `Page ${currentPage + 1}/${totalPages}`;
-  pagination.style.display = 'flex';
+    pageNumEl.innerHTML = `Page ${currentPage + 1}/${totalPages}`;
+    pagination.style.display = 'flex';
 
-  prev.addEventListener('click', e => {
-    setCurrentPage(currentPage - 1);
-  });
+    prev.addEventListener('click', e => {
+      setCurrentPage(currentPage - 1);
+    });
 
-  next.addEventListener('click', e => {
-    setCurrentPage(currentPage + 1);
-  });
+    next.addEventListener('click', e => {
+      setCurrentPage(currentPage + 1);
+    });
 
-  first.addEventListener('click', e => {
-    setCurrentPage(0);
-  });
+    first.addEventListener('click', e => {
+      setCurrentPage(0);
+    });
 
-  last.addEventListener('click', e => {
-    setCurrentPage(totalPages - 1);
-  });
-})();
+    last.addEventListener('click', e => {
+      setCurrentPage(totalPages - 1);
+    });
+  })();
+
+});
 
 </script>
 </body>
