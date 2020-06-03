@@ -272,6 +272,9 @@ a:hover {
   display: flex;
   flex-direction: column;
 }
+.subcontent:not(.open) {
+  display: none;
+}
 
 .loader {
   text-align: center;
