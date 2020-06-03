@@ -1537,7 +1537,7 @@ export class XRPackage extends EventTarget {
       if (previewIcon) {
         const previewIconFile = this.files.find(file => new URL(file.url).pathname === '/' + previewIcon.src);
         if (previewIconFile) {
-          return await _loadFileScene(previewIconFile);
+          return await _loadGltfFileScene(previewIconFile);
         } else {
           return null;
         }
