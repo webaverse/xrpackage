@@ -11,6 +11,7 @@ window.THREE = THREE;
 import {XRPackage, XRPackageEngine} from './xrpackage.js';
 import {GLTFExporter} from './GLTFExporter.js';
 import {OrbitControls} from './xrpackage/OrbitControls.js';
+import {readFile} from './xrpackage/util.js';
 import {getWireframeMesh, getDefaultAabb, getPreviewMesh} from './volume.js';
 
 (async () => {
@@ -78,33 +79,35 @@ if (!aabb) {
     aabb = getDefaultAabb();
   }
 }
+aabb = [
+  aabb.min.toArray(),
+  aabb.max.toArray(),
+];
+
+const volumeData = await new Promise((accept, reject) => {
+  const exporter = new GLTFExporter();
+  const exportScene = new THREE.Scene();
+  exportScene.add(collisionMesh);
+  exporter.parse(exportScene, accept, {
+    binary: true,
+    includeCustomExtensions: true,
+  });
+});
+const volumeBlob = new Blob([volumeData], {
+  type: 'model/gltf-binary',
+});
 
 if (dstVolume) {
-  const data = await new Promise((accept, reject) => {
-    const exporter = new GLTFExporter();
-    const exportScene = new THREE.Scene();
-    exportScene.add(collisionMesh);
-    exporter.parse(exportScene, accept, {
-      binary: true,
-      includeCustomExtensions: true,
-    });
-  });
-  const blob = new Blob([data], {
-    type: 'model/gltf-binary',
-  });
   const res = await fetch(dstVolume, {
     method: 'PUT',
-    body: blob,
+    body: volumeBlob,
   });
   await res.blob();
 }
 if (dstAabb) {
   const res = await fetch(dstAabb, {
     method: 'PUT',
-    body: JSON.stringify([
-      aabb.min.toArray(),
-      aabb.max.toArray(),
-    ]),
+    body: JSON.stringify(aabb),
   });
   await res.blob();
 }
@@ -136,13 +139,23 @@ function animate(timestamp, frame) {
 }
 renderer.setAnimationLoop(animate);
 
-})().then(() => {
+return {
+  volumeBlob,
+  aabb,
+};
+
+})().then(async ({volumeBlob, aabb}) => {
   document.getElementById('text').innerText = 'Volumizing done. You can close this tab.';
+
+  const volumeArrayBuffer = await readFile(volumeBlob);
 
   window.parent.postMessage({
     method: 'result',
-    result: null,
-  }, '*');
+    result: {
+      volume: volumeArrayBuffer,
+      aabb,
+    },
+  }, '*', [volumeArrayBuffer.buffer]);
 }).catch(err => {
   console.warn(err.stack);
   document.getElementById('text').innerText = 'Error volumizing. You can close this tab.';
