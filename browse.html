@@ -140,22 +140,27 @@ paginations.forEach(pagination => {
 
   (async () => {
     if (srcName === 'ipfs') {
-      const drawPackage = p => {
-        const {hash, name, img, metadataHash, dataHash, modelHash} = p;
+      const drawPackage = (hash, p) => {
+        const {name, description, icons, dataHash} = p;
+
+        const gifIcon = icons.find(icon => icon.type === 'image/gif');
+        const gifIconSrc = gifIcon ? `${apiHost}/${gifIcon.hash}.gif` : '';
+        const glbIcon = icons.find(icon => icon.type === 'model/gltf-binary');
+        const glbIconSrc = glbIcon ? `${apiHost}/${glbIcon.hash}.glb` : '';
+
         const div = document.createElement('div');
         div.classList.add('token');
         div.classList.add('card');
         div.innerHTML = `\
           <a href="/inspect.html?h=${hash}">
-            <img src="${img}" width=256 height=256>
+            ${gifIconSrc ? `<img src="${gifIconSrc}" width=256 height=256>` : '<img>'}
           </a>
           <div class=text>
             <div class="name cardTitle">${name}</div>
             <input type=text value="xrpk install ${hash}" readonly class="cardCode">
             <a href="/run.html?h=${hash}" class="cardAction"><span>Run</span><i class="fa fa-chevron-right"></i></a>
-            <a href="https://cryptopolys.com/create.html?o=${encodeURIComponent(metadataHash)}" class="cardAction"><span>Edit</span><i class="fa fa-chevron-right"></i></a>
             <a href="https://ipfs.exokit.org/ipfs/${dataHash}.wbn" class="cardAction"><span>Download package</span><i class="fa fa-chevron-right"></i></a>
-            <a href="https://ipfs.exokit.org/ipfs/${modelHash}.glb" class="cardAction"><span>Download model</span><i class="fa fa-chevron-right"></i></a>
+            ${glbIconSrc ? `<a href="${glbIconSrc}" class="cardAction"><span>Download model</span><i class="fa fa-chevron-right"></i></a>` : ''}
           </div>
         `;
         const input = div.querySelector('input');
@@ -172,8 +177,9 @@ paginations.forEach(pagination => {
           .then(res => res.json())
       ));
       for (let i = 0; i < ps.length; i++) {
+        const hash = children[i];
         const p = ps[i];
-        drawPackage(p);
+        drawPackage(hash, p);
       }
       loader.style.display = 'none';
       grid.style.display = 'flex';
