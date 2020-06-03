@@ -464,13 +464,24 @@ const wireframeMaterial = new THREE.ShaderMaterial({
     iframe.style.top = '-10000px';
     iframe.style.left = '-10000px';
     iframe.style.visibility = 'hidden';
-    iframe.addEventListener('load', e => {
-      console.log('got load', e);
-    });
-    iframe.addEventListener('error', e => {
-      console.warn(e);
-    });
     document.body.appendChild(iframe);
+    const {screenshot, volume, aabb} = await new Promise((accept, reject) => {
+      iframe.addEventListener('load', e => {
+        const _message = e => {
+          if (e.data && e.data.method === 'result') {
+            accept(e.data.result);
+            window.removeEventListener('message', _message);
+          } else if (e.data && e.data.method === 'error') {
+            reject(e.data.error);
+            window.removeEventListener('message', _message);
+          }
+        };
+        window.addEventListener('message', _message);
+      });
+      iframe.addEventListener('error', err => {
+        reject(err);
+      });
+    });
   });
   const publishPackageButton = document.getElementById('publish-package-button');
   publishPackageButton.addEventListener('click', async e => {
