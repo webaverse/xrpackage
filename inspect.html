@@ -139,6 +139,7 @@
 import './selector.js';
 import {XRPackage, XRPackageEngine} from './xrpackage.js';
 import {downloadFile, readFile, bindUploadFileButton} from './xrpackage/util.js';
+import {getWireframeMesh} from './volume.js';
 import {OrbitControls} from './xrpackage/OrbitControls.js';
 import address from 'https://contracts.webaverse.com/address.js';
 import abi from 'https://contracts.webaverse.com/abi.js';
@@ -267,39 +268,6 @@ const wireframeMaterial = new THREE.ShaderMaterial({
     derivatives: true,
   },
 });
-const _getWireframeMesh = o => {
-  let firstMesh = null;
-  o.traverse(o => {
-    if (firstMesh === null && o.isMesh) {
-      firstMesh = o;
-    }
-  });
-
-  if (firstMesh) {
-    const geometry = firstMesh.geometry.toNonIndexed();
-    const barycentrics = (() => {
-      const barycentrics = new Float32Array(geometry.attributes.position.array.length);
-      for (let i = 0; i < barycentrics.length;) {
-        barycentrics[i++] = 1;
-        barycentrics[i++] = 0;
-        barycentrics[i++] = 0;
-        barycentrics[i++] = 0;
-        barycentrics[i++] = 1;
-        barycentrics[i++] = 0;
-        barycentrics[i++] = 0;
-        barycentrics[i++] = 0;
-        barycentrics[i++] = 1;
-      }
-      return barycentrics;
-    })();
-    geometry.setAttribute('barycentric', new THREE.BufferAttribute(barycentrics, 3));
-    const mesh = new THREE.Mesh(geometry, wireframeMaterial);
-    mesh.frustumCulled = false;
-    return mesh;
-  } else {
-    return null;
-  }
-};
 
 (async () => {
   function parseQuery(queryString) {
@@ -361,8 +329,10 @@ const _getWireframeMesh = o => {
     const {renderer, scene, camera} = _makeScene();
 
     const volumeMesh = await p.getVolumeMesh();
-    const wireframeMesh = _getWireframeMesh(volumeMesh);
-    scene.add(wireframeMesh);
+    if (volumeMesh) {
+      const wireframeMesh = getWireframeMesh(volumeMesh);
+      scene.add(wireframeMesh);
+    }
 
     const orbitControls = new OrbitControls(camera, renderer.domElement, document);
     orbitControls.screenSpacePanning = true;
