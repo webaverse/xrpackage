@@ -136,9 +136,19 @@
   window.THREE = THREE;
 </script>
 <script type="module">
+import './selector.js';
 import {XRPackage, XRPackageEngine} from './xrpackage.js';
 import {downloadFile, readFile, bindUploadFileButton} from './xrpackage/util.js';
 import {OrbitControls} from './xrpackage/OrbitControls.js';
+import address from 'https://contracts.webaverse.com/address.js';
+import abi from 'https://contracts.webaverse.com/abi.js';
+
+const apiHost = `https://ipfs.exokit.org/ipfs`;
+const network = 'rinkeby';
+const infuraApiKey = '4fb939301ec543a0969f3019d74f80c2';
+const rpcUrl = `https://${network}.infura.io/v3/${infuraApiKey}`;
+const web3 = new Web3(new Web3.providers.HttpProvider(rpcUrl));
+const contract = new web3.eth.Contract(abi, address);
 
 const subtabs = Array.from(document.querySelectorAll('.subtab'));
 const subcontents = Array.from(document.querySelectorAll('.subcontent'));
