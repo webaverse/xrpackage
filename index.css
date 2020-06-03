@@ -786,13 +786,14 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 .tokens > .token {
   display: flex;
   position: relative;
-  flex-direction: column;
+  width: 256px;
   margin-right: 15px;
   margin-bottom: 15px;
   border: 1px solid #EEE;
   border-radius: 7px;
+  flex-direction: column;
   overflow: hidden;
-  max-height: 480px;
+  /* max-height: 480px; */
 }
 
 .tokens > .token > img {
@@ -1148,6 +1149,8 @@ header.unlocking + .main .blocker .button
 
 .cardTitle {
   font-size: 18px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .cardCode {
