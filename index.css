@@ -789,11 +789,16 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   width: 256px;
   margin-right: 15px;
   margin-bottom: 15px;
-  border: 1px solid #EEE;
+  background-color: #EEE;
+  /* border: 1px solid #EEE; */
   border-radius: 7px;
   flex-direction: column;
   overflow: hidden;
   /* max-height: 480px; */
+}
+
+.tokens > .token:hover {
+  filter: invert(1);
 }
 
 .tokens > .token > img {
@@ -825,17 +830,18 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 
 .tokens > .token input {
   padding: 5px;
-  background-color: #EEE;
-  border: 1px solid transparent;
+  background-color: #FFF;
+  /* border: 1px solid transparent; */
+  border: 0;
   border-radius: 5px;
   font-family: monospace;
   font-size: inherit;
 }
 
 .tokens > .token input:focus {
-  border-color: #000;
-  background-color: #FFF;
-  outline: none;
+  /* border-color: #000; */
+  /* background-color: #FFF; */
+  /* outline: none; */
 }
 
 .big-buttons {
@@ -1138,14 +1144,14 @@ header.unlocking + .main .blocker .button
   flex-direction: column;
 }
 
-.card {
+/* .card {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
   transition: all 0.3s cubic-bezier(.25, .8, .25, 1);
 }
 
 .card:hover {
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1), 0 3px 10px rgba(0, 0, 0, 0.2);
-}
+} */
 
 .cardTitle {
   font-size: 18px;
