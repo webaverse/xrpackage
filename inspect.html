@@ -315,15 +315,16 @@ const wireframeMaterial = new THREE.ShaderMaterial({
     views.appendChild(canvas);
   }
   {
-    const screenshotImage = await p.getScreenshotImage();
-    if (screenshotImage) {
-      screenshotImage.style.width = `${size}px`;
-      screenshotImage.style.height = `${size}px`;
-      screenshotImage.style.objectFit = 'contain';
-      screenshotImage.classList.add('side-content');
-      screenshotImage.classList.add('view');
-      views.appendChild(screenshotImage);
+    let screenshotImage = await p.getScreenshotImage();
+    if (!screenshotImage) {
+      screenshotImage = document.createElement('img');
     }
+    screenshotImage.style.width = `${size}px`;
+    screenshotImage.style.height = `${size}px`;
+    screenshotImage.style.objectFit = 'contain';
+    screenshotImage.classList.add('side-content');
+    screenshotImage.classList.add('view');
+    views.appendChild(screenshotImage);
   }
   {
     const {renderer, scene, camera} = _makeScene();
