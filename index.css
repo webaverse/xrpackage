@@ -1349,6 +1349,22 @@ header.unlocking + .main .blocker .button
   align-items: center;
 }
 
+.mode {
+  display: flex;
+  flex-direction: column;
+}
+.mode:not(.open) {
+  display: none;
+}
+
+.create-ui {
+  display: flex;
+  margin-left: 130px;
+  margin-top: 15px;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
 .error {
   font-family: monospace;
   white-space: nowrap;
