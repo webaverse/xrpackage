@@ -26,6 +26,10 @@ a:hover {
   color: var(--color3);
 }
 
+img:not([src]) {
+  visibility: hidden;
+}
+
 .header
 {
   position: fixed;
