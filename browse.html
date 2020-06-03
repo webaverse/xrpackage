@@ -101,7 +101,6 @@ const network = 'rinkeby';
 const infuraApiKey = '4fb939301ec543a0969f3019d74f80c2';
 const rpcUrl = `https://${network}.infura.io/v3/${infuraApiKey}`;
 const web3 = new Web3(new Web3.providers.HttpProvider(rpcUrl));
-// window.web3 = web3;
 const contract = new web3.eth.Contract(abi, address);
 
 const resultsPerPage = 10;
