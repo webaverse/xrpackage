@@ -270,6 +270,8 @@ a:hover {
 
 .subcontent {
   display: flex;
+  padding: 0 30px;
+  max-height: 100vh;
   flex-direction: column;
 }
 .subcontent:not(.open) {
@@ -1170,7 +1172,7 @@ header.unlocking + .main .blocker .button
   flex: 1;
 }
 
-.subcontent {
+.subpage-wrap {
   display: flex;
   padding: 0 30px;
   max-height: 100vh;
