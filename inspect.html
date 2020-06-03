@@ -114,6 +114,10 @@
         <span class=label>Magically create a package from file (.gltf, .glb, .vrm, .html)</span>
       </div>
       <div class=export-button>
+        <nav class=button id=bake-package-button>Bake package</nav>
+        <span class=label>Create screenshot and collision mesh icons for this package</span>
+      </div>
+      <div class=export-button>
         <nav class=button id=publish-package-button>Publish package</nav>
         <span class=label>Publish package to IPFS</span>
       </div>
@@ -448,6 +452,25 @@ const wireframeMaterial = new THREE.ShaderMaterial({
     const p = new XRPackage(uint8Array);
     await p.waitForLoad();
     console.log('got new package', p);
+  });
+  const bakePackageButton = document.getElementById('bake-package-button');
+  bakePackageButton.addEventListener('click', async e => {
+    const b = new Blob([p.data], {
+      type: 'application/webbundle',
+    });
+    const srcWbn = URL.createObjectURL(b);
+    const iframe = document.createElement('iframe');
+    iframe.src = `bake.html?srcWbn=${srcWbn}`;
+    iframe.style.top = '-10000px';
+    iframe.style.left = '-10000px';
+    iframe.style.visibility = 'hidden';
+    iframe.addEventListener('load', e => {
+      console.log('got load', e);
+    });
+    iframe.addEventListener('error', e => {
+      console.warn(e);
+    });
+    document.body.appendChild(iframe);
   });
   const publishPackageButton = document.getElementById('publish-package-button');
   publishPackageButton.addEventListener('click', async e => {
