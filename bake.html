@@ -19,7 +19,7 @@ const {srcWbn, dstGif, dstVolume, dstAabb} = parseQuery(window.location.search);
 
 await new Promise((accept, reject) => {
   const iframe = document.createElement('iframe');
-  iframe.src = `screenshot.html?srcWbn=${srcWbn}&dstGif=${dstGif}`;
+  iframe.src = `screenshot.html?srcWbn=${srcWbn}${dstGif ? `&dstGif=${dstGif}` : ''}`;
   document.body.appendChild(iframe);
   const _message = e => {
     if (e.data && e.data.method === 'result') {
@@ -34,7 +34,7 @@ await new Promise((accept, reject) => {
 });
 await new Promise((accept, reject) => {
   const iframe = document.createElement('iframe');
-  iframe.src = `volume.html?srcWbn=${srcWbn}&dstVolume=${dstVolume}&dstAabb=${dstAabb}`;
+  iframe.src = `volume.html?srcWbn=${srcWbn}${dstVolume ? `&dstVolume=${dstVolume}` : ''}${dstAabb ? `&dstAabb=${dstAabb}` : ''}`;
   document.body.appendChild(iframe);
   const _message = e => {
     if (e.data && e.data.method === 'result') {
