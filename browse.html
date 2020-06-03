@@ -141,22 +141,21 @@ paginations.forEach(pagination => {
   (async () => {
     if (srcName === 'ipfs') {
       const drawPackage = p => {
-        const {index, name, img, metadataHash, dataHash, modelHash} = p;
+        const {hash, name, img, metadataHash, dataHash, modelHash} = p;
         const div = document.createElement('div');
         div.classList.add('token');
         div.classList.add('card');
         div.innerHTML = `\
-          <a href="/inspect.html?i=${index}">
+          <a href="/inspect.html?h=${hash}">
             <img src="${img}" width=256 height=256>
           </a>
           <div class=text>
             <div class="name cardTitle">${name}</div>
-            <input type=text value="xrpk install ${index}" readonly class="cardCode">
-            <a href="/run.html?i=${index}" class="cardAction"><span>Run</span><i class="fa fa-chevron-right"></i></a>
+            <input type=text value="xrpk install ${hash}" readonly class="cardCode">
+            <a href="/run.html?h=${hash}" class="cardAction"><span>Run</span><i class="fa fa-chevron-right"></i></a>
             <a href="https://cryptopolys.com/create.html?o=${encodeURIComponent(metadataHash)}" class="cardAction"><span>Edit</span><i class="fa fa-chevron-right"></i></a>
             <a href="https://ipfs.exokit.org/ipfs/${dataHash}.wbn" class="cardAction"><span>Download package</span><i class="fa fa-chevron-right"></i></a>
             <a href="https://ipfs.exokit.org/ipfs/${modelHash}.glb" class="cardAction"><span>Download model</span><i class="fa fa-chevron-right"></i></a>
-            <a href="https://${network}.opensea.io/assets/${address}/${index}" class="cardAction"><span>Opensea</span><i class="fa fa-chevron-right"></i></a>
           </div>
         `;
         const input = div.querySelector('input');
