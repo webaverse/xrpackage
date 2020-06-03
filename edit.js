@@ -1411,7 +1411,7 @@ const _renderObjects = () => {
         <h1><nav class=back-button><i class="fa fa-arrow-left"></i></nav>${p.name}</h1>
         <nav class="button reload-button">Reload</nav>
         <nav class="button wear-button">Wear</nav>
-        <nav class="button publish-button">Publish</nav>
+        <nav class="button inspect-button">Inspect</nav>
         <nav class="button remove-button">Remove</nav>
         <b>Position</b>
         <div class=row>
@@ -1492,24 +1492,13 @@ const _renderObjects = () => {
       selectedObject = null;
       _renderObjects();
     });
-    const publishButton = objectsEl.querySelector('.publish-button');
-    publishButton.addEventListener('click', async e => {
-      const hash = await p.upload();
-      p = {
-        name: p.name,
-        hash,
-      };
-      const res = await fetch(packagesEndpoint + '/' + hash, {
-        method: 'PUT',
-        body: JSON.stringify(p),
+    const inspectButton = objectsEl.querySelector('.inspect-button');
+    inspectButton.addEventListener('click', async e => {
+      const b = new Blob([p.data], {
+        type: 'application/webbundle',
       });
-      if (res.ok) {
-        packages.innerHTML += '\n' + _makePackageHtml(p);
-        const ps = Array.from(packages.querySelectorAll('.package'));
-        Array.from(packages.querySelectorAll('.package')).forEach(p => _bindPackage(p));
-      } else {
-        console.warn('invalid status code: ' + res.status);
-      }
+      const u = URL.createObjectURL(b);
+      window.open(`inspect.html?u=${u}`, '_blank');
     });
     const reloadButton = objectsEl.querySelector('.reload-button');
     reloadButton.addEventListener('click', async e => {
