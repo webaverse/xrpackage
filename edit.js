@@ -213,7 +213,7 @@ function animate(timestamp, frame) {
             localVector.z -= 0.015;
           }
           pe.matrix.decompose(localVector2, localQuaternion, localVector3);
-          const xrCamera = pe.renderer.xr.getCamera(pe.camera);
+          const xrCamera = renderer.xr.getCamera(pe.camera);
           localQuaternion2.copy(xrCamera.quaternion).premultiply(localQuaternion);
           localEuler.setFromQuaternion(localQuaternion2, 'YXZ');
           localEuler.x = 0;
@@ -223,7 +223,7 @@ function animate(timestamp, frame) {
           pe.setMatrix(localMatrix.compose(localVector2, localQuaternion, localVector3));
         } else if (handedness === 'right') {
           const _applyRotation = r => {
-            const xrCamera = pe.renderer.xr.getCamera(pe.camera);
+            const xrCamera = renderer.xr.getCamera(pe.camera);
             localMatrix
               .copy(xrCamera.matrix)
               .premultiply(pe.matrix)
