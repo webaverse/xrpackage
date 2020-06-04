@@ -9,7 +9,7 @@ import address from 'https://contracts.webaverse.com/address.js';
 import abi from 'https://contracts.webaverse.com/abi.js';
 import {pe, renderer, scene, camera, container, floorMesh, getSession} from './run.js';
 import {downloadFile, readFile, bindUploadFileButton} from './xrpackage/util.js';
-import {getWireframeMesh} from './volume.js';
+import {getWireframeMesh, getRaycastMesh, VolumeRaycaster} from './volume.js';
 
 const apiHost = `https://ipfs.exokit.org/ipfs`;
 const presenceEndpoint = `wss://presence.exokit.org`;
@@ -127,6 +127,15 @@ const _makeVolumeMesh = async p => {
   if (volumeMesh) {
     volumeMesh.frustumCulled = false;
     return volumeMesh;
+  } else {
+    return new THREE.Object3D();
+  }
+};
+const _makeRaycastMesh = async p => {
+  const volumeMesh = await p.getVolumeMesh();
+  if (volumeMesh) {
+    const raycastMesh = getRaycastMesh(volumeMesh, p.id);
+    return raycastMesh;
   } else {
     return new THREE.Object3D();
   }
@@ -313,6 +322,8 @@ function animate(timestamp, frame) {
 }
 renderer.setAnimationLoop(animate);
 renderer.xr.setSession(pe.fakeSession);
+
+const volumeRaycaster = new VolumeRaycaster();
 
 bindUploadFileButton(document.getElementById('import-scene-input'), async file => {
   const uint8Array = await readFile(file);
@@ -662,6 +673,9 @@ const _unvolumePackage = p => {
     scene.remove(p.volumeMesh);
   }
 };
+const _preparePackageRaycast = async p => {
+  p.raycastMesh = await _makeRaycastMesh(p);
+};
 const _unbindSelectTargets = () => {
   for (let i = 0; i < selectTargets.length; i++) {
     const selectTarget = selectTargets[i];
@@ -735,6 +749,7 @@ pe.addEventListener('packageadd', async e => {
   if (shieldLevel === 1) {
     await _volumePackage(p);
   }
+  await _preparePackageRaycast(p);
   _renderObjects();
 
   if (channelConnection) {
@@ -879,7 +894,16 @@ const raycaster = new THREE.Raycaster();
 const _updateRaycasterFromMouseEvent = (raycaster, e) => {
   const mouse = new THREE.Vector2(( ( e.clientX ) / window.innerWidth ) * 2 - 1, - ( ( e.clientY ) / window.innerHeight ) * 2 + 1);
   raycaster.setFromCamera(mouse, pe.camera);
-  // raycaster.ray.origin.add(raycaster.ray.direction);
+  const candidateMeshes = pe.packages
+    .map(p => p.raycastMesh)
+    .filter(o => !!o);
+  const intersectMesh = volumeRaycaster.raycastMeshes(candidateMeshes, raycaster.ray.origin, raycaster.ray.direction);
+
+  if (intersectMesh) {
+    hoverTarget = intersectMesh;
+  } else {
+    hoverTarget = null;
+  }
 };
 const _updateMouseMovement = e => {
   const {movementX, movementY} = e;
@@ -915,7 +939,7 @@ renderer.domElement.addEventListener('mousemove', e => {
   } else if (selectedTool === 'select' && !getSession()) {
     _updateRaycasterFromMouseEvent(raycaster, e);
 
-    hoverTarget = null;
+    /* hoverTarget = null;
     if (shieldLevel === 0) {
       for (let i = 0; i < pe.packages.length; i++) {
         const p = pe.packages[i];
@@ -927,7 +951,7 @@ renderer.domElement.addEventListener('mousemove', e => {
           break;
         }
       }
-    }
+    } */
   }
 });
 renderer.domElement.addEventListener('click', e => {

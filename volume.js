@@ -69,14 +69,17 @@ const wireframeMaterial = new THREE.ShaderMaterial({
     derivatives: true,
   },
 });
-export function getWireframeMesh(o) {
+const _getFirstMesh = o => {
   let firstMesh = null;
   o.traverse(o => {
     if (firstMesh === null && o.isMesh) {
       firstMesh = o;
     }
   });
-
+  return firstMesh;
+}
+export function getWireframeMesh(o) {
+  const firstMesh = _getFirstMesh(o);
   if (firstMesh) {
     const geometry = firstMesh.geometry.toNonIndexed();
     const barycentrics = (() => {
@@ -131,25 +134,72 @@ const idMaterial = new THREE.ShaderMaterial({
 });
 
 export function getRaycastMesh(o, meshId) {
-  const geometry = new THREE.BufferGeometry();
-  geometry.addAttribute('position', new THREE.BufferAttribute(o.geometry.attributes.position.array, 3));
-  const c = Uint8Array.from([
-    ((meshId >> 16) & 0xFF),
-    ((meshId >> 8) & 0xFF),
-    (meshId & 0xFF),
-  ]);
-  const numPositions = o.geometry.attributes.position.array.length;
-  const ids = new Uint8Array(numPositions);
-  for (let i = 0; i < numPositions; i += 3) {
-    ids.set(c, i);
+  const firstMesh = _getFirstMesh(o);
+  if (firstMesh) {
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(firstMesh.geometry.attributes.position.array, 3));
+    const c = Uint8Array.from([
+      ((meshId >> 16) & 0xFF),
+      ((meshId >> 8) & 0xFF),
+      (meshId & 0xFF),
+    ]);
+    const numPositions = firstMesh.geometry.attributes.position.array.length;
+    const ids = new Uint8Array(numPositions);
+    for (let i = 0; i < numPositions; i += 3) {
+      ids.set(c, i);
+    }
+    geometry.setAttribute('id', new THREE.BufferAttribute(ids, 3, true));
+    if (firstMesh.geometry.index) {
+      geometry.setIndex(new THREE.BufferAttribute(firstMesh.geometry.index.array, 1));
+    }
+    const mesh = new THREE.Mesh(geometry, idMaterial);
+    mesh.meshId = meshId;
+    mesh.frustumCulled = false;
+    return mesh;
+  } else {
+    return o;
   }
-  o.geometry.setAttribute('id', new THREE.BufferAttribute(ids, 3, true));
-  if (o.geometry.index) {
-    geometry.setIndex(new THREE.BufferAttribute(o.geometry.index.array, 1));
+}
+export class VolumeRaycaster {
+  constructor() {
+    this.renderer = new THREE.WebGLRenderer({
+      alpha: true,
+    });
+    this.renderer.setSize(1, 1);
+    this.renderer.setPixelRatio(1);
+    this.renderer.setClearColor(new THREE.Color(0xFFFFFF), 1);
+    this.scene = new THREE.Scene();
+    this.camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
+    this.pixels = new Uint8Array(4);
   }
-  const mesh = new THREE.Mesh(geometry, idMaterial);
-  mesh.frustumCulled = false;
-  return mesh;
+  raycastMeshes(meshes, origin, direction) {
+    for (let i = 0; i < meshes.length; i++) {
+      this.scene.add(meshes[i]);
+    }
+
+    this.camera.position.copy(origin);
+    this.camera.quaternion.setFromUnitVectors(localVector.set(0, 0, -1), direction);
+    this.camera.updateMatrixWorld();
+
+    this.renderer.render(this.scene, this.camera);
+
+    for (let i = 0; i < meshes.length; i++) {
+      const mesh = meshes[i];
+      mesh.parent.remove(mesh);
+    }
+
+    const gl = this.renderer.getContext();
+    gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
+    let result;
+    if (this.pixels[3] === 0) {
+      const meshId = (this.pixels[0] << 16) | (this.pixels[1] << 8) | this.pixels[2];
+      result = meshes.find(mesh => mesh.meshId === meshId) || null;
+    } else {
+      result = null;
+    }
+
+    return result;
+  }
 }
 
 const modulePromise = makePromise();
