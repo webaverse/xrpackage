@@ -133,31 +133,21 @@ const idMaterial = new THREE.ShaderMaterial({
   side: THREE.DoubleSide,
 });
 
-export function getRaycastMesh(o, meshId) {
+export function decorateRaycastMesh(o, meshId) {
   const firstMesh = _getFirstMesh(o);
   if (firstMesh) {
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.BufferAttribute(firstMesh.geometry.attributes.position.array, 3));
+    const {geometry} = firstMesh;
     const c = Uint8Array.from([
       ((meshId >> 16) & 0xFF),
       ((meshId >> 8) & 0xFF),
       (meshId & 0xFF),
     ]);
-    const numPositions = firstMesh.geometry.attributes.position.array.length;
+    const numPositions = geometry.attributes.position.array.length;
     const ids = new Uint8Array(numPositions);
     for (let i = 0; i < numPositions; i += 3) {
       ids.set(c, i);
     }
     geometry.setAttribute('id', new THREE.BufferAttribute(ids, 3, true));
-    if (firstMesh.geometry.index) {
-      geometry.setIndex(new THREE.BufferAttribute(firstMesh.geometry.index.array, 1));
-    }
-    const mesh = new THREE.Mesh(geometry, idMaterial);
-    mesh.meshId = meshId;
-    mesh.frustumCulled = false;
-    return mesh;
-  } else {
-    return o;
   }
 }
 export class VolumeRaycaster {
@@ -169,10 +159,12 @@ export class VolumeRaycaster {
     this.renderer.setPixelRatio(1);
     this.renderer.setClearColor(new THREE.Color(0xFFFFFF), 1);
     this.scene = new THREE.Scene();
+    this.scene.overrideMaterial = idMaterial;
     this.camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
     this.pixels = new Uint8Array(4);
   }
   raycastMeshes(meshes, origin, direction) {
+    const oldParents = meshes.map(mesh => mesh.parent);
     for (let i = 0; i < meshes.length; i++) {
       this.scene.add(meshes[i]);
     }
@@ -185,7 +177,12 @@ export class VolumeRaycaster {
 
     for (let i = 0; i < meshes.length; i++) {
       const mesh = meshes[i];
-      mesh.parent.remove(mesh);
+      const oldParent = oldParents[i];
+      if (oldParent) {
+        oldParent.add(mesh);
+      } else {
+        mesh.parent.remove(mesh);
+      }
     }
 
     const gl = this.renderer.getContext();

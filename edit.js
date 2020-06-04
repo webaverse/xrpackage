@@ -2,14 +2,13 @@ import * as THREE from './xrpackage/three.module.js';
 import {XRPackageEngine, XRPackage} from './xrpackage.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import {TransformControls} from './TransformControls.js';
-import {OutlineEffect} from './OutlineEffect.js';
 import {XRChannelConnection} from 'https://metartc.com/xrrtc.js';
 import {JSONClient} from 'https://sync.webaverse.com/sync-client.js';
 import address from 'https://contracts.webaverse.com/address.js';
 import abi from 'https://contracts.webaverse.com/abi.js';
 import {pe, renderer, scene, camera, container, floorMesh, getSession} from './run.js';
 import {downloadFile, readFile, bindUploadFileButton} from './xrpackage/util.js';
-import {getWireframeMesh, getRaycastMesh, VolumeRaycaster} from './volume.js';
+import {getWireframeMesh, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 
 const apiHost = `https://ipfs.exokit.org/ipfs`;
 const presenceEndpoint = `wss://presence.exokit.org`;
@@ -127,15 +126,6 @@ const _makeVolumeMesh = async p => {
   if (volumeMesh) {
     volumeMesh.frustumCulled = false;
     return volumeMesh;
-  } else {
-    return new THREE.Object3D();
-  }
-};
-const _makeRaycastMesh = async p => {
-  const volumeMesh = await p.getVolumeMesh();
-  if (volumeMesh) {
-    const raycastMesh = getRaycastMesh(volumeMesh, p.id);
-    return raycastMesh;
   } else {
     return new THREE.Object3D();
   }
@@ -308,6 +298,19 @@ function animate(timestamp, frame) {
     }
   } else {
     pe.setRigMatrix(null);
+  }
+
+  const isVisible = shieldLevel === 2;
+  const isTarget = shieldLevel === 0 && selectedTool !== 'select';
+  const isVolume = shieldLevel === 1 || selectedTool === 'select';
+  for (const p of pe.packages) {
+    p.visible = isVisible;
+    if (p.placeholderBox) {
+      p.placeholderBox.visible = isTarget;
+    }
+    if (p.volumeMesh) {
+      p.volumeMesh.visible = isVolume;
+    }
   }
 
   renderer.render(scene, camera);
@@ -642,39 +645,25 @@ document.getElementById('export-scene-button').addEventListener('click', async e
   });
   downloadFile(b, 'scene.wbn');
 });
-const _placeholdPackage = async p => {
-  p.visible = false;
+const _ensurePlaceholdMesh = p => {
   if (!p.placeholderBox) {
     p.placeholderBox = _makeTargetMesh();
     p.placeholderBox.package = p;
     p.placeholderBox.matrix.copy(p.matrix).decompose(p.placeholderBox.position, p.placeholderBox.quaternion, p.placeholderBox.scale);
-  }
-  scene.add(p.placeholderBox);
-};
-const _unplaceholdPackage = p => {
-  p.visible = true;
-  if (p.placeholderBox) {
-    scene.remove(p.placeholderBox);
+    p.placeholderBox.visible = false;
+    scene.add(p.placeholderBox);
   }
 };
-const _volumePackage = async p => {
-  p.visible = false;
+const _ensureVolumeMesh = async p => {
   if (!p.volumeMesh) {
     p.volumeMesh = await _makeVolumeMesh(p);
     p.volumeMesh = getWireframeMesh(p.volumeMesh);
+    decorateRaycastMesh(p.volumeMesh, p.id);
     p.volumeMesh.package = p;
     p.volumeMesh.matrix.copy(p.matrix).decompose(p.volumeMesh.position, p.volumeMesh.quaternion, p.volumeMesh.scale);
+    p.volumeMesh.visible = false;
+    scene.add(p.volumeMesh);
   }
-  scene.add(p.volumeMesh);
-};
-const _unvolumePackage = p => {
-  p.visible = true;
-  if (p.volumeMesh) {
-    scene.remove(p.volumeMesh);
-  }
-};
-const _preparePackageRaycast = async p => {
-  p.raycastMesh = await _makeRaycastMesh(p);
 };
 const _unbindSelectTargets = () => {
   for (let i = 0; i < selectTargets.length; i++) {
@@ -683,26 +672,18 @@ const _unbindSelectTargets = () => {
   }
 };
 const shieldSlider = document.getElementById('shield-slider');
-let shieldLevel = shieldSlider.value;
+let shieldLevel = parseInt(shieldSlider.value, 10);
 shieldSlider.addEventListener('change', async e => {
   const newShieldLevel = parseInt(e.target.value, 10);
   const {packages} = pe;
   switch (newShieldLevel) {
     case 0: {
-      for (const p of packages) {
-        _unvolumePackage(p);
-        await _placeholdPackage(p);
-      }
       shieldLevel = newShieldLevel;
       hoverTarget = null;
       selectTargets = [];
       break;
     }
     case 1: {
-      for (const p of packages) {
-        _unplaceholdPackage(p);
-        await _volumePackage(p);
-      }
       _unbindSelectTargets();
       shieldLevel = newShieldLevel;
       hoverTarget = null;
@@ -710,10 +691,6 @@ shieldSlider.addEventListener('change', async e => {
       break;
     }
     case 2: {
-      for (const p of packages) {
-        _unplaceholdPackage(p);
-        _unvolumePackage(p);
-      }
       _unbindSelectTargets();
       shieldLevel = newShieldLevel;
       hoverTarget = null;
@@ -743,13 +720,8 @@ pe.packages.forEach(p => {
 pe.addEventListener('packageadd', async e => {
   const p = e.data;
 
-  if (shieldLevel === 0) {
-    await _placeholdPackage(p);
-  }
-  if (shieldLevel === 1) {
-    await _volumePackage(p);
-  }
-  await _preparePackageRaycast(p);
+  _ensurePlaceholdMesh(p);
+  await _ensureVolumeMesh(p);
   _renderObjects();
 
   if (channelConnection) {
@@ -784,19 +756,6 @@ pe.addEventListener('packageremove', e => {
 
 let hoverTarget = null;
 let selectTargets = [];
-
-const hoverOutlineEffect = new OutlineEffect(renderer, {
-  defaultThickness: 0.01,
-  defaultColor: new THREE.Color(0x42a5f5).toArray(),
-  defaultAlpha: 0.5,
-  // defaultKeepAlive: false,//true,
-});
-const selectOutlineEffect = new OutlineEffect(renderer, {
-  defaultThickness: 0.01,
-  defaultColor: new THREE.Color(0x66bb6a).toArray(),
-  defaultAlpha: 0.5,
-  // defaultKeepAlive: false,//true,
-});
 
 let transformControlsHovered = false;
 const _bindTransformControls = o => {
@@ -857,60 +816,14 @@ const _unbindTransformControls = o => {
   transformControlsHovered = false;
 };
 
-let renderingOutline = false;
-const outlineScene = new THREE.Scene();
-scene.onAfterRender = () => {
-  if (renderingOutline) return;
-  renderingOutline = true;
-
-  outlineScene.position.copy(container.position);
-  outlineScene.quaternion.copy(container.quaternion);
-  outlineScene.scale.copy(container.scale);
-
-  let oldHoverParent;
-  if (hoverTarget) {
-    oldHoverParent = hoverTarget.parent;
-    outlineScene.add(hoverTarget);
-  }
-  hoverOutlineEffect.renderOutline(outlineScene, camera);
-  if (oldHoverParent) {
-    oldHoverParent.add(hoverTarget);
-  } {
-    outlineScene.remove(hoverTarget);
-  }
-
-  const oldSelectParents = selectTargets.map(o => o.parent);
-  for (let i = 0; i < selectTargets.length; i++) {
-    outlineScene.add(selectTargets[i]);
-  }
-  selectOutlineEffect.renderOutline(outlineScene, camera);
-  for (let i = 0; i < selectTargets.length; i++) {
-    const selectTarget = selectTargets[i];
-    const oldSelectParent = oldSelectParents[i];
-    if (oldSelectParent) {
-      oldSelectParent.add(selectTarget);
-    } else {
-      outlineScene.remove(selectTarget);
-    }
-  }
-
-  renderingOutline = false;
-};
-
 const raycaster = new THREE.Raycaster();
 const _updateRaycasterFromMouseEvent = (raycaster, e) => {
   const mouse = new THREE.Vector2(( ( e.clientX ) / window.innerWidth ) * 2 - 1, - ( ( e.clientY ) / window.innerHeight ) * 2 + 1);
   raycaster.setFromCamera(mouse, pe.camera);
   const candidateMeshes = pe.packages
-    .map(p => p.raycastMesh)
+    .map(p => p.volumeMesh)
     .filter(o => !!o);
-  const intersectMesh = volumeRaycaster.raycastMeshes(candidateMeshes, raycaster.ray.origin, raycaster.ray.direction);
-
-  if (intersectMesh) {
-    hoverTarget = intersectMesh;
-  } else {
-    hoverTarget = null;
-  }
+  hoverTarget = volumeRaycaster.raycastMeshes(candidateMeshes, raycaster.ray.origin, raycaster.ray.direction);
 };
 const _updateMouseMovement = e => {
   const {movementX, movementY} = e;
@@ -945,20 +858,6 @@ renderer.domElement.addEventListener('mousemove', e => {
     _updateMouseMovement(e);
   } else if (selectedTool === 'select' && !getSession()) {
     _updateRaycasterFromMouseEvent(raycaster, e);
-
-    /* hoverTarget = null;
-    if (shieldLevel === 0) {
-      for (let i = 0; i < pe.packages.length; i++) {
-        const p = pe.packages[i];
-        p.matrix.decompose(localVector, localQuaternion, localVector2);
-        localVector.add(localVector3.set(0, 1/2, 0));
-        localBox.setFromCenterAndSize(localVector, localVector2);
-        if (raycaster.ray.intersectsBox(localBox)) {
-          hoverTarget = p.placeholderBox;
-          break;
-        }
-      }
-    } */
   }
 });
 renderer.domElement.addEventListener('click', e => {
