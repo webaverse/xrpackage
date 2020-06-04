@@ -902,6 +902,7 @@ canvas {
   align-items: center;
   padding: 5px 10px;
   background-color: #42a5f5;
+  border: 0;
   color: #FFF;
   border-radius: 8px;
   font-size: 12px;
@@ -1365,6 +1366,12 @@ header.unlocking + .main .blocker .button
   align-items: flex-start;
 }
 
+.login-form {
+  display: flex;
+  height: 100%;
+  margin-left: auto;
+  align-items: center;
+}
 .login-form:not(.phase-1) > .phase-1-content,
 .login-form:not(.phase-2) > .phase-2-content,
 .login-form:not(.phase-3) > .phase-3-content,
@@ -1373,6 +1380,31 @@ header.unlocking + .main .blocker .button
 .login-form.phase-3 > .phaseless-content
 {
   display: none;
+}
+
+.phase-content {
+  display: flex;
+  height: 100%;
+  align-items: center;
+}
+.user-button {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  cursor: pointer;
+}
+.user-button:hover {
+  background-color: #ff7043;
+  color: #FFF;
+}
+.user-button img {
+  width: 30px;
+  height: 30px;
+}
+.user-button .name {
+  display: flex;
+  padding: 0 10px;
+  align-items: center;
 }
 
 .error {
