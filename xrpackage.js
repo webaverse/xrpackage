@@ -667,7 +667,7 @@ export class XRPackageEngine extends EventTarget {
     }
 
     // emit event
-    this.dispatchEvent(new CustomEvent('tick'));
+    // this.dispatchEvent(new CustomEvent('tick'));
 
     // update pose
     const {realSession, xrState} = this;
