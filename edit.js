@@ -875,6 +875,8 @@ scene.onAfterRender = () => {
   hoverOutlineEffect.renderOutline(outlineScene, camera);
   if (oldHoverParent) {
     oldHoverParent.add(hoverTarget);
+  } {
+    outlineScene.remove(hoverTarget);
   }
 
   const oldSelectParents = selectTargets.map(o => o.parent);
@@ -883,8 +885,13 @@ scene.onAfterRender = () => {
   }
   selectOutlineEffect.renderOutline(outlineScene, camera);
   for (let i = 0; i < selectTargets.length; i++) {
+    const selectTarget = selectTargets[i];
     const oldSelectParent = oldSelectParents[i];
-    oldSelectParent && oldSelectParent.add(selectTargets[i]);
+    if (oldSelectParent) {
+      oldSelectParent.add(selectTarget);
+    } else {
+      outlineScene.remove(selectTarget);
+    }
   }
 
   renderingOutline = false;
