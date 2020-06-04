@@ -552,6 +552,15 @@ export class XRPackageEngine extends EventTarget {
       this.packages[i].matrixWorldNeedsUpdate = true;
     }
   }
+  getProxySession({
+    order = 0,
+  } = {}) {
+    const session = Object.create(this.fakeSession);
+    session.onrequestanimationframe = fn => this.packageRequestAnimationFrame(fn, globalThis, order);
+    session.addEventListener = this.fakeSession.addEventListener.bind(this.fakeSession);
+    session.removeEventListener = this.fakeSession.removeEventListener.bind(this.fakeSession);
+    return session;
+  }
   async setSession(realSession) {
     if (this.cancelFrame) {
       this.cancelFrame();

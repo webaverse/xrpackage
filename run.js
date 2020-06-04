@@ -132,7 +132,10 @@ function animate(timestamp, frame) {
   renderer.render(scene, camera);
 }
 renderer.setAnimationLoop(animate);
-renderer.xr.setSession(pe.fakeSession);
+const proxySession = pe.getProxySession({
+  order: 1,
+});
+renderer.xr.setSession(proxySession);
 
 document.addEventListener('dragover', e => {
   e.preventDefault();
@@ -208,7 +211,7 @@ bindUploadFileButton(document.getElementById('load-package-input'), file => {
   }));
 });
 
-const getSession = () => {
+const getRealSession = () => {
   return currentSession;
 };
 
@@ -220,5 +223,6 @@ export {
   container,
   floorMesh,
   bindUploadFileButton,
-  getSession,
+  proxySession,
+  getRealSession,
 };

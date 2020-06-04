@@ -6,7 +6,7 @@ import {XRChannelConnection} from 'https://metartc.com/xrrtc.js';
 import {JSONClient} from 'https://sync.webaverse.com/sync-client.js';
 import address from 'https://contracts.webaverse.com/address.js';
 import abi from 'https://contracts.webaverse.com/abi.js';
-import {pe, renderer, scene, camera, container, floorMesh, getSession} from './run.js';
+import {pe, renderer, scene, camera, container, floorMesh, proxySession, getRealSession} from './run.js';
 import {downloadFile, readFile, bindUploadFileButton} from './xrpackage/util.js';
 import {getWireframeMesh, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 
@@ -177,7 +177,7 @@ function animate(timestamp, frame) {
   /* const timeDiff = (timestamp - lastTimestamp) / 1000;
   lastTimestamp = timestamp; */
 
-  const currentSession = getSession();
+  const currentSession = getRealSession();
   if (currentSession) {
     const {inputSources} = currentSession;
     for (let i = 0; i < inputSources.length; i++) {
@@ -324,7 +324,7 @@ function animate(timestamp, frame) {
   }
 }
 renderer.setAnimationLoop(animate);
-renderer.xr.setSession(pe.fakeSession);
+renderer.xr.setSession(proxySession);
 
 const volumeRaycaster = new VolumeRaycaster();
 
@@ -856,7 +856,7 @@ const _updateMouseMovement = e => {
 renderer.domElement.addEventListener('mousemove', e => {
   if (selectedTool === 'firstperson' || selectedTool === 'thirdperson' || selectedTool === 'isometric' || selectedTool === 'birdseye') {
     _updateMouseMovement(e);
-  } else if (selectedTool === 'select' && !getSession()) {
+  } else if (selectedTool === 'select' && !getRealSession()) {
     _updateRaycasterFromMouseEvent(raycaster, e);
   }
 });
