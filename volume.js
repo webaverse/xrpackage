@@ -130,6 +130,28 @@ const idMaterial = new THREE.ShaderMaterial({
   side: THREE.DoubleSide,
 });
 
+export function getRaycastMesh(o, meshId) {
+  const geometry = new THREE.BufferGeometry();
+  geometry.addAttribute('position', new THREE.BufferAttribute(o.geometry.attributes.position.array, 3));
+  const c = Uint8Array.from([
+    ((meshId >> 16) & 0xFF),
+    ((meshId >> 8) & 0xFF),
+    (meshId & 0xFF),
+  ]);
+  const numPositions = o.geometry.attributes.position.array.length;
+  const ids = new Uint8Array(numPositions);
+  for (let i = 0; i < numPositions; i += 3) {
+    ids.set(c, i);
+  }
+  o.geometry.setAttribute('id', new THREE.BufferAttribute(ids, 3, true));
+  if (o.geometry.index) {
+    geometry.setIndex(new THREE.BufferAttribute(o.geometry.index.array, 1));
+  }
+  const mesh = new THREE.Mesh(geometry, idMaterial);
+  mesh.frustumCulled = false;
+  return mesh;
+}
+
 const modulePromise = makePromise();
 self.wasmModule = (moduleName, moduleFn) => {
   if (moduleName === 'mc') {
