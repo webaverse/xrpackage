@@ -23,25 +23,35 @@ function makePromise() {
 const wireframeMaterial = new THREE.ShaderMaterial({
   uniforms: {},
   vertexShader: `\
-    // attribute vec3 color;
+    uniform vec3 uHoverId;
+    uniform vec3 uHoverColor;
+    uniform vec3 uSelectId;
+    uniform vec3 uSelectColor;
     attribute vec3 barycentric;
+    attribute vec3 id;
     varying vec3 vPosition;
-    // varying vec3 vColor;
     varying vec3 vBC;
+    varying vec3 vColor;
+    vec3 color = vec3(0.984313725490196, 0.5490196078431373, 0.0);
     void main() {
-      // vColor = color;
       vBC = barycentric;
       vec4 modelViewPosition = modelViewMatrix * vec4(position, 1.0);
       vPosition = modelViewPosition.xyz;
+      if (length(id - uSelectId) < 0.0001) {
+        vColor = uSelectColor;
+      } else if (length(id - uHoverId) < 0.0001) {
+        vColor = uHoverColor;
+      } else {
+        vColor = color;
+      }
       gl_Position = projectionMatrix * modelViewPosition;
     }
   `,
   fragmentShader: `\
     uniform sampler2D uCameraTex;
     varying vec3 vPosition;
-    // varying vec3 vColor;
     varying vec3 vBC;
-    vec3 color = vec3(0.984313725490196, 0.5490196078431373, 0.0);
+    varying vec3 vColor;
     vec3 lightDirection = vec3(0.0, 0.0, 1.0);
     float edgeFactor() {
       vec3 d = fwidth(vBC);
@@ -49,13 +59,12 @@ const wireframeMaterial = new THREE.ShaderMaterial({
       return min(min(a3.x, a3.y), a3.z);
     }
     void main() {
-      // vec3 color = vColor;
       float barycentricFactor = (0.2 + (1.0 - edgeFactor()) * 0.8);
       vec3 xTangent = dFdx( vPosition );
       vec3 yTangent = dFdy( vPosition );
       vec3 faceNormal = normalize( cross( xTangent, yTangent ) );
       float lightFactor = dot(faceNormal, lightDirection);
-      gl_FragColor = vec4((0.5 + color * barycentricFactor) * lightFactor, 0.5 + barycentricFactor * 0.5);
+      gl_FragColor = vec4((0.5 + vColor * barycentricFactor) * lightFactor, 0.5 + barycentricFactor * 0.5);
     }
   `,
   side: THREE.DoubleSide,
@@ -68,6 +77,24 @@ const wireframeMaterial = new THREE.ShaderMaterial({
   polygonOffset: true,
   polygonOffsetFactor: -1,
   polygonOffsetUnits: -1,
+  uniforms: {
+    uHoverId: {
+      type: 'v3',
+      value: new THREE.Vector3(),
+    },
+    uHoverColor: {
+      type: 'v3',
+      value: new THREE.Vector3(),
+    },
+    uSelectId: {
+      type: 'v3',
+      value: new THREE.Vector3(),
+    },
+    uSelectColor: {
+      type: 'v3',
+      value: new THREE.Vector3(),
+    },
+  },
   /* extensions: {
     derivatives: true,
   }, */
@@ -136,15 +163,18 @@ const idMaterial = new THREE.ShaderMaterial({
   side: THREE.DoubleSide,
 });
 
+export function meshIdToArray(meshId) {
+  return [
+    ((meshId >> 16) & 0xFF),
+    ((meshId >> 8) & 0xFF),
+    (meshId & 0xFF),
+  ];
+}
 export function decorateRaycastMesh(o, meshId) {
   const firstMesh = _getFirstMesh(o);
   if (firstMesh) {
     const {geometry} = firstMesh;
-    const c = Uint8Array.from([
-      ((meshId >> 16) & 0xFF),
-      ((meshId >> 8) & 0xFF),
-      (meshId & 0xFF),
-    ]);
+    const c = Uint8Array.from(meshIdToArray(meshId));
     const numPositions = geometry.attributes.position.array.length;
     const ids = new Uint8Array(numPositions);
     for (let i = 0; i < numPositions; i += 3) {
@@ -664,6 +694,7 @@ void main() {
   }
 };
 export {
+  wireframeMaterial,
   getDefaultAabb,
   getPreviewMesh,
 };

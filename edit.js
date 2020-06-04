@@ -8,7 +8,7 @@ import address from 'https://contracts.webaverse.com/address.js';
 import abi from 'https://contracts.webaverse.com/abi.js';
 import {pe, renderer, scene, camera, container, floorMesh, proxySession, getRealSession} from './run.js';
 import {downloadFile, readFile, bindUploadFileButton} from './xrpackage/util.js';
-import {getWireframeMesh, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
+import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 
 const apiHost = `https://ipfs.exokit.org/ipfs`;
 const presenceEndpoint = `wss://presence.exokit.org`;
@@ -300,6 +300,7 @@ function animate(timestamp, frame) {
     pe.setRigMatrix(null);
   }
 
+  // packages
   const isVisible = shieldLevel === 2;
   const isTarget = shieldLevel === 0 && selectedTool !== 'select';
   const isVolume = shieldLevel === 1 || selectedTool === 'select';
@@ -311,6 +312,18 @@ function animate(timestamp, frame) {
     if (p.volumeMesh) {
       p.volumeMesh.visible = isVolume;
     }
+  }
+  if (hoverTarget) {
+    wireframeMaterial.uniforms.uHoverId.value.fromArray(meshIdToArray(hoverTarget.meshId).map(n => n/255));
+    wireframeMaterial.uniforms.uHoverColor.value.fromArray(new THREE.Color(0x5c6bc0).toArray());
+  } else {
+    wireframeMaterial.uniforms.uHoverId.value.set(0, 0, 0);
+  }
+  if (selectTarget) {
+    wireframeMaterial.uniforms.uSelectId.value.fromArray(meshIdToArray(selectTarget.meshId).map(n => n/255));
+    wireframeMaterial.uniforms.uSelectColor.value.fromArray(new THREE.Color(0x66bb6a).toArray());
+  } else {
+    wireframeMaterial.uniforms.uSelectId.value.set(0, 0, 0);
   }
 
   renderer.render(scene, camera);
@@ -352,11 +365,10 @@ for (let i = 0; i < tools.length; i++) {
 
     if (selectedTool !== oldSelectedTool) {
       hoverTarget = null;
-      for (let i = 0; i < selectTargets.length; i++) {
-        const selectTarget = selectTargets[i];
-        selectTarget.control && _unbindTransformControls(selectTarget);
+      if (selectTarget && selectTarget.control) {
+        _unbindTransformControls(selectTarget);
       }
-      selectTargets = [];
+      selectTarget = null;
 
       switch (oldSelectedTool) {
         case 'thirdperson': {
@@ -521,9 +533,9 @@ window.addEventListener('keydown', e => {
       if (document.pointerLockElement) {
         // nothing
       } else {
-        selectTargets.forEach(selectedObjectMesh => {
-          selectedObjectMesh.control.setMode('rotate');
-        });
+        if (selectTarget && selectTarget.control) {
+          selectTarget.control.setMode('rotate');
+        }
       }
       break;
     }
@@ -531,9 +543,9 @@ window.addEventListener('keydown', e => {
       if (document.pointerLockElement) {
         pe.equip('back');
       } else {
-        selectTargets.forEach(selectedObjectMesh => {
-          selectedObjectMesh.control.setMode('scale');
-        });
+        if (selectTarget && selectTarget.control) {
+          selectTarget.control.setMode('scale');
+        }
       }
       break;
     }
@@ -666,9 +678,8 @@ const _ensureVolumeMesh = async p => {
   }
 };
 const _unbindSelectTargets = () => {
-  for (let i = 0; i < selectTargets.length; i++) {
-    const selectTarget = selectTargets[i];
-    selectTarget.control && _unbindTransformControls(selectTarget);
+  if (selectTarget && selectTarget.control) {
+    _unbindTransformControls(selectTarget);
   }
 };
 const shieldSlider = document.getElementById('shield-slider');
@@ -680,21 +691,21 @@ shieldSlider.addEventListener('change', async e => {
     case 0: {
       shieldLevel = newShieldLevel;
       hoverTarget = null;
-      selectTargets = [];
+      selectTarget = null;
       break;
     }
     case 1: {
       _unbindSelectTargets();
       shieldLevel = newShieldLevel;
       hoverTarget = null;
-      selectTargets = [];
+      selectTarget = null;
       break;
     }
     case 2: {
       _unbindSelectTargets();
       shieldLevel = newShieldLevel;
       hoverTarget = null;
-      selectTargets = [];
+      selectTarget = null;
       break;
     }
   }
@@ -755,7 +766,7 @@ pe.addEventListener('packageremove', e => {
 });
 
 let hoverTarget = null;
-let selectTargets = [];
+let selectTarget = null;
 
 let transformControlsHovered = false;
 const _bindTransformControls = o => {
@@ -861,15 +872,12 @@ renderer.domElement.addEventListener('mousemove', e => {
   }
 });
 renderer.domElement.addEventListener('click', e => {
-  for (let i = 0; i < selectTargets.length; i++) {
-    const selectTarget = selectTargets[i];
-    if (selectTarget.control) {
-      _unbindTransformControls(selectTarget);
-    }
+  if (selectTarget && selectTarget.control) {
+    _unbindTransformControls(selectTarget);
   }
-  selectTargets = hoverTarget ? [hoverTarget] : [];
-  for (let i = 0; i < selectTargets.length; i++) {
-    _bindTransformControls(selectTargets[i]);
+  selectTarget = hoverTarget;
+  if (selectTarget) {
+    _bindTransformControls(selectTarget);
   }
 });
 
