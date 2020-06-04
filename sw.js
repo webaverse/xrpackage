@@ -1,3 +1,5 @@
+const LOCAL_DEV = false;
+
 /*!
     localForage -- Offline Storage, Improved
     Version 1.7.3
@@ -1701,8 +1703,6 @@ const _rewriteResExt = (url, originalUrl, headers, res) => {
         return Promise.resolve(res);
     }
 };
-
-const LOCAL_DEV = true;
 
 const hijackedClientIds = {};
 const hijackedIds = {};
