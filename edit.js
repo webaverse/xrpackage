@@ -466,6 +466,7 @@ window.addEventListener('keydown', e => {
     case 51:
     case 52:
     case 53:
+    case 54:
     {
       tools[e.which - 49].click();
       break;
