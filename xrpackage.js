@@ -1556,14 +1556,6 @@ export class XRPackage extends EventTarget {
       return null;
     }
   }
-  getPhysicsMode() {
-    const j = this.getManifestJson();
-    if (j && j.xr_details && typeof j.xr_details.physics === 'string') {
-      return j.xr_details.physics;
-    } else {
-      return null;
-    }
-  }
   setMatrix(m) {
     this.matrix.copy(m);
     this.matrixWorldNeedsUpdate = true;

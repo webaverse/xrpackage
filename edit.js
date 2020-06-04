@@ -23,8 +23,6 @@ const web3 = new Web3(new Web3.providers.HttpProvider(rpcUrl));
 // window.web3 = web3;
 const contract = new web3.eth.Contract(abi, address);
 
-Ammo().then(async Ammo => {
-
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
@@ -169,83 +167,6 @@ const _makeVolumeMesh = async p => {
 // pe.defaultAvatar();
 // pe.setGamepadsConnected(true);
 
-let dynamicsWorld = null;
-const _setupPhysics = async () => {
-  var collisionConfiguration = new Ammo.btDefaultCollisionConfiguration();
-  var dispatcher = new Ammo.btCollisionDispatcher(collisionConfiguration);
-  var overlappingPairCache = new Ammo.btDbvtBroadphase();
-  var solver = new Ammo.btSequentialImpulseConstraintSolver();
-  dynamicsWorld = new Ammo.btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
-  dynamicsWorld.setGravity(new Ammo.btVector3(0, -9.8, 0));
-
-  {
-    var groundShape = new Ammo.btBoxShape(new Ammo.btVector3(10, 10, 10));
-
-    var groundTransform = new Ammo.btTransform();
-    groundTransform.setIdentity();
-    groundTransform.setOrigin(new Ammo.btVector3(0, -10, 0));
-
-    var mass = 0;
-    var localInertia = new Ammo.btVector3(0, 0, 0);
-    var motionState = new Ammo.btDefaultMotionState(groundTransform);
-    var rbInfo = new Ammo.btRigidBodyConstructionInfo(0, motionState, groundShape, localInertia);
-    var body = new Ammo.btRigidBody(rbInfo);
-
-    dynamicsWorld.addRigidBody(body);
-  }
-};
-_setupPhysics();
-
-const _makeConvexHullShape = object => {
-  const shape = new Ammo.btConvexHullShape();
-  // let numPoints = 0;
-  object.updateMatrixWorld();
-  object.traverse(o => {
-    if (o.isMesh) {
-      const {geometry} = o;
-      const positions = geometry.attributes.position.array;
-      for (let i = 0; i < positions.length; i += 3) {
-        localVector.set(positions[i], positions[i+1], positions[i+2])
-          .applyMatrix4(o.matrixWorld);
-        // console.log('point', localVector.x, localVector.y, localVector.z);
-        ammoVector3.setValue(localVector.x, localVector.y, localVector.z);
-        const lastOne = i >= (positions.length - 3);
-        shape.addPoint(ammoVector3, lastOne);
-        // numPoints++;
-      }
-    }
-  });
-  // console.log('sword points', numPoints);
-  return shape;
-};
-const _makeTriangleMeshShape = object => {
-  const triMesh = new Ammo.btTriangleMesh(true, true);
-  object.updateMatrixWorld();
-  object.traverse(o => {
-    if (o.isMesh) {
-      const geometry = o.geometry.toNonIndexed();
-      const positions = geometry.attributes.position.array;
-      for (let i = 0; i < positions.length;) {
-        localVector.set(positions[i++], positions[i++], positions[i++])
-          .applyMatrix4(o.matrixWorld);
-        localVector2.set(positions[i++], positions[i++], positions[i++])
-          .applyMatrix4(o.matrixWorld);
-        localVector3.set(positions[i++], positions[i++], positions[i++])
-          .applyMatrix4(o.matrixWorld);
-        triMesh.addTriangle(
-          new Ammo.btVector3(localVector.x, localVector.y, localVector.z),
-          new Ammo.btVector3(localVector2.x, localVector2.y, localVector2.z),
-          new Ammo.btVector3(localVector3.x, localVector3.y, localVector3.z),
-          false
-        );
-      }
-    }
-  });
-
-  const shape = new Ammo.btBvhTriangleMeshShape(triMesh, true, true);
-  return shape;
-};
-
 const velocity = new THREE.Vector3();
 const lastGrabs = [false, false];
 const lastAxes = [[0, 0], [0, 0]];
@@ -381,25 +302,6 @@ function animate(timestamp, frame) {
     }
   } else {
     pe.setRigMatrix(null);
-  }
-
-  if (physicsEnabled) {
-    dynamicsWorld.stepSimulation(timeDiff, 2);
-
-    for (const p of pe.packages) {
-      if (p.physicsBody) {
-        p.physicsBody.getMotionState().getWorldTransform(ammoTransform);
-        const origin = ammoTransform.getOrigin();
-        const rotation = ammoTransform.getRotation();
-        p.setMatrix(
-          localMatrix.compose(
-            localVector.set(origin.x(), origin.y(), origin.z()),
-            localQuaternion.set(rotation.x(), rotation.y(), rotation.z(), rotation.w()),
-            localVector2.set(1, 1, 1)
-          )
-        );
-      }
-    }
   }
 
   renderer.render(scene, camera);
@@ -808,23 +710,6 @@ shieldSlider.addEventListener('change', async e => {
     }
   }
 });
-const enablePhysycsCheckbox = document.getElementById('enable-physics-checkbox');
-let physicsEnabled = enablePhysycsCheckbox.checked;
-enablePhysycsCheckbox.addEventListener('click', e => {
-  physicsEnabled = enablePhysycsCheckbox.checked;
-  if (physicsEnabled) {
-    for (const p of pe.packages) {
-      if (p.physicsBody) {
-        p.matrix.decompose(localVector, localQuaternion, localVector2);
-        const packageTransform = p.physicsBody.getWorldTransform(ammoTransform);
-        ammoVector3.setValue(localVector.x, localVector.y, localVector.z);
-        packageTransform.setOrigin(ammoVector3);
-        ammoQuaternion.setValue(localQuaternion.x, localQuaternion.y, localQuaternion.z, localQuaternion.w);
-        packageTransform.setRotation(ammoQuaternion);
-      }
-    }
-  }
-});
 document.getElementById('toggle-stage-button').addEventListener('click', e => {
   floorMesh.visible = !floorMesh.visible;
 });
@@ -915,36 +800,6 @@ pe.addEventListener('packageadd', async e => {
     }
   }
   _bindObject(p);
-
-  const physicsMode = p.getPhysicsMode();
-  if (physicsMode !== null) {
-    const volumeMesh = await p.getVolumeMesh();
-    if (volumeMesh) {
-      p.matrix.decompose(localVector, localQuaternion, localVector2);
-
-      const startTransform = new Ammo.btTransform();
-      startTransform.setIdentity();
-      const originVector = new Ammo.btVector3(localVector.x, localVector.y, localVector.z);
-      startTransform.setOrigin(originVector);
-      const originQuaternion = new Ammo.btQuaternion(localQuaternion.x, localQuaternion.y, localQuaternion.z, localQuaternion.w);
-      startTransform.setRotation(originQuaternion);
-      const mass = physicsMode === 'dynamic' ? 1 : 0;
-      const localInertia = new Ammo.btVector3(0, 0, 0);
-      const shape = physicsMode === 'dynamic' ? _makeConvexHullShape(volumeMesh) : _makeTriangleMeshShape(volumeMesh);
-      if (physicsMode === 'dynamic') {
-        shape.calculateLocalInertia(mass, localInertia);
-      }
-
-      const motionState = new Ammo.btDefaultMotionState(startTransform);
-      const rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, shape, localInertia);
-      p.physicsBody = new Ammo.btRigidBody(rbInfo);
-      dynamicsWorld.addRigidBody(p.physicsBody);
-    } else {
-      p.physicsBody = null;
-    }
-  } else {
-    p.physicsBody = null;
-  }
 });
 pe.addEventListener('packageremove', e => {
   const p = e.data;
@@ -1873,5 +1728,3 @@ window.addEventListener('popstate', e => {
   _handleUrl(window.location.href);
 });
 _handleUrl(window.location.href);
-
-});
