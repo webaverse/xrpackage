@@ -1365,6 +1365,16 @@ header.unlocking + .main .blocker .button
   align-items: flex-start;
 }
 
+.login-form:not(.phase-1) > .phase-1-content,
+.login-form:not(.phase-2) > .phase-2-content,
+.login-form:not(.phase-3) > .phase-3-content,
+.login-form.phase-1 > .phaseless-content,
+.login-form.phase-2 > .phaseless-content,
+.login-form.phase-3 > .phaseless-content
+{
+  display: none;
+}
+
 .error {
   font-family: monospace;
   white-space: nowrap;
