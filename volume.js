@@ -101,6 +101,34 @@ export function getWireframeMesh(o) {
     return o;
   }
 }
+const idMaterial = new THREE.ShaderMaterial({
+  uniforms: {
+    /* uNear: {
+      type: 'f',
+      value: 0,
+    },
+    uFar: {
+      type: 'f',
+      value: 0,
+    }, */
+  },
+  vertexShader: `
+    attribute vec3 id;
+    varying vec3 vId;
+    void main() {
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
+      vId = id;
+    }
+  `,
+  fragmentShader: `
+    varying vec3 vId;
+    void main() {
+      gl_FragColor = vec4(vId, 0.0);
+    }
+  `,
+  // transparent: true,
+  side: THREE.DoubleSide,
+});
 
 const modulePromise = makePromise();
 self.wasmModule = (moduleName, moduleFn) => {
