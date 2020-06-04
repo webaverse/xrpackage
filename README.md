@@ -81,7 +81,7 @@ The package manifest can contain an `xr_details` field which further specifies h
       "schema": { // describes configurable properties of the package
         "floofiness": {
           "type": "string", // currently only "string"
-          "default": "considerably"
+          "default": "very"
         }
       },
       "events": { // describes events the we can receive from other packages
