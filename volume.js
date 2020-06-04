@@ -96,7 +96,6 @@ export function getWireframeMesh(o) {
     })();
     geometry.setAttribute('barycentric', new THREE.BufferAttribute(barycentrics, 3));
     const mesh = new THREE.Mesh(geometry, wireframeMaterial);
-    mesh.frustumCulled = false;
     return mesh;
   } else {
     return o;

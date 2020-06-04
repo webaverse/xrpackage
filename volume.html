@@ -11,7 +11,8 @@ window.THREE = THREE;
 import {XRPackage, XRPackageEngine} from './xrpackage.js';
 import {GLTFExporter} from './GLTFExporter.js';
 import {OrbitControls} from './xrpackage/OrbitControls.js';
-import {getDefaultAabb, getPreviewMesh, getWireframeMesh} from './volume.js';
+import {readFile} from './xrpackage/util.js';
+import {getWireframeMesh, getDefaultAabb, getPreviewMesh} from './volume.js';
 
 (async () => {
 
@@ -38,56 +39,6 @@ const p = await (async () => {
     return null;
   }
 })();
-
-const wireframeMaterial = new THREE.ShaderMaterial({
-  uniforms: {},
-  vertexShader: `\
-    // attribute vec3 color;
-    attribute vec3 barycentric;
-    varying vec3 vPosition;
-    // varying vec3 vColor;
-    varying vec3 vBC;
-    void main() {
-      // vColor = color;
-      vBC = barycentric;
-      vec4 modelViewPosition = modelViewMatrix * vec4(position, 1.0);
-      vPosition = modelViewPosition.xyz;
-      gl_Position = projectionMatrix * modelViewPosition;
-    }
-  `,
-  fragmentShader: `\
-    uniform sampler2D uCameraTex;
-    varying vec3 vPosition;
-    // varying vec3 vColor;
-    varying vec3 vBC;
-    vec3 color = vec3(0.984313725490196, 0.5490196078431373, 0.0);
-    vec3 lightDirection = vec3(0.0, 0.0, 1.0);
-    float edgeFactor() {
-      vec3 d = fwidth(vBC);
-      vec3 a3 = smoothstep(vec3(0.0), d*1.5, vBC);
-      return min(min(a3.x, a3.y), a3.z);
-    }
-    void main() {
-      // vec3 color = vColor;
-      float barycentricFactor = (0.2 + (1.0 - edgeFactor()) * 0.8);
-      vec3 xTangent = dFdx( vPosition );
-      vec3 yTangent = dFdy( vPosition );
-      vec3 faceNormal = normalize( cross( xTangent, yTangent ) );
-      float lightFactor = dot(faceNormal, lightDirection);
-      gl_FragColor = vec4((0.5 + color * barycentricFactor) * lightFactor, 0.5 + barycentricFactor * 0.5);
-    }
-  `,
-  side: THREE.DoubleSide,
-  /* polygonOffset: true,
-  polygonOffsetFactor: -1,
-  polygonOffsetUnits: -4, */
-  transparent: true,
-  opacity: 0.5,
-  // depthWrite: false,
-  extensions: {
-    derivatives: true,
-  },
-});
 
 const renderer = new THREE.WebGLRenderer({
   // canvas,
@@ -128,42 +79,44 @@ if (!aabb) {
     aabb = getDefaultAabb();
   }
 }
+aabb = [
+  aabb.min.toArray(),
+  aabb.max.toArray(),
+];
+
+const volumeData = await new Promise((accept, reject) => {
+  const exporter = new GLTFExporter();
+  const exportScene = new THREE.Scene();
+  exportScene.add(collisionMesh);
+  exporter.parse(exportScene, accept, {
+    binary: true,
+    includeCustomExtensions: true,
+  });
+});
+const volumeBlob = new Blob([volumeData], {
+  type: 'model/gltf-binary',
+});
 
 if (dstVolume) {
-  const data = await new Promise((accept, reject) => {
-    const exporter = new GLTFExporter();
-    const exportScene = new THREE.Scene();
-    exportScene.add(collisionMesh);
-    exporter.parse(exportScene, accept, {
-      binary: true,
-      includeCustomExtensions: true,
-    });
-  });
-  const blob = new Blob([data], {
-    type: 'model/gltf-binary',
-  });
   const res = await fetch(dstVolume, {
     method: 'PUT',
-    body: blob,
+    body: volumeBlob,
   });
   await res.blob();
 }
 if (dstAabb) {
   const res = await fetch(dstAabb, {
     method: 'PUT',
-    body: JSON.stringify([
-      aabb.min.toArray(),
-      aabb.max.toArray(),
-    ]),
+    body: JSON.stringify(aabb),
   });
   await res.blob();
 }
 
-let wireframeMesh = new THREE.Mesh(geometry, new THREE.MeshBasicMateroal({
+let wireframeMesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
   color: 0xFFFFFF,
 }));
 wireframeMesh = getWireframeMesh(wireframeMesh);
-wireframeMesh.frustumCulled = false;
+mesh.frustumCulled = false;
 
 const pe = new XRPackageEngine({
   width: 512,
@@ -187,13 +140,23 @@ function animate(timestamp, frame) {
 }
 renderer.setAnimationLoop(animate);
 
-})().then(() => {
+return {
+  volumeBlob,
+  aabb,
+};
+
+})().then(async ({volumeBlob, aabb}) => {
   document.getElementById('text').innerText = 'Volumizing done. You can close this tab.';
+
+  const volumeArrayBuffer = await readFile(volumeBlob);
 
   window.parent.postMessage({
     method: 'result',
-    result: null,
-  }, '*');
+    result: {
+      volume: volumeArrayBuffer,
+      aabb,
+    },
+  }, '*', [volumeArrayBuffer.buffer]);
 }).catch(err => {
   console.warn(err.stack);
   document.getElementById('text').innerText = 'Error volumizing. You can close this tab.';

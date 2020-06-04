@@ -1,7 +1,7 @@
 <html>
 
 <body>
-  <h1 id=text>Bakings...</h1>
+  <h1 id=text>Baking...</h1>
   <pre><code id=error></code></pre>
   <script type=module>
 (async () => {
@@ -17,9 +17,9 @@ function parseQuery(queryString) {
 }
 const {srcWbn, dstGif, dstVolume, dstAabb} = parseQuery(window.location.search);
 
-await new Promise((accept, reject) => {
+const {screenshot} = await new Promise((accept, reject) => {
   const iframe = document.createElement('iframe');
-  iframe.src = `screenshot.html?srcWbn=${srcWbn}&dstGif=${dstGif}`;
+  iframe.src = `screenshot.html?srcWbn=${srcWbn}${dstGif ? `&dstGif=${dstGif}` : ''}`;
   document.body.appendChild(iframe);
   const _message = e => {
     if (e.data && e.data.method === 'result') {
@@ -32,9 +32,9 @@ await new Promise((accept, reject) => {
   };
   window.addEventListener('message', _message);
 });
-await new Promise((accept, reject) => {
+const {volume, aabb} = await new Promise((accept, reject) => {
   const iframe = document.createElement('iframe');
-  iframe.src = `volume.html?srcWbn=${srcWbn}&dstVolume=${dstVolume}&dstAabb=${dstAabb}`;
+  iframe.src = `volume.html?srcWbn=${srcWbn}${dstVolume ? `&dstVolume=${dstVolume}` : ''}${dstAabb ? `&dstAabb=${dstAabb}` : ''}`;
   document.body.appendChild(iframe);
   const _message = e => {
     if (e.data && e.data.method === 'result') {
@@ -48,12 +48,32 @@ await new Promise((accept, reject) => {
   window.addEventListener('message', _message);
 });
 
-})().then(() => {
+return {
+  screenshot,
+  volume,
+  aabb,
+};
+
+})().then(({screenshot, volume, aabb}) => {
   document.getElementById('text').innerText = 'Baking done. You can close this tab.';
+
+  window.parent.postMessage({
+    method: 'result',
+    result: {
+      screenshot,
+      volume,
+      aabb,
+    },
+  }, '*', [screenshot.buffer, volume.buffer]);
 }).catch(err => {
   console.warn(err.stack);
   document.getElementById('text').innerText = 'Error baking. You can close this tab.';
   document.getElementById('error').innerText = err.stack;
+
+  window.parent.postMessage({
+    method: 'error',
+    error: err.stack,
+  }, '*');
 });
 </script>
 </body>

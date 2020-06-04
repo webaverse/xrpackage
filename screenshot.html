@@ -9,6 +9,7 @@ window.THREE = THREE;
   <pre><code id=error></code></pre>
   <script type=module>
 import {XRPackage, XRPackageEngine} from './xrpackage.js';
+import {readFile} from './xrpackage/util.js';
 import {screenshotEngine} from './screenshot-object.js';
 
 (async () => {
@@ -44,8 +45,9 @@ const p = await (async () => {
     return null;
   }
 })();
+let gifBlob;
 if (p) {
-  const gifBlob = await screenshotEngine(pe);
+  gifBlob = await screenshotEngine(pe);
   if (dstGif) {
     const res = await fetch(dstGif, {
       method: 'PUT',
@@ -60,22 +62,31 @@ if (p) {
   img.style.borderRadius = '10px';
   document.body.appendChild(img);
 } else {
+  gifBlob = new Blob([], {
+    type: 'image/gif',
+  });
   if (dstGif) {
     const res = await fetch(dstGif, {
       method: 'PUT',
-      body: '',
+      body: gifBlob,
     });
     await res.blob();
   }
 }
 
-})().then(() => {
+return gifBlob;
+
+})().then(async screenshotBlob => {
   document.getElementById('text').innerText = 'Screenshotting done. You can close this tab.';
+
+  const screenshotArrayBuffer = await readFile(screenshotBlob);
 
   window.parent.postMessage({
     method: 'result',
-    result: null,
-  }, '*');
+    result: {
+      screenshot: screenshotArrayBuffer,
+    },
+  }, '*', [screenshotArrayBuffer.buffer]);
 }).catch(err => {
   console.warn(err.stack);
   document.getElementById('text').innerText = 'Error screenshotting. You can close this tab.';

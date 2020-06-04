@@ -1508,7 +1508,7 @@ export class XRPackage extends EventTarget {
     if (j) {
       const {start_url: startUrl, icons = []} = j;
 
-      const _loadFileScene = async file => {
+      const _loadGltfFileScene = async file => {
         const d = file.response.body;
         const b = new Blob([d], {
           type: 'application/octet-stream',
@@ -1520,20 +1520,34 @@ export class XRPackage extends EventTarget {
         URL.revokeObjectURL(u);
         return scene;
       };
+      const _loadVoxFileScene = async file => {
+        const d = file.response.body;
+        const b = new Blob([d], {
+          type: 'application/octet-stream',
+        });
+        const u = URL.createObjectURL(b);
+        const o = await new Promise((accept, reject) => {
+          new VOXLoader().load(u, accept, function onProgress() {}, reject);
+        });
+        URL.revokeObjectURL(u);
+        return o;
+      };
 
       const previewIcon = icons.find(icon => icon.type === 'model/gltf-binary');
       if (previewIcon) {
         const previewIconFile = this.files.find(file => new URL(file.url).pathname === '/' + previewIcon.src);
         if (previewIconFile) {
-          return await _loadFileScene(previewIconFile);
+          return await _loadGltfFileScene(previewIconFile);
         } else {
           return null;
         }
       } else {
-        if (this.type === 'gltf@0.0.1' || this.type === 'vrm@0.0.1') {
-          const mainModelFile = this.files.find(file => new URL(file.url).pathname === '/' + startUrl);
-          if (mainModelFile) {
-            return await _loadFileScene(mainModelFile);
+        const mainModelFile = this.files.find(file => new URL(file.url).pathname === '/' + startUrl);
+        if (mainModelFile) {
+          if (this.type === 'gltf@0.0.1' || this.type === 'vrm@0.0.1') {
+            return await _loadGltfFileScene(mainModelFile);
+          } else if (this.type === 'vox@0.0.1') {
+            return await _loadVoxFileScene(mainModelFile);
           } else {
             return null;
           }

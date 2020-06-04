@@ -26,6 +26,10 @@ a:hover {
   color: var(--color3);
 }
 
+img:not([src]) {
+  visibility: hidden;
+}
+
 .header
 {
   position: fixed;
@@ -250,7 +254,7 @@ a:hover {
   display: flex;
   margin-top: 50px;
   margin-left: 130px;
-  margin-bottom: 10px;
+  /* margin-bottom: 10px; */
   border-bottom: 1px solid #EEE;
 }
 .subheader .subtab {
@@ -270,6 +274,9 @@ a:hover {
 
 .subcontent {
   display: flex;
+  padding: 0 30px;
+  padding-top: 15px;
+  max-height: 100vh;
   flex-direction: column;
 }
 .subcontent:not(.open) {
@@ -783,12 +790,19 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 .tokens > .token {
   display: flex;
   position: relative;
-  flex-direction: column;
-  margin: 15px;
-  border: 1px solid #EEE;
+  width: 256px;
+  margin-right: 15px;
+  margin-bottom: 15px;
+  background-color: #EEE;
+  /* border: 1px solid #EEE; */
   border-radius: 7px;
+  flex-direction: column;
   overflow: hidden;
-  max-height: 480px;
+  /* max-height: 480px; */
+}
+
+.tokens > .token:hover {
+  filter: invert(1);
 }
 
 .tokens > .token > img {
@@ -820,17 +834,18 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 
 .tokens > .token input {
   padding: 5px;
-  background-color: #EEE;
-  border: 1px solid transparent;
+  background-color: #FFF;
+  /* border: 1px solid transparent; */
+  border: 0;
   border-radius: 5px;
   font-family: monospace;
   font-size: inherit;
 }
 
 .tokens > .token input:focus {
-  border-color: #000;
-  background-color: #FFF;
-  outline: none;
+  /* border-color: #000; */
+  /* background-color: #FFF; */
+  /* outline: none; */
 }
 
 .big-buttons {
@@ -958,8 +973,9 @@ input[type=file].hidden {
 
 .main {
   display: flex;
-  padding-left: 150px;
-  height: calc(100vh - 50px);
+  padding-left: 130px;
+  padding-top: 15px;
+  height: calc(100vh - 100px);
   flex-direction: column;
   overflow: auto;
 }
@@ -1132,17 +1148,19 @@ header.unlocking + .main .blocker .button
   flex-direction: column;
 }
 
-.card {
+/* .card {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
   transition: all 0.3s cubic-bezier(.25, .8, .25, 1);
 }
 
 .card:hover {
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1), 0 3px 10px rgba(0, 0, 0, 0.2);
-}
+} */
 
 .cardTitle {
   font-size: 18px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .cardCode {
@@ -1170,7 +1188,7 @@ header.unlocking + .main .blocker .button
   flex: 1;
 }
 
-.subcontent {
+.subpage-wrap {
   display: flex;
   padding: 0 30px;
   max-height: 100vh;
@@ -1329,6 +1347,22 @@ header.unlocking + .main .blocker .button
   display: flex;
   padding: 0 10px;
   align-items: center;
+}
+
+.mode {
+  display: flex;
+  flex-direction: column;
+}
+.mode:not(.open) {
+  display: none;
+}
+
+.create-ui {
+  display: flex;
+  margin-left: 130px;
+  margin-top: 15px;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .error {

@@ -725,55 +725,6 @@ const _unbindObject = p => {
 pe.packages.forEach(p => {
   _bindObject(p);
 });
-const wireframeMaterial = new THREE.ShaderMaterial({
-  uniforms: {},
-  vertexShader: `\
-    // attribute vec3 color;
-    attribute vec3 barycentric;
-    varying vec3 vPosition;
-    // varying vec3 vColor;
-    varying vec3 vBC;
-    void main() {
-      // vColor = color;
-      vBC = barycentric;
-      vec4 modelViewPosition = modelViewMatrix * vec4(position, 1.0);
-      vPosition = modelViewPosition.xyz;
-      gl_Position = projectionMatrix * modelViewPosition;
-    }
-  `,
-  fragmentShader: `\
-    uniform sampler2D uCameraTex;
-    varying vec3 vPosition;
-    // varying vec3 vColor;
-    varying vec3 vBC;
-    vec3 color = vec3(0.984313725490196, 0.5490196078431373, 0.0);
-    vec3 lightDirection = vec3(0.0, 0.0, 1.0);
-    float edgeFactor() {
-      vec3 d = fwidth(vBC);
-      vec3 a3 = smoothstep(vec3(0.0), d*1.5, vBC);
-      return min(min(a3.x, a3.y), a3.z);
-    }
-    void main() {
-      // vec3 color = vColor;
-      float barycentricFactor = (0.2 + (1.0 - edgeFactor()) * 0.8);
-      vec3 xTangent = dFdx( vPosition );
-      vec3 yTangent = dFdy( vPosition );
-      vec3 faceNormal = normalize( cross( xTangent, yTangent ) );
-      float lightFactor = dot(faceNormal, lightDirection);
-      gl_FragColor = vec4((0.5 + color * barycentricFactor) * lightFactor, 0.5 + barycentricFactor * 0.5);
-    }
-  `,
-  side: THREE.DoubleSide,
-  /* polygonOffset: true,
-  polygonOffsetFactor: -1,
-  polygonOffsetUnits: -4, */
-  transparent: true,
-  opacity: 0.5,
-  // depthWrite: false,
-  extensions: {
-    derivatives: true,
-  },
-});
 pe.addEventListener('packageadd', async e => {
   const p = e.data;
 
@@ -1505,7 +1456,7 @@ const _renderObjects = () => {
         <h1><nav class=back-button><i class="fa fa-arrow-left"></i></nav>${p.name}</h1>
         <nav class="button reload-button">Reload</nav>
         <nav class="button wear-button">Wear</nav>
-        <nav class="button publish-button">Publish</nav>
+        <nav class="button inspect-button">Inspect</nav>
         <nav class="button remove-button">Remove</nav>
         <b>Position</b>
         <div class=row>
@@ -1586,24 +1537,13 @@ const _renderObjects = () => {
       selectedObject = null;
       _renderObjects();
     });
-    const publishButton = objectsEl.querySelector('.publish-button');
-    publishButton.addEventListener('click', async e => {
-      const hash = await p.upload();
-      p = {
-        name: p.name,
-        hash,
-      };
-      const res = await fetch(packagesEndpoint + '/' + hash, {
-        method: 'PUT',
-        body: JSON.stringify(p),
+    const inspectButton = objectsEl.querySelector('.inspect-button');
+    inspectButton.addEventListener('click', async e => {
+      const b = new Blob([p.data], {
+        type: 'application/webbundle',
       });
-      if (res.ok) {
-        packages.innerHTML += '\n' + _makePackageHtml(p);
-        const ps = Array.from(packages.querySelectorAll('.package'));
-        Array.from(packages.querySelectorAll('.package')).forEach(p => _bindPackage(p));
-      } else {
-        console.warn('invalid status code: ' + res.status);
-      }
+      const u = URL.createObjectURL(b);
+      window.open(`inspect.html?u=${u}`, '_blank');
     });
     const reloadButton = objectsEl.querySelector('.reload-button');
     reloadButton.addEventListener('click', async e => {
