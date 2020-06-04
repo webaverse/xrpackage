@@ -21,10 +21,6 @@ body {
 <script type=module>
 import * as THREE from './three.module.js';
 
-console.log('cube listen');
-navigator.xr.addEventListener('sessiongranted', e => {
-console.log('cube got session granted', e);
-
 const canvas = document.getElementById('canvas');
 const renderer = new THREE.WebGLRenderer({
   canvas,
@@ -87,13 +83,14 @@ function onSessionEnded() {
 
   currentSession = null;
 }
-navigator.xr.requestSession('immersive-vr', {
-  optionalFeatures: [
-    'local-floor',
-    'bounded-floor',
-  ],
-}).then(onSessionStarted);
 
+navigator.xr.addEventListener('sessiongranted', e => {
+  navigator.xr.requestSession('immersive-vr', {
+    optionalFeatures: [
+      'local-floor',
+      'bounded-floor',
+    ],
+  }).then(onSessionStarted);
 });
 </script>
 </body>
