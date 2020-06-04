@@ -76,19 +76,31 @@ The package manifest can contain an `xr_details` field which further specifies h
 ```
 {
   "xr_type": "webxr-site@0.0.1",
-   "start_url": "cube.html",
-   "xr_details": {
-     "aabb": [ // axis-aligned bounding box
-       [-1, -1, -1], // min point
-       [1, 1, 1] // max point
-    ],
-    "wearable": { // how this package can be worn on an avatar
-      "head": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], // matrix offset from specified bone to package
-      "hand": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
-      "back": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
-    },
-     "physics": "static", // physics mode for the packge: null (no physics, default), "static", or "dynamic"
-   }
+    "start_url": "cube.html",
+    "xr_details": {
+      "schema": { // describes configurable properties of the package
+        "floofiness": {
+          "type": "string", // currently only "string"
+          "default": "considerably"
+        }
+      },
+      "events": { // describes events the we can receive from other packages
+        "refloof": {
+          "type": "string"
+        }
+      },
+      "aabb": [ // axis-aligned bounding box
+        [-1, -1, -1], // min point
+        [1, 1, 1] // max point
+      ],
+      "wearable": { // how this package can be worn on an avatar
+        "head": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], // matrix offset from specified bone to package
+        "hand": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+        "back": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+      },
+      "physics": "static" // physics mode for the packge: null (no physics, default), "static", or "dynamic"
+    }
+  }
 }
 ```
 
