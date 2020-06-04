@@ -1156,12 +1156,12 @@ export class XRPackageEngine extends EventTarget {
   }
 }
 
-let packageIds = Date.now();
+let packageIds = 0;
 export class XRPackage extends EventTarget {
   constructor(a) {
     super();
 
-    this.id = (packageIds++) + '';
+    this.id = (++packageIds) + '';
     this.name = '';
     this.type = '';
     this.main = '';
