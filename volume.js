@@ -182,6 +182,7 @@ export function decorateRaycastMesh(o, meshId) {
     }
     geometry.setAttribute('id', new THREE.BufferAttribute(ids, 3, true));
   }
+  o.meshId = meshId;
 }
 export class VolumeRaycaster {
   constructor() {
