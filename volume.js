@@ -65,9 +65,12 @@ const wireframeMaterial = new THREE.ShaderMaterial({
   transparent: true,
   opacity: 0.5,
   // depthWrite: false,
-  extensions: {
+  polygonOffset: true,
+  polygonOffsetFactor: -1,
+  polygonOffsetUnits: -1,
+  /* extensions: {
     derivatives: true,
-  },
+  }, */
 });
 const _getFirstMesh = o => {
   let firstMesh = null;

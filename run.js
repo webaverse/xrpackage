@@ -107,6 +107,9 @@ const _makeFloorMesh = () => {
     // opacity: 0.9,
     side: THREE.DoubleSide,
     // transparent: true,
+    polygonOffset: true,
+    polygonOffsetFactor: 1,
+    polygonOffsetUnits: 1,
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
