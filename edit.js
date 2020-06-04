@@ -170,16 +170,13 @@ const _makeVolumeMesh = async p => {
 const velocity = new THREE.Vector3();
 const lastGrabs = [false, false];
 const lastAxes = [[0, 0], [0, 0]];
-const ammoVector3 = new Ammo.btVector3();
-const ammoQuaternion = new Ammo.btQuaternion();
-const ammoTransform = new Ammo.btTransform();
-let lastTimestamp = performance.now();
+// let lastTimestamp = performance.now();
 function animate(timestamp, frame) {
   /* const timeFactor = 1000;
   targetMesh.material.uniforms.uTime.value = (Date.now() % timeFactor) / timeFactor; */
 
-  const timeDiff = (timestamp - lastTimestamp) / 1000;
-  lastTimestamp = timestamp;
+  /* const timeDiff = (timestamp - lastTimestamp) / 1000;
+  lastTimestamp = timestamp; */
 
   const currentSession = getSession();
   if (currentSession) {
