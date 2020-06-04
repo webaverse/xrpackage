@@ -478,6 +478,9 @@ export class XRPackageEngine extends EventTarget {
     options.autoStart && this.start();
     options.autoListen && this.listen();
   }
+  static waitForLoad() {
+    return swLoadPromise;
+  }
   getContext(type, opts) {
     return getContext.call(this.domElement, type, opts);
   }
@@ -1259,7 +1262,7 @@ export class XRPackage extends EventTarget {
           this.events = events;
           this.details = xrDetails;
 
-          swLoadPromise
+          XRPackageEngine.waitForLoad()
             .then(() => requestSw({
               method: 'hijack',
               id: this.id,
