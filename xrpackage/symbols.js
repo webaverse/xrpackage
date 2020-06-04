@@ -21,5 +21,6 @@ module.exports.runSymbol = Symbol('runSymbol');
 module.exports.runningSymbol = Symbol('runningSymbol');
 module.exports.timeoutSymbol = Symbol('timeoutSymbol');
 module.exports.rafCbsSymbol = Symbol('rafCbsSymbol');
+module.exports.orderSymbol = Symbol('orderSymbol');
 
 export default module.exports;

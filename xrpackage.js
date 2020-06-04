@@ -442,7 +442,7 @@ export class XRPackageEngine extends EventTarget {
     container.add(directionalLight2);
 
     this.fakeSession = new XR.XRSession(this.xrState, this.matrix);
-    this.fakeSession.onrequestanimationframe = fn => this.packageRequestAnimationFrame(fn, globalThis);
+    this.fakeSession.onrequestanimationframe = fn => this.packageRequestAnimationFrame(fn, globalThis, 0);
     this.fakeSession.oncancelanimationframe = this.packageCancelAnimationFrame.bind(this);
 
     renderer.xr.setSession(this.fakeSession);
@@ -861,7 +861,8 @@ export class XRPackageEngine extends EventTarget {
 
     // tick rafs
     const _tickRafs = () => {
-      const rafs = this.rafs.slice();
+      const rafs = this.rafs.slice()
+        .sort((a, b) => a[symbols.orderSymbol] - b[symbols.orderSymbol]);
       this.rafs.length = 0;
       const timestamp = performance.now();
       for (let i = 0; i < rafs.length; i++) {
@@ -879,12 +880,13 @@ export class XRPackageEngine extends EventTarget {
 
     this.renderer.render(this.scene, this.camera);
   }
-  packageRequestAnimationFrame(fn, win) {
+  packageRequestAnimationFrame(fn, win, order) {
     this.rafs.push(fn);
 
     const id = ++this.ids;
     fn[symbols.rafCbsSymbol] = id;
     fn[symbols.windowSymbol] = win;
+    fn[symbols.orderSymbol] = order;
     return id;
   }
   packageCancelAnimationFrame(id) {
