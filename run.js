@@ -107,11 +107,12 @@ const _makeFloorMesh = () => {
     // opacity: 0.9,
     side: THREE.DoubleSide,
     // transparent: true,
-    polygonOffset: true,
+    /* polygonOffset: true,
     polygonOffsetFactor: 1,
-    polygonOffsetUnits: 1,
+    polygonOffsetUnits: 1, */
   });
   const mesh = new THREE.Mesh(geometry, material);
+  mesh.position.y = -0.01;
   mesh.frustumCulled = false;
   return mesh;
 };
