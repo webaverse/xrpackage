@@ -178,7 +178,6 @@ function onSessionStarted(session) {
   
   currentSession = session;
 
-  // renderer.xr.setSession(session);
   pe.setSession(session);
 }
 function onSessionEnded() {
@@ -186,7 +185,6 @@ function onSessionEnded() {
 
   currentSession = null;
 
-  // renderer.xr.setSession(null);
   pe.setSession(null);
 }
 document.getElementById('enter-xr-button').addEventListener('click', e => {
