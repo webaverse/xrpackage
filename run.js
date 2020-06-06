@@ -1,5 +1,6 @@
 import * as THREE from './xrpackage/three.module.js';
 import {XRPackageEngine, XRPackage} from './xrpackage.js';
+import {tryLogin} from './xrpackage/login.js';
 import {bindUploadFileButton} from './xrpackage/util.js';
 import './selector.js';
 
@@ -7,6 +8,11 @@ const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
+
+(async () => {
+  await XRPackageEngine.waitForLoad();
+  await tryLogin();
+})();
 
 let currentSession = null;
 
