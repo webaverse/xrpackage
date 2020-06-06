@@ -95,9 +95,9 @@ const wireframeMaterial = new THREE.ShaderMaterial({
       value: new THREE.Vector3(),
     },
   },
-  /* extensions: {
+  extensions: {
     derivatives: true,
-  }, */
+  },
 });
 const _getFirstMesh = o => {
   let firstMesh = null;
