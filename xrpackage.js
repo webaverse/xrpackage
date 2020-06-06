@@ -344,7 +344,8 @@ const xrTypeAdders = {
       xrState: this.xrState,
       XRPackage,
     });
-    p.setXrFramebuffer(this.fakeSession.xrFramebuffer);
+    const xrfb = this.realSession ? this.realSession.renderState.baseLayer.framebuffer : this.fakeXrFramebuffer;
+    p.setXrFramebuffer(xrfb);
 
     await p.context.requestPresentPromise;
   },
@@ -401,7 +402,8 @@ export class XRPackageEngine extends EventTarget {
     canvas.style.outline = 'none';
     this.domElement = canvas;
     const proxyContext = canvas.getContext('webgl2', {
-      antialias: true,
+      antialias: false,
+      // antialias: true,
       alpha: true,
       xrCompatible: true,
     });
@@ -490,6 +492,36 @@ export class XRPackageEngine extends EventTarget {
 
     renderer.xr.setSession(this.fakeSession);
 
+    {    
+      const gl = this.proxyContext;
+      const xrfb = gl.createFramebuffer();
+      xrfb.context = {
+        colorTex: context.createTexture(),
+        depthTex: context.createTexture(),
+      };
+
+      const colorRenderbuffer = gl.createRenderbuffer();
+      const depthRenderbuffer = gl.createRenderbuffer();
+      const colorTex = gl.createTexture();
+      const depthTex = gl.createTexture();
+
+      gl.bindFramebuffer(gl.FRAMEBUFFER, xrfb);
+
+      gl.bindRenderbuffer(gl.RENDERBUFFER, colorRenderbuffer);
+      gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.RGBA8, window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio);
+      gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, colorRenderbuffer);
+
+      gl.bindRenderbuffer(gl.RENDERBUFFER, depthRenderbuffer);
+      gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.DEPTH32F_STENCIL8, window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio);
+      gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, depthRenderbuffer);
+      
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+
+      this.fakeXrFramebuffer = xrfb;
+      this.setXrFramebuffer(xrfb);
+    }
+    
     renderer.render(scene, camera); // pre-render the scene to compile
 
     options.autoStart && this.start();
@@ -669,7 +701,7 @@ export class XRPackageEngine extends EventTarget {
       this.realSession = null;
     }
 
-    const xrfb = this.realSession ? this.realSession.renderState.baseLayer.framebuffer : null;
+    const xrfb = this.realSession ? this.realSession.renderState.baseLayer.framebuffer : this.fakeXrFramebuffer;
     this.setXrFramebuffer(xrfb);
   }
   setXrFramebuffer(xrfb) {
@@ -867,10 +899,12 @@ export class XRPackageEngine extends EventTarget {
       this.packages[i].updateMatrixWorld();
     }
 
+    const xrfb = this.realSession ? this.realSession.renderState.baseLayer.framebuffer : this.fakeXrFramebuffer;
     for (let i = 0; i < this.packages.length; i++) {
       const p = this.packages[i];
       if (p.context.iframe && p.context.iframe.contentWindow && p.context.iframe.contentWindow.xrpackage && p.context.iframe.contentWindow.xrpackage.session && p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer) {
-        p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer.context._exokitClearEnabled(false);
+        // p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer.context._exokitClearEnabled(false);
+        p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer.context._exokitSetXrFramebuffer(xrfb);
       }
       if (p.context.worker) {
         p.context.worker.postMessage({
@@ -899,6 +933,25 @@ export class XRPackageEngine extends EventTarget {
     _tickRafs();
 
     this.renderer.render(this.scene, this.camera);
+
+    if (!this.realSession) {
+      const gl = this.proxyContext;
+      
+      const oldReadFbo = gl.getParameter(gl.READ_FRAMEBUFFER_BINDING);
+      const oldDrawFbo = gl.getParameter(gl.DRAW_FRAMEBUFFER_BINDING);
+
+      gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this.fakeXrFramebuffer);
+      gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+      
+      gl.blitFramebuffer(
+        0, 0, window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio,
+        0, 0, window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio,
+        gl.COLOR_BUFFER_BIT/*|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT*/, gl.NEAREST
+      );
+      
+      gl.bindFramebuffer(gl.READ_FRAMEBUFFER, oldReadFbo);
+      gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, oldDrawFbo);
+    }
   }
   packageRequestAnimationFrame(fn, win, order) {
     this.rafs.push(fn);
