@@ -80,7 +80,7 @@ const wireframeMaterial = new THREE.ShaderMaterial({
   uniforms: {
     uHoverId: {
       type: 'v3',
-      value: new THREE.Vector3(),
+      value: new THREE.Vector3(1, 1, 1),
     },
     uHoverColor: {
       type: 'v3',
@@ -88,7 +88,7 @@ const wireframeMaterial = new THREE.ShaderMaterial({
     },
     uSelectId: {
       type: 'v3',
-      value: new THREE.Vector3(),
+      value: new THREE.Vector3(1, 1, 1),
     },
     uSelectColor: {
       type: 'v3',
