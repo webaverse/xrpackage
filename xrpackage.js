@@ -495,10 +495,6 @@ export class XRPackageEngine extends EventTarget {
     {    
       const gl = this.proxyContext;
       const xrfb = gl.createFramebuffer();
-      xrfb.context = {
-        colorTex: context.createTexture(),
-        depthTex: context.createTexture(),
-      };
 
       const colorRenderbuffer = gl.createRenderbuffer();
       const depthRenderbuffer = gl.createRenderbuffer();
