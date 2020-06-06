@@ -95,7 +95,6 @@ async function tryLogin() {
       <div>Working...</div>
     </div>
   `;
-  header.appendChild(loginForm);
 
   const loginEmail = document.getElementById('login-email');
   const loginVerificationCode = document.getElementById('login-verification-code');

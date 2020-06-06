@@ -157,6 +157,7 @@ img:not([src]) {
 .header .selector {
   width: 500px;
   padding-left: 0;
+  margin-right: auto;
   justify-content: flex-start;
 }
 .header .selector:hover,
@@ -881,9 +882,9 @@ canvas {
   z-index: 1;
 }
 
-.right {
+/* .right {
   margin-left: auto;
-}
+} */
 
 .buttons {
   display: flex;
@@ -1366,10 +1367,12 @@ header.unlocking + .main .blocker .button
   align-items: flex-start;
 }
 
+#login-form {
+  width: 200px;
+}
 .login-form {
   display: flex;
   height: 100%;
-  margin-left: auto;
   align-items: center;
 }
 .login-form:not(.phase-1) > .phase-1-content,
@@ -1405,6 +1408,8 @@ header.unlocking + .main .blocker .button
   display: flex;
   padding: 0 10px;
   align-items: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .error {

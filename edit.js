@@ -2,6 +2,7 @@ import * as THREE from './xrpackage/three.module.js';
 import {XRPackageEngine, XRPackage} from './xrpackage.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import {TransformControls} from './TransformControls.js';
+import {tryLogin} from './xrpackage/login.js';
 import {XRChannelConnection} from 'https://metartc.com/xrrtc.js';
 import {JSONClient} from 'https://sync.webaverse.com/sync-client.js';
 import address from 'https://contracts.webaverse.com/address.js';
@@ -42,6 +43,11 @@ function parseQuery(queryString) {
   }
   return query;
 }
+
+(async () => {
+  await XRPackageEngine.waitForLoad();
+  await tryLogin();
+})();
 
 const targetMeshGeometry = (() => {
   const targetGeometry = BufferGeometryUtils.mergeBufferGeometries([
