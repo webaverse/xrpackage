@@ -2,6 +2,10 @@ const http = require('http');
 const express = require('express');
 
 const app = express();
+app.use((req, res, next) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  next();
+});
 app.use(express.static(__dirname));
 
 http.createServer(app)
