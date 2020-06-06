@@ -116,7 +116,7 @@ let wireframeMesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
   color: 0xFFFFFF,
 }));
 wireframeMesh = getWireframeMesh(wireframeMesh);
-mesh.frustumCulled = false;
+wireframeMesh.frustumCulled = false;
 
 const pe = new XRPackageEngine({
   width: 512,
