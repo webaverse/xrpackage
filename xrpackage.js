@@ -386,6 +386,28 @@ const xrTypeRemovers = {
   },
 };
 
+const _setFramebufferMsRenderbuffer = (gl, xrfb, width, height, devicePixelRatio) => {
+  const oldDrawFbo = gl.getParameter(gl.DRAW_FRAMEBUFFER_BINDING);
+  const oldRbo = gl.getParameter(gl.RENDERBUFFER_BINDING);
+  
+  const colorRenderbuffer = gl.createRenderbuffer();
+  const depthRenderbuffer = gl.createRenderbuffer();
+  const colorTex = gl.createTexture();
+  const depthTex = gl.createTexture();
+
+  gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, xrfb);
+
+  gl.bindRenderbuffer(gl.RENDERBUFFER, colorRenderbuffer);
+  gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.RGBA8, width * devicePixelRatio, height * devicePixelRatio);
+  gl.framebufferRenderbuffer(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, colorRenderbuffer);
+
+  gl.bindRenderbuffer(gl.RENDERBUFFER, depthRenderbuffer);
+  gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.DEPTH32F_STENCIL8, width * devicePixelRatio, height * devicePixelRatio);
+  gl.framebufferRenderbuffer(gl.DRAW_FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, depthRenderbuffer);
+  
+  gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, oldDrawFbo);
+  gl.bindRenderbuffer(gl.RENDERBUFFER, oldRbo);
+};
 export class XRPackageEngine extends EventTarget {
   constructor(options) {
     super();
@@ -492,31 +514,11 @@ export class XRPackageEngine extends EventTarget {
 
     renderer.xr.setSession(this.fakeSession);
 
-    {    
-      const gl = this.proxyContext;
-      const xrfb = gl.createFramebuffer();
-
-      const colorRenderbuffer = gl.createRenderbuffer();
-      const depthRenderbuffer = gl.createRenderbuffer();
-      const colorTex = gl.createTexture();
-      const depthTex = gl.createTexture();
-
-      gl.bindFramebuffer(gl.FRAMEBUFFER, xrfb);
-
-      gl.bindRenderbuffer(gl.RENDERBUFFER, colorRenderbuffer);
-      gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.RGBA8, window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio);
-      gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, colorRenderbuffer);
-
-      gl.bindRenderbuffer(gl.RENDERBUFFER, depthRenderbuffer);
-      gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.DEPTH32F_STENCIL8, window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio);
-      gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, depthRenderbuffer);
-      
-      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-      gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-
-      this.fakeXrFramebuffer = xrfb;
-      this.setXrFramebuffer(xrfb);
-    }
+    const gl = this.proxyContext;
+    const xrfb = gl.createFramebuffer();
+    _setFramebufferMsRenderbuffer(gl, xrfb, options.width, options.height, options.devicePixelRatio);
+    this.fakeXrFramebuffer = xrfb;
+    this.setXrFramebuffer(xrfb);
     
     renderer.render(scene, camera); // pre-render the scene to compile
 
@@ -547,6 +549,8 @@ export class XRPackageEngine extends EventTarget {
     this.xrState.renderHeight[0] = height * devicePixelRatio;
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
+    
+    _setFramebufferMsRenderbuffer(this.proxyContext, this.fakeXrFramebuffer, width, height, devicePixelRatio);
 
     this.renderer.xr.isPresenting = true;
     
