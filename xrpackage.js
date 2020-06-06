@@ -396,6 +396,33 @@ export class XRPackageEngine extends EventTarget {
     this.xrState.renderHeight[0] = options.height * options.devicePixelRatio;
     this.matrix = new THREE.Matrix4();
 
+    this.name = 'XRPackage Scene';
+    this.packages = [];
+    this.ids = 0;
+    this.rafs = [];
+    this.grabs = {
+      left: null,
+      right: null,
+    };
+    this.grabuses = {
+      left: null,
+      right: null,
+    };
+    this.equips = {
+      head: null,
+      left: null,
+      right: null,
+      back: null,
+    };
+    this.rig = null;
+    this.rigMatrix = new THREE.Matrix4();
+    this.rigMatrixEnabled = false;
+    this.avatar = null;
+    this.realSession = null;
+    this.referenceSpace = null;
+    this.loadReferenceSpaceInterval = 0;
+    this.cancelFrame = null;
+
     const context = this.getContext('webgl2');
     this.context = context;
     
@@ -447,33 +474,6 @@ export class XRPackageEngine extends EventTarget {
 
     renderer.xr.setSession(this.fakeSession);
 
-    this.name = 'XRPackage Scene';
-    this.packages = [];
-    this.ids = 0;
-    this.rafs = [];
-    this.xrFramebuffer = null;
-    this.grabs = {
-      left: null,
-      right: null,
-    };
-    this.grabuses = {
-      left: null,
-      right: null,
-    };
-    this.equips = {
-      head: null,
-      left: null,
-      right: null,
-      back: null,
-    };
-    this.rig = null;
-    this.rigMatrix = new THREE.Matrix4();
-    this.rigMatrixEnabled = false;
-    this.avatar = null;
-    this.realSession = null;
-    this.referenceSpace = null;
-    this.loadReferenceSpaceInterval = 0;
-    this.cancelFrame = null;
 
     options.autoStart && this.start();
     options.autoListen && this.listen();
