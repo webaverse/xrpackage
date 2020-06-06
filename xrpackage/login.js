@@ -69,8 +69,7 @@ async function tryLogin() {
   }
 
   const header = document.getElementById('header');
-  const loginForm = document.createElement('form');
-  loginForm.id = 'login-form';
+  const loginForm = document.getElementById('login-form');
   loginForm.classList.add('login-form');
   loginForm.innerHTML = `
     <div class=phase-content>
