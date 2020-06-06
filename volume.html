@@ -39,6 +39,9 @@ const p = await (async () => {
     return null;
   }
 })();
+if (!p) {
+  throw new Error('no package to volumize');
+}
 
 const renderer = new THREE.WebGLRenderer({
   // canvas,
