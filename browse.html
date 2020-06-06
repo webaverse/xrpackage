@@ -93,6 +93,8 @@
 
 <script type=module>
 import './selector.js';
+import {XRPackageEngine} from './xrpackage.js';
+import {tryLogin} from './xrpackage/login.js';
 import address from 'https://contracts.webaverse.com/address.js';
 import abi from 'https://contracts.webaverse.com/abi.js';
 
@@ -109,6 +111,11 @@ const resultsPerPage = 10;
 let currentPage = 0;
 let totalObjects = 0;
 let totalPages = 0;
+
+(async () => {
+  await XRPackageEngine.waitForLoad();
+  await tryLogin();
+})();
 
 const subtabs = Array.from(document.querySelectorAll('.subtab'));
 const subtabContents = Array.from(document.querySelectorAll('.subtab-content'));
