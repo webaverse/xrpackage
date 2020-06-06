@@ -96,6 +96,7 @@ function ProxiedWebGLRenderingContext(canvas) {
   this._enabled = {
     blend: true,
     clear: true,
+    xrFramebuffer: null,
   };
 
   if (hasWebGL2) {
@@ -186,6 +187,9 @@ ProxiedWebGLRenderingContext.prototype._exokitBlendColor = function _exokitBlend
 ProxiedWebGLRenderingContext.prototype._exokitBlendEnabled = function _exokitBlendEnabled(enabled) {
   this._enabled.blend = enabled;
 };
+ProxiedWebGLRenderingContext.prototype._exokitSetXrFramebuffer = function _exokitSetXrFramebuffer(xrfb) {
+  this._enabled.xrFramebuffer = xrfb;
+};
 class OES_vertex_array_object {
   constructor(gl) {
     this.gl = gl;
@@ -263,7 +267,8 @@ ProxiedWebGLRenderingContext.prototype.disable = (oldDisable => function disable
 })(ProxiedWebGLRenderingContext.prototype.disable);
 ProxiedWebGLRenderingContext.prototype.clear = (oldClear => function clear() {
   const gl = this.canvas.proxyContext;
-  if (this._enabled.clear || this.state.framebuffer[gl.DRAW_FRAMEBUFFER] !== null) {
+  // if (this._enabled.clear || this.state.framebuffer[gl.DRAW_FRAMEBUFFER] !== null) {
+  if (!this._enabled.xrFramebuffer || this.state.framebuffer[gl.DRAW_FRAMEBUFFER] !== this._enabled.xrFramebuffer) {
     oldClear.apply(this, arguments);
   }
 })(ProxiedWebGLRenderingContext.prototype.clear);
