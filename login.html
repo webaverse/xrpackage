@@ -189,10 +189,10 @@ loginForm.addEventListener('submit', async e => {
     loginForm.classList.remove('phase-2');
 
     if (await doLogin(loginEmail.value, loginVerificationCode.value)) {
-      xrEngine.postMessage({
+      /* xrEngine.postMessage({
         method: 'login',
         loginToken,
-      });
+      }); */
     }
   } else if (loginForm.classList.contains('phase-3')) {
     await storage.remove('loginToken');
