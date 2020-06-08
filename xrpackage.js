@@ -319,14 +319,14 @@ const xrTypeAdders = {
     });
 
     function emitKeyboardEvent(e) {
-      p.context.iframe.contentWindow.dispatchEvent(new KeyboardEvent(e.type, e))
+      p.context.iframe.contentWindow.dispatchEvent(new KeyboardEvent(e.type, e));
     }
 
-    p.context.emitKeyboardEvent = emitKeyboardEvent
+    p.context.emitKeyboardEvent = emitKeyboardEvent;
 
-    window.addEventListener('keydown', emitKeyboardEvent, true)
-    window.addEventListener('keyup', emitKeyboardEvent, true)
-    window.addEventListener('keypress', emitKeyboardEvent, true)
+    window.addEventListener('keydown', emitKeyboardEvent, true);
+    window.addEventListener('keyup', emitKeyboardEvent, true);
+    window.addEventListener('keypress', emitKeyboardEvent, true);
 
     p.matrixWorldNeedsUpdate = true;
 
@@ -366,11 +366,11 @@ const xrTypeRemovers = {
       return rafPackage !== p;
     });
 
-    const emitKeyboardEvent = p.context.emitKeyboardEvent
+    const emitKeyboardEvent = p.context.emitKeyboardEvent;
 
-    window.removeEventListener('keydown', emitKeyboardEvent, true)
-    window.removeEventListener('keyup', emitKeyboardEvent, true)
-    window.removeEventListener('keypress', emitKeyboardEvent, true)
+    window.removeEventListener('keydown', emitKeyboardEvent, true);
+    window.removeEventListener('keyup', emitKeyboardEvent, true);
+    window.removeEventListener('keypress', emitKeyboardEvent, true);
 
     p.context.iframe && p.context.iframe.parentNode.removeChild(p.context.iframe);
   },
