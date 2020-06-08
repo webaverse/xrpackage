@@ -317,10 +317,21 @@ const xrTypeAdders = {
       p.context.iframe.addEventListener('load', accept);
       p.context.iframe.addEventListener('error', reject);
     });
+
+    function emitKeyboardEvent(e) {
+      p.context.iframe.contentWindow.dispatchEvent(new KeyboardEvent(e.type, e))
+    }
+
+    p.context.emitKeyboardEvent = emitKeyboardEvent
+
+    window.addEventListener('keydown', emitKeyboardEvent, true)
+    window.addEventListener('keyup', emitKeyboardEvent, true)
+    window.addEventListener('keypress', emitKeyboardEvent, true)
+
     p.matrixWorldNeedsUpdate = true;
-    
+
     p.context.requestPresentPromise = makePromise();
-    
+
     const d = p.getMainData();
     const indexHtml = d.toString('utf8');
     await p.context.iframe.contentWindow.xrpackage.iframeInit({
@@ -354,6 +365,12 @@ const xrTypeRemovers = {
       const rafPackage = this.packages.find(p => p.context.iframe && p.context.iframe.contentWindow === rafWindow);
       return rafPackage !== p;
     });
+
+    const emitKeyboardEvent = p.context.emitKeyboardEvent
+
+    window.removeEventListener('keydown', emitKeyboardEvent, true)
+    window.removeEventListener('keyup', emitKeyboardEvent, true)
+    window.removeEventListener('keypress', emitKeyboardEvent, true)
 
     p.context.iframe && p.context.iframe.parentNode.removeChild(p.context.iframe);
   },
