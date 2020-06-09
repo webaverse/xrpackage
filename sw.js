@@ -1824,10 +1824,12 @@ self.addEventListener('fetch', event => {
             }
           }
           if (startUrls[pathname.slice(1)]) {
+            startUrls[pathname.slice(1)]--;
             pathname = '/xrpackage/iframe.html';
             pathnameChanged = true;
           }
           if (scriptUrls[pathname.slice(1)]) {
+            scriptUrls[pathname.slice(1)]--;
             pathname = '/xrpackage/worker.js';
             pathnameChanged = true;
           }
