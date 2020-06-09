@@ -1754,7 +1754,7 @@ self.addEventListener('fetch', event => {
     const key = match[1];
 
     event.respondWith(
-      clients.get(event.clientId)
+      clients.get(clientId)
         .then(client => {
             if (client.type === 'window' && client.frameType === 'top-level') {
                 if (request.method === 'GET') {
