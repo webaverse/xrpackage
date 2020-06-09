@@ -1725,9 +1725,15 @@ self.addEventListener('message', e => {
     } = data;
     // console.log('got hijack', data);
     hijackedIds[id] = files;
-    startUrls[startUrl] = true;
+    if (!startUrls[startUrl]) {
+      startUrls[startUrl] = 0;
+    }
+    startUrls[startUrl]++;
     if (script) {
-      scriptUrls[script] = true;
+      if (!scriptUrls[script]) {
+        scriptUrls[script] = 0;
+      }
+      scriptUrls[script]++;
     }
   } else {
     console.warn('unknown method', method);
