@@ -1511,7 +1511,8 @@ export class XRPackage extends EventTarget {
   }
   static compileRaw(files) {
     const manifestFile = files.find(file => file.url === '/manifest.json');
-    const j = JSON.parse(manifestFile.data);
+    const s = typeof manifestFile.data === 'string' ? manifestFile.data : new TextDecoder().decode(manifestFile.data);
+    const j = JSON.parse(s);
     const {start_url: startUrl} = j;
 
     // const manifestUrl = primaryUrl + '/manifest.json';
