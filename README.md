@@ -149,7 +149,7 @@ const p = new XRPackage(new Uint8Array(arrayBuffer));
 pe.add(p);
 ```
 
-You can also compile a `.wbn` package programmatically: 
+You can also compile a `.wbn` package programmatically:
 
 ```
 const uint8Array = XRPackage.compileRaw(
@@ -225,3 +225,7 @@ importScripts('https://xrpackage.org/sw.js');
 ### Running in Brave
 
 You may run into issues on Brave where it'll block XRPackage from running any Three.js code due to it's cross-origin fingerprint blocking. You will need to either serve all the XRPackage code from the same origin, or tell users to click the `Brave Shield` and allow fingerprinting for your website.
+
+### CTRL+SHIFT+R and Service Workers
+
+The `CTRL+SHIFT+R` shortcut will unload service workers on the current path and will cause XRPackage to not initialize properly. If you are being thrown to the debugger with a warning that the service worker registration timed out, try closing your browser window and reloading the URL _without_ using the no-cache reload shortcut.
