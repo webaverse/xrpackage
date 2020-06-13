@@ -249,6 +249,9 @@ ProxiedWebGLRenderingContext.prototype.getExtension = (_getExtension => function
     'EXT_disjoint_timer_query',
     'EXT_disjoint_timer_query_webgl2',
     'KHR_parallel_shader_compile',
+    'OES_texture_float_linear',
+    'OES_texture_float extension',
+    'EXT_color_buffer_float',
   ].includes(name)) {
     return this.canvas.proxyContext.getExtension(name);
   } else {
