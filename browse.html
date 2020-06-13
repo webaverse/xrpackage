@@ -160,13 +160,13 @@ paginations.forEach(pagination => {
         div.classList.add('token');
         div.classList.add('card');
         div.innerHTML = `\
-          <a href="/inspect.html?h=${dataHash}">
+          <a href="/inspect.html?p=${name}">
             ${gifIconSrc ? `<img src="${gifIconSrc}" width=256 height=256>` : '<img width=256 height=256>'}
           </a>
           <div class=text>
             <div class="name cardTitle">${name}</div>
             <input type=text value="xrpk install ${dataHash}" readonly class="cardCode">
-            <a href="/run.html?h=${dataHash}" class="cardAction"><span>Run</span><i class="fa fa-chevron-right"></i></a>
+            <a href="/run.html?p=${name}" class="cardAction"><span>Run</span><i class="fa fa-chevron-right"></i></a>
             <a href="https://ipfs.exokit.org/ipfs/${dataHash}.wbn" class="cardAction"><span>Download package</span><i class="fa fa-chevron-right"></i></a>
             ${glbIconSrc ? `<a href="${glbIconSrc}" class="cardAction"><span>Download model</span><i class="fa fa-chevron-right"></i></a>` : ''}
           </div>
