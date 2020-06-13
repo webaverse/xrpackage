@@ -254,8 +254,21 @@ ProxiedWebGLRenderingContext.prototype.getExtension = (_getExtension => function
     'EXT_color_buffer_float',
   ].includes(name)) {
     return this.canvas.proxyContext.getExtension(name);
-  } else {
+  } else if ([ // implicit in WebGL2
+    'OES_texture_float',
+    'OES_texture_half_float',
+    'OES_texture_half_float_linear',
+    'WEBGL_depth_texture',
+    'OES_standard_derivatives',
+    'OES_element_index_uint',
+    'EXT_blend_minmax',
+    'EXT_frag_depth',
+    'WEBGL_draw_buffers',
+    'EXT_shader_texture_lod',
+  ].includes(name)) {
     return {};
+  } else {
+    return null;
   }
 })(ProxiedWebGLRenderingContext.prototype.getExtension);
 ProxiedWebGLRenderingContext.prototype.enable = (oldEnable => function enable(flag) {
