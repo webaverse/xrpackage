@@ -5,7 +5,8 @@
   "main": "cli.js",
   "scripts": {
     "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint --fix --ext .js,.jsx ."
   },
   "bin": {
     "xrpk": "./cli.js"
@@ -25,5 +26,9 @@
   },
   "browserslist": [
     "last 1 chrome version"
-  ]
+  ],
+  "devDependencies": {
+    "eslint": "^7.2.0",
+    "eslint-config-semistandard": "^15.0.0"
+  }
 }
