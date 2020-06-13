@@ -68,6 +68,9 @@
 import {XRPackage} from './xrpackage.js';
 import {pe} from './run.js';
 
+const apiHost = `https://ipfs.exokit.org/ipfs`;
+const packagesEndpoint = 'https://packages.exokit.org';
+
 (async () => {
   function parseQuery(queryString) {
     var query = {};
@@ -79,7 +82,17 @@ import {pe} from './run.js';
     return query;
   }
   const q = parseQuery(window.location.search);
-  if (q.i) { // index
+  if (q.p) { // package
+    const metadata = await fetch(packagesEndpoint + '/' + q.p)
+      .then(res => res.json())
+    const {dataHash} = metadata;
+
+    const arrayBuffer = await fetch(`${apiHost}/${dataHash}.wbn`)
+      .then(res => res.arrayBuffer());
+
+    const p = new XRPackage(new Uint8Array(arrayBuffer));
+    await pe.add(p);
+  } else if (q.i) { // index
     const metadataHash = await contract.methods.getMetadata(parseInt(q.i, 10), 'hash').call();
     const metadata = await fetch(`${apiHost}/${metadataHash}`)
       .then(res => res.json());
