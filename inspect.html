@@ -159,6 +159,7 @@ import address from 'https://contracts.webaverse.com/address.js';
 import abi from 'https://contracts.webaverse.com/abi.js';
 
 const apiHost = `https://ipfs.exokit.org/ipfs`;
+const packagesEndpoint = 'https://packages.exokit.org';
 const network = 'rinkeby';
 const infuraApiKey = '4fb939301ec543a0969f3019d74f80c2';
 const rpcUrl = `https://${network}.infura.io/v3/${infuraApiKey}`;
@@ -255,7 +256,19 @@ const _makeScene = () => {
   const createMode = document.getElementById('create-mode');
 
   let p;
-  if (q.i) { // index
+  if (q.p) { // package
+    inspectMode.classList.add('open');
+
+    const metadata = await fetch(packagesEndpoint + '/' + q.p)
+      .then(res => res.json())
+    const {dataHash} = metadata;
+
+    const arrayBuffer = await fetch(`${apiHost}/${dataHash}.wbn`)
+      .then(res => res.arrayBuffer());
+
+    p = new XRPackage(new Uint8Array(arrayBuffer));
+    await pe.add(p);
+  } else if (q.i) { // index
     inspectMode.classList.add('open');
 
     const metadataHash = await contract.methods.getMetadata(parseInt(q.i, 10), 'hash').call();
