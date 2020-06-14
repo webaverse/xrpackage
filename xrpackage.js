@@ -207,18 +207,28 @@ const _makeXrState = () => {
   return result;
 };
 
+const _loadPackageInSw = async p => {
+  await XRPackageEngine.waitForLoad();
+  await requestSw({
+    method: 'hijack',
+    id: p.id,
+    startUrl: _removeUrlTail(p.main),
+    script: p.details ? p.details.script : null,
+    files: p.files.map(f => ({
+      pathname: new URL(f.url).pathname,
+      headers: f.response.headers,
+      body: f.response.body,
+    })),
+  });
+};
+
 const xrTypeLoaders = {
   'webxr-site@0.0.1': async function(p) {
-    const iframe = document.createElement('iframe');
-    iframe.src = '/' + p.main;
-    iframe.style.position = 'absolute';
-    iframe.style.top = '-10000px';
-    iframe.style.left = '-10000px';
-    iframe.style.visibility = 'hidden';
-
-    p.context.iframe = iframe;
+    // nothing
   },
   'gltf@0.0.1': async function(p) {
+    await _loadPackageInSw(p);
+
     const d = p.getMainData();
     const b = new Blob([d], {
       type: 'application/octet-stream',
@@ -272,6 +282,8 @@ const xrTypeLoaders = {
     }
   },
   'vrm@0.0.1': async function(p) {
+    await _loadPackageInSw(p);
+
     const d = p.getMainData();
     const b = new Blob([d], {
       type: 'application/octet-stream',
@@ -290,6 +302,8 @@ const xrTypeLoaders = {
     p.matrixWorldNeedsUpdate = true;
   },
   'vox@0.0.1': async function(p) {
+    await _loadPackageInSw(p);
+
     const d = p.getMainData();
     const b = new Blob([d], {
       type: 'application/octet-stream',
@@ -304,6 +318,8 @@ const xrTypeLoaders = {
     p.matrixWorldNeedsUpdate = true;
   },
   'xrpackage-scene@0.0.1': async function(p) {
+    await _loadPackageInSw(p);
+
     const d = p.getMainData();
     const j = JSON.parse(d.toString('utf8'));
 
@@ -312,14 +328,36 @@ const xrTypeLoaders = {
 };
 const xrTypeAdders = {
   'webxr-site@0.0.1': async function(p) {
-    document.body.appendChild(p.context.iframe);
+    await _loadPackageInSw(p);
+
+    const iframe = document.createElement('iframe');
+    iframe.src = '/' + p.main;
+    iframe.style.position = 'absolute';
+    iframe.style.top = '-10000px';
+    iframe.style.left = '-10000px';
+    iframe.style.visibility = 'hidden';
+    document.body.appendChild(iframe);
+    p.context.iframe = iframe;
+
     await new Promise((accept, reject) => {
-      p.context.iframe.addEventListener('load', accept);
-      p.context.iframe.addEventListener('error', reject);
+      const _load = () => {
+        accept();
+        _cleanup();
+      };
+      const _error = err => {
+        reject(err);
+        _cleanup();
+      };
+      const _cleanup = () => {
+        iframe.removeEventListener('load', _load);
+        iframe.removeEventListener('error', _error);
+      };
+      iframe.addEventListener('load', _load);
+      iframe.addEventListener('error', _error);
     });
 
     function emitKeyboardEvent(e) {
-      p.context.iframe.contentWindow.dispatchEvent(new KeyboardEvent(e.type, e));
+      iframe.contentWindow.dispatchEvent(new KeyboardEvent(e.type, e));
     }
 
     p.context.emitKeyboardEvent = emitKeyboardEvent;
@@ -334,7 +372,7 @@ const xrTypeAdders = {
 
     const d = p.getMainData();
     const indexHtml = d.toString('utf8');
-    await p.context.iframe.contentWindow.xrpackage.iframeInit({
+    await iframe.contentWindow.xrpackage.iframeInit({
       engine: this,
       pkg: p,
       indexHtml,
@@ -373,7 +411,8 @@ const xrTypeRemovers = {
     window.removeEventListener('keyup', emitKeyboardEvent, true);
     window.removeEventListener('keypress', emitKeyboardEvent, true);
 
-    p.context.iframe && p.context.iframe.parentNode.removeChild(p.context.iframe);
+    p.context.iframe.parentNode.removeChild(p.context.iframe);
+    p.context.iframe = null;
   },
   'gltf@0.0.1': function(p) {
     this.container.remove(p.context.object);
@@ -1332,19 +1371,7 @@ export class XRPackage extends EventTarget {
           this.events = events;
           this.details = xrDetails;
 
-          XRPackageEngine.waitForLoad()
-            .then(() => requestSw({
-              method: 'hijack',
-              id: this.id,
-              startUrl: _removeUrlTail(startUrl),
-              script: xrDetails ? xrDetails.script : null,
-              files: this.files.map(f => ({
-                pathname: new URL(f.url).pathname,
-                headers: f.response.headers,
-                body: f.response.body,
-              })),
-            }))
-            .then(() => loader(this))
+          loader(this)
             .then(o => {
               this.loaded = true;
               this.dispatchEvent(new MessageEvent('load', {
