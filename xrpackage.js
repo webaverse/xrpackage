@@ -1726,7 +1726,7 @@ export class XRPackage extends EventTarget {
     rig.inputs.rightGamepad.quaternion.fromArray(rightGamepad[1]);
   }
   setXrFramebuffer(xrfb) {
-    this.context.iframe && this.context.iframe.contentWindow.xrpackage.setXrFramebuffer(xrfb);
+    this.context.iframe && this.context.iframe.contentWindow && this.context.iframe.contentWindow.xrpackage && this.context.iframe.contentWindow.xrpackage.setXrFramebuffer(xrfb);
   }
   async export() {
     return this.data.slice();
