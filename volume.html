@@ -91,10 +91,21 @@ const volumeData = await new Promise((accept, reject) => {
   const exporter = new GLTFExporter();
   const exportScene = new THREE.Scene();
   exportScene.add(collisionMesh);
-  exporter.parse(exportScene, accept, {
+  const opts = {
     binary: true,
     includeCustomExtensions: true,
-  });
+  };
+  exporter.parse(exportScene, o => {
+    if (o instanceof ArrayBuffer) {
+      accept(o);
+    } else {
+      const exporter = new GLTFExporter();
+      const exportScene = new THREE.Scene();
+      exportScene.add(new THREE.Mesh(new THREE.BoxBufferGeometry(0.01, 0.01, 0.01), collisionMaterial));
+      exportScene.add(collisionMesh);
+      exporter.parse(exportScene, accept, opts);
+    }
+  }, opts);
 });
 const volumeBlob = new Blob([volumeData], {
   type: 'model/gltf-binary',
