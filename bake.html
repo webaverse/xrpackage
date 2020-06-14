@@ -15,7 +15,7 @@ function parseQuery(queryString) {
   }
   return query;
 }
-const {srcWbn, dstGif, dstVolume, dstAabb} = parseQuery(window.location.search);
+const {srcWbn, dstGif, dstVolume, dstAabb} = parseQuery(decodeURIComponent(window.location.search));
 
 const {screenshot} = await new Promise((accept, reject) => {
   const iframe = document.createElement('iframe');
