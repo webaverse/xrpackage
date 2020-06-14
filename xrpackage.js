@@ -1674,7 +1674,7 @@ export class XRPackage extends EventTarget {
         this.context.object.matrix
           .copy(this.matrix)
           .decompose(this.context.object.position, this.context.object.quaternion, this.context.object.scale);
-      this.context.iframe && this.context.iframe.contentWindow.xrpackage.setMatrix(localMatrix.toArray(localArray));
+      this.context.iframe && this.context.iframe.contentWindow && this.context.iframe.contentWindow.xrpackage && this.context.iframe.contentWindow.xrpackage.setMatrix(localMatrix.toArray(localArray));
     }
   }
   grabrelease() {
