@@ -14,6 +14,7 @@ const {requestSw} = utils;
 export const apiHost = `https://ipfs.exokit.org/ipfs`;
 
 const primaryUrl = `https://xrpackage.org`;
+const isIOS = /iPad|iPhone|iPod/.test(navigator.platform);
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -428,25 +429,40 @@ const xrTypeRemovers = {
 
 const _setFramebufferMsRenderbuffer = (gl, xrfb, width, height, devicePixelRatio) => {
   const oldDrawFbo = gl.getParameter(gl.DRAW_FRAMEBUFFER_BINDING);
-  const oldRbo = gl.getParameter(gl.RENDERBUFFER_BINDING);
-  
-  const colorRenderbuffer = gl.createRenderbuffer();
-  const depthRenderbuffer = gl.createRenderbuffer();
-  const colorTex = gl.createTexture();
-  const depthTex = gl.createTexture();
 
   gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, xrfb);
 
-  gl.bindRenderbuffer(gl.RENDERBUFFER, colorRenderbuffer);
-  gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.RGBA8, width * devicePixelRatio, height * devicePixelRatio);
-  gl.framebufferRenderbuffer(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, colorRenderbuffer);
+  if (!isIOS) {
+    const oldRbo = gl.getParameter(gl.RENDERBUFFER_BINDING);
 
-  gl.bindRenderbuffer(gl.RENDERBUFFER, depthRenderbuffer);
-  gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.DEPTH32F_STENCIL8, width * devicePixelRatio, height * devicePixelRatio);
-  gl.framebufferRenderbuffer(gl.DRAW_FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, depthRenderbuffer);
+    const colorRenderbuffer = gl.createRenderbuffer();
+    gl.bindRenderbuffer(gl.RENDERBUFFER, colorRenderbuffer);
+    gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.RGBA8, width * devicePixelRatio, height * devicePixelRatio);
+    gl.framebufferRenderbuffer(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, colorRenderbuffer);
+
+    const depthRenderbuffer = gl.createRenderbuffer();
+    gl.bindRenderbuffer(gl.RENDERBUFFER, depthRenderbuffer);
+    gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.DEPTH32F_STENCIL8, width * devicePixelRatio, height * devicePixelRatio);
+    gl.framebufferRenderbuffer(gl.DRAW_FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, depthRenderbuffer);
+
+    gl.bindRenderbuffer(gl.RENDERBUFFER, oldRbo);
+  } else {
+    const oldTex = gl.getParameter(gl.TEXTURE_BINDING_2D);
+
+    const colorTex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, colorTex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width * devicePixelRatio, height * devicePixelRatio, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorTex, 0);
+
+    const depthTex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, depthTex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_STENCIL, width * devicePixelRatio, height * devicePixelRatio, 0, gl.DEPTH_STENCIL, gl.UNSIGNED_INT_24_8, null);
+    gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.TEXTURE_2D, depthTex, 0);
+
+    gl.bindTexture(gl.TEXTURE_2D, oldTex);
+  }
   
   gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, oldDrawFbo);
-  gl.bindRenderbuffer(gl.RENDERBUFFER, oldRbo);
 };
 export class XRPackageEngine extends EventTarget {
   constructor(options) {
