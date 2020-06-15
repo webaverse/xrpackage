@@ -1,8 +1,6 @@
-/*! (c) Andrea Giammarchi - ISC */
-var self = this || /* istanbul ignore next */ {};
 try {
-  self.EventTarget = (new EventTarget).constructor;
-} catch(EventTarget) {
+  new EventTarget();
+} catch(err) {
   (function (Object, wm) {
     var create = Object.create;
     var defineProperty = Object.defineProperty;
@@ -43,7 +41,7 @@ try {
         }
       }
     });
-    self.EventTarget = EventTarget;
+    window.EventTarget = EventTarget;
     function EventTarget() {'use strict';
       wm.set(this, create(null));
     }
