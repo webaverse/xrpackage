@@ -446,12 +446,17 @@ const _setFramebufferMsRenderbuffer = (gl, xrfb, width, height, devicePixelRatio
     gl.framebufferRenderbuffer(gl.DRAW_FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, depthRenderbuffer);
 
     gl.bindRenderbuffer(gl.RENDERBUFFER, oldRbo);
+
+    xrfb.colorRenderbuffer = colorRenderbuffer;
+    xrfb.depthRenderbuffer = depthRenderbuffer;
   } else {
     const oldTex = gl.getParameter(gl.TEXTURE_BINDING_2D);
 
     const colorTex = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, colorTex);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, width * devicePixelRatio, height * devicePixelRatio, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorTex, 0);
 
     const depthTex = gl.createTexture();
@@ -460,6 +465,9 @@ const _setFramebufferMsRenderbuffer = (gl, xrfb, width, height, devicePixelRatio
     gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.TEXTURE_2D, depthTex, 0);
 
     gl.bindTexture(gl.TEXTURE_2D, oldTex);
+
+    xrfb.colorTex = colorTex;
+    xrfb.depthTex = depthTex;
   }
   
   gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, oldDrawFbo);
@@ -575,6 +583,135 @@ export class XRPackageEngine extends EventTarget {
     _setFramebufferMsRenderbuffer(gl, xrfb, options.width, options.height, options.devicePixelRatio);
     this.fakeXrFramebuffer = xrfb;
     this.setXrFramebuffer(xrfb);
+
+    {
+      const vertexShader = `\
+        precision lowp float;
+
+        // xy = vertex position in normalized device coordinates ([-1,+1] range).
+        attribute vec2 vertexPositionNDC;
+
+        varying vec2 vTexCoords;
+
+        const vec2 scale = vec2(0.5, 0.5);
+
+        void main()
+        {
+          vTexCoords  = vertexPositionNDC * scale + scale; // scale vertex attribute to [0,1] range
+          gl_Position = vec4(vertexPositionNDC, 0.0, 1.0);
+        }
+      `;
+      const fragmentShader = `\
+        precision mediump float;
+
+        uniform sampler2D colorMap;
+        varying vec2 vTexCoords;
+
+        void main()
+        {
+          gl_FragColor = texture2D(colorMap, vTexCoords);
+        }
+      `;
+      function compileShader(gl, shaderSource, shaderType) {
+        // Create the shader object
+        var shader = gl.createShader(shaderType);
+       
+        // Set the shader source code.
+        gl.shaderSource(shader, shaderSource);
+       
+        // Compile the shader
+        gl.compileShader(shader);
+       
+        // Check if it compiled
+        var success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+        if (!success) {
+          // Something went wrong during compilation; get the error
+          throw "could not compile shader:" + gl.getShaderInfoLog(shader);
+        }
+       
+        return shader;
+      }
+      function createProgram(gl, vertexShader, fragmentShader) {
+        // create a program.
+        const program = gl.createProgram();
+       
+        // attach the shaders.
+        gl.attachShader(program, vertexShader);
+        gl.attachShader(program, fragmentShader);
+       
+        // link the program.
+        gl.linkProgram(program);
+       
+        // Check if it linked.
+        const success = gl.getProgramParameter(program, gl.LINK_STATUS);
+        if (!success) {
+          // something went wrong with the link
+          throw ("program filed to link:" + gl.getProgramInfoLog (program));
+        }
+       
+        return program;
+      }
+      const fullscreenProgram = createProgram(gl, compileShader(gl, vertexShader, gl.VERTEX_SHADER), compileShader(gl, fragmentShader, gl.FRAGMENT_SHADER));
+
+      const verts = Float32Array.from([
+        // First triangle:
+         1.0,  1.0,
+        -1.0,  1.0,
+        -1.0, -1.0,
+        // Second triangle:
+        -1.0, -1.0,
+         1.0, -1.0,
+         1.0,  1.0,
+      ]);
+      const vbo = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+      gl.bufferData(gl.ARRAY_BUFFER, verts, gl.STATIC_DRAW);
+
+      const vertexPositionNDC = gl.getAttribLocation(fullscreenProgram, 'vertexPositionNDC');
+      const colorMap = gl.getUniformLocation(fullscreenProgram, 'colorMap');
+
+      gl.useProgram(fullscreenProgram);
+
+      // Bind:
+      gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+      gl.enableVertexAttribArray(vertexPositionNDC);
+      gl.vertexAttribPointer(vertexPositionNDC, 2, gl.FLOAT, false, 0, 0);
+      gl.uniform1i(colorMap, 0);
+
+      // Draw 6 vertexes => 2 triangles:
+      // gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+      // Cleanup:
+      gl.bindBuffer(gl.ARRAY_BUFFER, null);
+      gl.useProgram(null);
+
+      this.renderFullscreenTexture = tex => {
+        const oldProgram = gl.getParameter(gl.CURRENT_PROGRAM);
+        const oldArrayBuffer = gl.getParameter(gl.ARRAY_BUFFER_BINDING);
+        const oldActiveTexture = gl.getParameter(gl.ACTIVE_TEXTURE);
+        gl.activeTexture(gl.TEXTURE0);
+        const oldTexture2D = gl.getParameter(gl.TEXTURE_BINDING_2D);
+        const oldViewport = gl.getParameter(gl.VIEWPORT);
+
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.useProgram(fullscreenProgram);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+        gl.enableVertexAttribArray(vertexPositionNDC);
+        gl.vertexAttribPointer(vertexPositionNDC, 2, gl.FLOAT, false, 0, 0);
+        gl.uniform1i(colorMap, 0);
+
+        gl.viewport(0, 0, window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio);
+        gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+        gl.viewport(oldViewport[0], oldViewport[1], oldViewport[2], oldViewport[3]);
+        gl.useProgram(oldProgram);
+        gl.bindBuffer(gl.ARRAY_BUFFER, oldArrayBuffer);
+        gl.bindTexture(gl.TEXTURE_2D, oldTexture2D);
+        gl.activeTexture(oldActiveTexture);
+      };
+    }
     
     renderer.render(scene, camera); // pre-render the scene to compile
 
@@ -993,21 +1130,30 @@ export class XRPackageEngine extends EventTarget {
     if (!this.realSession) {
       const gl = this.proxyContext;
 
-      const oldReadFbo = gl.getParameter(gl.READ_FRAMEBUFFER_BINDING);
-      const oldDrawFbo = gl.getParameter(gl.DRAW_FRAMEBUFFER_BINDING);
+      if (!isIOS) {
+        const oldReadFbo = gl.getParameter(gl.READ_FRAMEBUFFER_BINDING);
+        const oldDrawFbo = gl.getParameter(gl.DRAW_FRAMEBUFFER_BINDING);
 
-      gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this.fakeXrFramebuffer);
-      gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
-      
-      // gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);
-      gl.blitFramebuffer(
-        0, 0, window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio,
-        0, 0, window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio,
-        gl.COLOR_BUFFER_BIT, gl.NEAREST
-      );
-      
-      gl.bindFramebuffer(gl.READ_FRAMEBUFFER, oldReadFbo);
-      gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, oldDrawFbo);
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this.fakeXrFramebuffer);
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+        
+        // gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);
+        gl.blitFramebuffer(
+          0, 0, window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio,
+          0, 0, window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio,
+          gl.COLOR_BUFFER_BIT, gl.NEAREST
+        );
+        
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, oldReadFbo);
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, oldDrawFbo);
+      } else {
+        const oldDrawFbo = gl.getParameter(gl.DRAW_FRAMEBUFFER_BINDING);
+
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+        this.renderFullscreenTexture(this.fakeXrFramebuffer.colorTex);
+
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, oldDrawFbo);
+      }
     }
   }
   packageRequestAnimationFrame(fn, win, order) {
