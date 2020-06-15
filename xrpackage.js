@@ -10,11 +10,12 @@ import {VOXLoader} from './xrpackage/VOXLoader.js';
 import {OrbitControls} from './xrpackage/OrbitControls.js';
 import Avatar from './xrpackage/avatars/avatars.js';
 import utils from './xrpackage/utils.js';
-const {requestSw} = utils;
+const {hasWebGL2, requestSw} = utils;
 export const apiHost = `https://ipfs.exokit.org/ipfs`;
 
 const primaryUrl = `https://xrpackage.org`;
 const isIOS = /iPad|iPhone|iPod/.test(navigator.platform);
+const isWebGL2 = hasWebGL2 && !isIOS;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -428,12 +429,11 @@ const xrTypeRemovers = {
 };
 
 const _setFramebufferMsRenderbuffer = (gl, xrfb, width, height, devicePixelRatio) => {
-  const oldDrawFbo = gl.getParameter(gl.DRAW_FRAMEBUFFER_BINDING);
-
-  gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, xrfb);
-
-  if (!isIOS) {
+  if (isWebGL2) {
+    const oldDrawFbo = gl.getParameter(gl.DRAW_FRAMEBUFFER_BINDING);
     const oldRbo = gl.getParameter(gl.RENDERBUFFER_BINDING);
+
+    gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, xrfb);
 
     const colorRenderbuffer = gl.createRenderbuffer();
     gl.bindRenderbuffer(gl.RENDERBUFFER, colorRenderbuffer);
@@ -445,32 +445,39 @@ const _setFramebufferMsRenderbuffer = (gl, xrfb, width, height, devicePixelRatio
     gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.DEPTH32F_STENCIL8, width * devicePixelRatio, height * devicePixelRatio);
     gl.framebufferRenderbuffer(gl.DRAW_FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, depthRenderbuffer);
 
+    gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, oldDrawFbo);
     gl.bindRenderbuffer(gl.RENDERBUFFER, oldRbo);
 
     xrfb.colorRenderbuffer = colorRenderbuffer;
     xrfb.depthRenderbuffer = depthRenderbuffer;
   } else {
+    const oldFbo = gl.getParameter(gl.FRAMEBUFFER_BINDING);
     const oldTex = gl.getParameter(gl.TEXTURE_BINDING_2D);
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, xrfb);
+
+    const webglDepthTexture = gl.getExtension('WEBGL_depth_texture');
 
     const colorTex = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, colorTex);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, width * devicePixelRatio, height * devicePixelRatio, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorTex, 0);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width * devicePixelRatio, height * devicePixelRatio, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorTex, 0);
 
     const depthTex = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, depthTex);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH24_STENCIL8, width * devicePixelRatio, height * devicePixelRatio, 0, gl.DEPTH_STENCIL, gl.UNSIGNED_INT_24_8, null);
-    gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.TEXTURE_2D, depthTex, 0);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_STENCIL, width * devicePixelRatio, height * devicePixelRatio, 0, gl.DEPTH_STENCIL, webglDepthTexture.UNSIGNED_INT_24_8_WEBGL, null);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.TEXTURE_2D, depthTex, 0);
 
+    gl.bindFramebuffer(gl.FRAMEBUFFER, oldFbo);
     gl.bindTexture(gl.TEXTURE_2D, oldTex);
 
     xrfb.colorTex = colorTex;
     xrfb.depthTex = depthTex;
   }
-  
-  gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, oldDrawFbo);
 };
 export class XRPackageEngine extends EventTarget {
   constructor(options) {
@@ -487,7 +494,7 @@ export class XRPackageEngine extends EventTarget {
     const canvas = document.createElement('canvas');
     canvas.style.outline = 'none';
     this.domElement = canvas;
-    const proxyContext = canvas.getContext('webgl2', {
+    const proxyContext = canvas.getContext(isWebGL2 ? 'webgl2' : 'webgl', {
       antialias: false,
       // antialias: true,
       alpha: true,
@@ -1130,7 +1137,7 @@ export class XRPackageEngine extends EventTarget {
     if (!this.realSession) {
       const gl = this.proxyContext;
 
-      if (!isIOS) {
+      if (isWebGL2) {
         const oldReadFbo = gl.getParameter(gl.READ_FRAMEBUFFER_BINDING);
         const oldDrawFbo = gl.getParameter(gl.DRAW_FRAMEBUFFER_BINDING);
 
@@ -1147,12 +1154,12 @@ export class XRPackageEngine extends EventTarget {
         gl.bindFramebuffer(gl.READ_FRAMEBUFFER, oldReadFbo);
         gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, oldDrawFbo);
       } else {
-        const oldDrawFbo = gl.getParameter(gl.DRAW_FRAMEBUFFER_BINDING);
+        const oldFbo = gl.getParameter(gl.FRAMEBUFFER_BINDING);
 
-        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         this.renderFullscreenTexture(this.fakeXrFramebuffer.colorTex);
 
-        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, oldDrawFbo);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, oldFbo);
       }
     }
   }

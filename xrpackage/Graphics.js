@@ -797,31 +797,44 @@ return ProxiedWebGLRenderingContext;
 });
 
 const getContext = (oldGetContext => function getContext(type, init = {}) {
-  const match = type.match(/^(?:experimental-)?(webgl2?)$/);
-  if (match && (hasWebGL2 || match[1] !== 'webgl2')) {
+  const askedForWebGLType = /^(?:experimental-)?(webgl2?)$/.test(type);
+  if (askedForWebGLType) {
     const canvas = this;
-    if (!canvas.proxyContext) {
-      canvas.proxyContext = HTMLCanvasElement.proxyContext;
-    }
-    const [WebGLRenderingContext, WebGL2RenderingContext] = gls;
-    const gl = match[1] === 'webgl2' ? new WebGL2RenderingContext(canvas) : new WebGLRenderingContext(canvas);
-
-    canvas.getContext = function getContext() {
+    const gl = (() => {
+      // const match = type.match(/^(?:experimental-)?(webgl2?)$/);
+      // const askedForWebGL2 = !!match && (hasWebGL2 || match[1] !== 'webgl2');
+      const askedForWebGL2 = /^(?:experimental-)?webgl2$/.test(type);
+      if (askedForWebGL2) {
+        if (hasWebGL2) {
+          // nothing
+        } else {
+          return null;
+        }
+      }
+      if (!canvas.proxyContext) {
+        canvas.proxyContext = HTMLCanvasElement.proxyContext;
+      }
+      const [WebGLRenderingContext, WebGL2RenderingContext] = gls;
+      const gl = askedForWebGL2 ? new WebGL2RenderingContext(canvas) : new WebGLRenderingContext(canvas);
       return gl;
-    };
-    canvas.toBlob = function toBlob(cb, type, quality) {
-      const canvas2 = document.createElement('canvas');
-      canvas2.width = canvas.width;
-      canvas2.height = canvas.height;
-      const ctx2 = oldGetContext.call(canvas2, '2d');
-      ctx2.drawImage(
-        this.proxyContext.canvas,
-        0, this.proxyContext.canvas.height - canvas2.height, canvas.width, canvas.height,
-        0, 0, canvas.width, canvas.height
-      );
-      return canvas2.toBlob(cb, type, quality);
-    };
-
+    })();
+    if (gl) {
+      canvas.getContext = function getContext() {
+        return gl;
+      };
+      canvas.toBlob = function toBlob(cb, type, quality) {
+        const canvas2 = document.createElement('canvas');
+        canvas2.width = canvas.width;
+        canvas2.height = canvas.height;
+        const ctx2 = oldGetContext.call(canvas2, '2d');
+        ctx2.drawImage(
+          this.proxyContext.canvas,
+          0, this.proxyContext.canvas.height - canvas2.height, canvas.width, canvas.height,
+          0, 0, canvas.width, canvas.height
+        );
+        return canvas2.toBlob(cb, type, quality);
+      };
+    }
     return gl;
   } else {
     return oldGetContext.call(this, type, init);
