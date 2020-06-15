@@ -767,8 +767,6 @@ export class XRPackageEngine extends EventTarget {
     }
   }
   tick(timestamp = performance.now(), frame = null) {
-    this.renderer.clear(true, true, true);
-
     if (!this.session) {
       this.orbitControls.enabled && this.orbitControls.update();
       this.setCamera(this.camera);
@@ -992,18 +990,22 @@ export class XRPackageEngine extends EventTarget {
 
     if (!this.realSession) {
       const gl = this.proxyContext;
-      
+
       const oldReadFbo = gl.getParameter(gl.READ_FRAMEBUFFER_BINDING);
       const oldDrawFbo = gl.getParameter(gl.DRAW_FRAMEBUFFER_BINDING);
 
       gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this.fakeXrFramebuffer);
       gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
       
+      // gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);
       gl.blitFramebuffer(
         0, 0, window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio,
         0, 0, window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio,
-        gl.COLOR_BUFFER_BIT/*|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT*/, gl.NEAREST
+        gl.COLOR_BUFFER_BIT, gl.NEAREST
       );
+
+      gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this.fakeXrFramebuffer);
+      gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);
       
       gl.bindFramebuffer(gl.READ_FRAMEBUFFER, oldReadFbo);
       gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, oldDrawFbo);
