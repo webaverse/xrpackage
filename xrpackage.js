@@ -1,8 +1,8 @@
 import * as THREE from './xrpackage/three.module.js';
-import * as XR from './xrpackage/XR.js';
-import symbols from './xrpackage/symbols.js';
 import {getExports} from './xrpackage/Graphics.js';
 const {getContext, CanvasRenderingContext2D, WebGLRenderingContext, WebGL2RenderingContext} = getExports();
+import * as XR from './xrpackage/XR.js';
+import symbols from './xrpackage/symbols.js';
 import wbn from './xrpackage/wbn.js';
 import {GLTFLoader} from './xrpackage/GLTFLoader.js';
 import {VOXLoader} from './xrpackage/VOXLoader.js';
