@@ -451,12 +451,12 @@ const _setFramebufferMsRenderbuffer = (gl, xrfb, width, height, devicePixelRatio
 
     const colorTex = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, colorTex);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width * devicePixelRatio, height * devicePixelRatio, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, width * devicePixelRatio, height * devicePixelRatio, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
     gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorTex, 0);
 
     const depthTex = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, depthTex);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_STENCIL, width * devicePixelRatio, height * devicePixelRatio, 0, gl.DEPTH_STENCIL, gl.UNSIGNED_INT_24_8, null);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH24_STENCIL8, width * devicePixelRatio, height * devicePixelRatio, 0, gl.DEPTH_STENCIL, gl.UNSIGNED_INT_24_8, null);
     gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.TEXTURE_2D, depthTex, 0);
 
     gl.bindTexture(gl.TEXTURE_2D, oldTex);
