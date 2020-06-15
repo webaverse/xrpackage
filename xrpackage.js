@@ -1,4 +1,4 @@
-import './xrpackage/EventTarget.js';
+import './xrpackage/EventTarget.js'; // iOS
 import * as THREE from './xrpackage/three.module.js';
 import {getExports} from './xrpackage/Graphics.js';
 const {getContext, CanvasRenderingContext2D, WebGLRenderingContext, WebGL2RenderingContext} = getExports();
