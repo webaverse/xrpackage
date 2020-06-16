@@ -501,7 +501,20 @@ export class XRPackageEngine extends EventTarget {
     // proxyContext.makeXRCompatible && proxyContext.makeXRCompatible();
     canvas.proxyContext = proxyContext;
     this.proxyContext = proxyContext;
-    
+
+    // cap max texxture size
+    {
+      const maxTextureSize = proxyContext.getParameter(proxyContext.MAX_TEXTURE_SIZE);
+      const fullWidth = options.width * options.devicePixelRatio;
+      if (fullWidth > maxTextureSize) {
+        options.devicePixelRatio *= maxTextureSize/fullWidth;
+      }
+      const fullHeight = options.height * options.devicePixelRatio;
+      if (fullHeight > maxTextureSize) {
+        options.devicePixelRatio *= maxTextureSize/fullHeight;
+      }
+    }
+
     this.xrState = _makeXrState();
     this.xrState.renderWidth[0] = options.width / 2 * options.devicePixelRatio;
     this.xrState.renderHeight[0] = options.height * options.devicePixelRatio;
