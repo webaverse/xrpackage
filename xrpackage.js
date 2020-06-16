@@ -131,9 +131,9 @@ const _makeXrState = () => {
   result.isPresentingReal = _makeTypedArray(Uint32Array, 1);
   result.renderWidth = _makeTypedArray(Float32Array, 1);
   result.renderHeight = _makeTypedArray(Float32Array, 1);
-  result.metrics = _makeTypedArray(Uint32Array, 2);
+  /* result.metrics = _makeTypedArray(Uint32Array, 2);
   result.metrics[0] = window.innerWidth;
-  result.metrics[1] = window.innerHeight;
+  result.metrics[1] = window.innerHeight; */
   result.devicePixelRatio = _makeTypedArray(Float32Array, 1);
   result.devicePixelRatio[0] = window.devicePixelRatio;
   result.stereo = _makeTypedArray(Uint32Array, 1);
