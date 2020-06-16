@@ -1930,10 +1930,11 @@ export class XRPackage extends EventTarget {
     const {rig} = this.context;
     rig.inputs.hmd.position.fromArray(head[0]);
     rig.inputs.hmd.quaternion.fromArray(head[1]);
-    rig.inputs.leftGamepad.position.fromArray(leftGamepad[0]);
-    rig.inputs.leftGamepad.quaternion.fromArray(leftGamepad[1]);
-    rig.inputs.rightGamepad.position.fromArray(rightGamepad[0]);
-    rig.inputs.rightGamepad.quaternion.fromArray(rightGamepad[1]);
+    rig.inputs.leftGamepad.position.fromArray(rightGamepad[0]);
+    rig.inputs.leftGamepad.quaternion.fromArray(rightGamepad[1]);
+    rig.inputs.rightGamepad.position.fromArray(leftGamepad[0]);
+    rig.inputs.rightGamepad.quaternion.fromArray(leftGamepad[1]);
+    rig.update();
   }
   setXrFramebuffer(xrfb) {
     this.context.iframe && this.context.iframe.contentWindow && this.context.iframe.contentWindow.xrpackage && this.context.iframe.contentWindow.xrpackage.setXrFramebuffer(xrfb);
