@@ -1927,6 +1927,7 @@ export class XRPackage extends EventTarget {
         });
       }
     }
+    const {rig} = this.context;
     rig.inputs.hmd.position.fromArray(head[0]);
     rig.inputs.hmd.quaternion.fromArray(head[1]);
     rig.inputs.leftGamepad.position.fromArray(leftGamepad[0]);
