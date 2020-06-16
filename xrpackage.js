@@ -1912,7 +1912,7 @@ export class XRPackage extends EventTarget {
           fingers: true,
           hair: true,
           visemes: true,
-          decapitate: true,
+          decapitate: false,
           microphoneMediaStream: null,
           // debug: !newModel,
         });
@@ -1921,7 +1921,7 @@ export class XRPackage extends EventTarget {
           fingers: true,
           hair: true,
           visemes: true,
-          decapitate: true,
+          decapitate: false,
           microphoneMediaStream: null,
           // debug: !newModel,
         });
