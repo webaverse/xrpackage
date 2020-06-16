@@ -706,7 +706,7 @@ export class XRPackageEngine extends EventTarget {
         gl.vertexAttribPointer(vertexPositionNDC, 2, gl.FLOAT, false, 0, 0);
         gl.uniform1i(colorMap, 0);
 
-        gl.viewport(0, 0, window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio);
+        gl.viewport(0, 0, options.width * options.devicePixelRatio, options.height * options.devicePixelRatio);
         gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
 
@@ -1144,8 +1144,8 @@ export class XRPackageEngine extends EventTarget {
         
         // gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);
         gl.blitFramebuffer(
-          0, 0, window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio,
-          0, 0, window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio,
+          0, 0, this.options.width * this.options.devicePixelRatio, this.options.height * this.options.devicePixelRatio,
+          0, 0, this.options.width * this.options.devicePixelRatio, this.options.height * this.options.devicePixelRatio,
           gl.COLOR_BUFFER_BIT, gl.NEAREST
         );
         
