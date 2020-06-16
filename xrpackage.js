@@ -534,7 +534,7 @@ export class XRPackageEngine extends EventTarget {
     this.loadReferenceSpaceInterval = 0;
     this.cancelFrame = null;
 
-    const context = this.getContext('webgl2');
+    const context = this.getContext(hasWebGL2 ? 'webgl2' : 'webgl');
     this.context = context;
     
     const renderer = new THREE.WebGLRenderer({
