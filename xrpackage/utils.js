@@ -152,7 +152,7 @@ const requestSw = (m = {}, txs = []) => new Promise((accept, reject) => {
 });
 module.exports.requestSw = requestSw;
 
-const hasWebGL2 = !!window.WebGL2RenderingContext && !/iPad|iPhone|iPod/.test(navigator.platform);
+const hasWebGL2 = !!document.createElement('canvas').getContext('webgl2') && !/iPad|iPhone|iPod/.test(navigator.platform);
 module.exports.hasWebGL2 = hasWebGL2;
 class WebGLStateFramebuffer {
   constructor(gl) {
