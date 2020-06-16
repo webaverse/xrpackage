@@ -14,8 +14,6 @@ const {hasWebGL2, requestSw} = utils;
 export const apiHost = `https://ipfs.exokit.org/ipfs`;
 
 const primaryUrl = `https://xrpackage.org`;
-const isIOS = /iPad|iPhone|iPod/.test(navigator.platform);
-const isWebGL2 = hasWebGL2 && !isIOS;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -429,7 +427,7 @@ const xrTypeRemovers = {
 };
 
 const _setFramebufferMsRenderbuffer = (gl, xrfb, width, height, devicePixelRatio) => {
-  if (isWebGL2) {
+  if (hasWebGL2) {
     const oldDrawFbo = gl.getParameter(gl.DRAW_FRAMEBUFFER_BINDING);
     const oldRbo = gl.getParameter(gl.RENDERBUFFER_BINDING);
 
@@ -494,7 +492,7 @@ export class XRPackageEngine extends EventTarget {
     const canvas = document.createElement('canvas');
     canvas.style.outline = 'none';
     this.domElement = canvas;
-    const proxyContext = canvas.getContext(isWebGL2 ? 'webgl2' : 'webgl', {
+    const proxyContext = canvas.getContext(hasWebGL2 ? 'webgl2' : 'webgl', {
       antialias: false,
       // antialias: true,
       alpha: true,
@@ -1137,7 +1135,7 @@ export class XRPackageEngine extends EventTarget {
     if (!this.realSession) {
       const gl = this.proxyContext;
 
-      if (isWebGL2) {
+      if (hasWebGL2) {
         const oldReadFbo = gl.getParameter(gl.READ_FRAMEBUFFER_BINDING);
         const oldDrawFbo = gl.getParameter(gl.DRAW_FRAMEBUFFER_BINDING);
 
