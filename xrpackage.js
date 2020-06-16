@@ -1159,7 +1159,7 @@ export class XRPackageEngine extends EventTarget {
         gl.blitFramebuffer(
           0, 0, this.options.width * this.options.devicePixelRatio, this.options.height * this.options.devicePixelRatio,
           0, 0, this.options.width * this.options.devicePixelRatio, this.options.height * this.options.devicePixelRatio,
-          gl.COLOR_BUFFER_BIT, gl.NEAREST
+          gl.COLOR_BUFFER_BIT, gl.LINEAR
         );
         
         gl.bindFramebuffer(gl.READ_FRAMEBUFFER, oldReadFbo);
