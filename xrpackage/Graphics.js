@@ -797,7 +797,7 @@ return ProxiedWebGLRenderingContext;
 });
 
 const getContext = (oldGetContext => function getContext(type, init = {}) {
-  const askedForWebGLType = /^(?:experimental-)?(webgl2?)$/.test(type);
+  const askedForWebGLType = /^(?:experimental-)?webgl2?$/.test(type);
   if (askedForWebGLType) {
     const canvas = this;
     const gl = (() => {
