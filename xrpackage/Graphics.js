@@ -67,11 +67,12 @@ class WebGLState {
   }
 }
 
-const gls = [window.WebGLRenderingContext, window.WebGL2RenderingContext].map(WebGLRenderingContext => {
+const gls = [window.WebGLRenderingContext, window.WebGL2RenderingContext].map((WebGLRenderingContext, index) => {
 
 if (!WebGLRenderingContext) {
   return WebGLRenderingContext;
 }
+const isWebGL2 = index === 1;
 
 function ProxiedWebGLRenderingContext(canvas) {
   Object.defineProperty(this, 'canvas', { // Object.defineProperty to avoid proxying
@@ -266,7 +267,7 @@ ProxiedWebGLRenderingContext.prototype.getExtension = (_getExtension => function
     'WEBGL_draw_buffers',
     'EXT_shader_texture_lod',
   ].includes(name)) {
-    return {};
+    return (hasWebGL2 && !isWebGL2) ? {} : this.canvas.proxyContext.getExtension(name);
   } else {
     return null;
   }
