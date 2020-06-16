@@ -2,28 +2,21 @@
   "name": "xrpk-core",
   "version": "0.0.1",
   "description": "",
-  "main": "cli.js",
+  "main": "xrpackage.js",
   "scripts": {
-    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint --fix --ext .js,.jsx ."
   },
-  "bin": {
-    "xrpk": "./cli.js"
-  },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/exokitxr/xrpackage.git"
+    "url": "git+https://github.com/webaverse/xrpackage.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/exokitxr/xrpackage/issues"
+    "url": "https://github.com/webaverse/xrpackage/issues"
   },
-  "homepage": "https://github.com/exokitxr/xrpackage#readme",
-  "dependencies": {
-    "express": "^4.17.1"
-  },
+  "homepage": "https://github.com/webaverse/xrpackage#readme",
   "browserslist": [
     "last 1 chrome version"
   ],
