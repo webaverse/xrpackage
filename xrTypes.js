@@ -1,6 +1,7 @@
-import symbols from './xrpackage/symbols';
-import { GLTFLoader } from './xrpackage/GLTFLoader';
-import { VOXLoader } from './xrpackage/VOXLoader';
+import symbols from './xrpackage/symbols.js';
+import { GLTFLoader } from './xrpackage/GLTFLoader.js';
+import { VOXLoader } from './xrpackage/VOXLoader.js';
+import { XRPackage } from './xrpackage.js';
 
 function makePromise() {
   let resolve, reject;

@@ -1,12 +1,15 @@
-import * as THREE from './xrpackage/three.module';
-import wbn from './xrpackage/wbn';
-import { GLTFLoader } from './xrpackage/GLTFLoader';
-import { VOXLoader } from './xrpackage/VOXLoader';
-import Avatar from './xrpackage/avatars/avatars';
-import utils from './xrpackage/utils';
-import { xrTypeLoaders } from './xrTypes';
-import { XRPackageEngine } from './xrpackage-engine';
+import * as THREE from './xrpackage/three.module.js';
+import wbn from './xrpackage/wbn.js';
+import { GLTFLoader } from './xrpackage/GLTFLoader.js';
+import { VOXLoader } from './xrpackage/VOXLoader.js';
+import Avatar from './xrpackage/avatars/avatars.js';
+import utils from './xrpackage/utils.js';
+import { xrTypeLoaders } from './xrTypes.js';
+import { XRPackageEngine } from './xrpackage-engine.js';
+
 const { requestSw } = utils;
+export const apiHost = `https://ipfs.exokit.org/ipfs`;
+const primaryUrl = `https://xrpackage.org`;
 
 const localMatrix = new THREE.Matrix4();
 const localArray = Array(16);

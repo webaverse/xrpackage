@@ -1,15 +1,13 @@
-import * as THREE from './xrpackage/three.module';
-import { OrbitControls } from './xrpackage/OrbitControls';
-import * as XR from './xrpackage/XR';
-import symbols from './xrpackage/symbols';
-import Avatar from './xrpackage/avatars/avatars';
-import wbn from './xrpackage/wbn';
-const {getContext, CanvasRenderingContext2D, WebGLRenderingContext, WebGL2RenderingContext} = getExports();
-import { getExports } from './xrpackage/Graphics';
-import { GLTFLoader } from './xrpackage/GLTFLoader';
-import { VOXLoader } from './xrpackage/VOXLoader';
-import { xrTypeAdders, xrTypeRemovers } from './xrTypes';
+import * as THREE from './xrpackage/three.module.js';
+import { OrbitControls } from './xrpackage/OrbitControls.js';
+import * as XR from './xrpackage/XR.js';
+import symbols from './xrpackage/symbols.js';
+import Avatar from './xrpackage/avatars/avatars.js';
+import wbn from './xrpackage/wbn.js';
+import { getExports } from './xrpackage/Graphics.js';
+import { xrTypeAdders, xrTypeRemovers } from './xrTypes.js';
 
+const {getContext, CanvasRenderingContext2D, WebGLRenderingContext, WebGL2RenderingContext} = getExports();
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
@@ -197,7 +195,7 @@ const _setFramebufferMsRenderbuffer = (gl, xrfb, width, height, devicePixelRatio
 };
 
 export class XRPackageEngine extends EventTarget {
-  constructor(options) {
+  constructor (options) {
     super();
 
     options = options || {};
@@ -313,23 +311,28 @@ export class XRPackageEngine extends EventTarget {
     options.autoStart && this.start();
     options.autoListen && this.listen();
   }
-  static waitForLoad() {
+
+  static waitForLoad () {
     return swLoadPromise;
   }
-  getContext(type, opts) {
+
+  getContext (type, opts) {
     return getContext.call(this.domElement, type, opts);
   }
-  start() {
+
+  start () {
     this.setSession(null);
   }
-  listen() {
+
+  listen () {
     window.addEventListener('resize', e => {
       if (!this.realSession) {
         this.resize(window.innerWidth, window.innerHeight);
       }
     });
   }
-  resize(width = this.options.width, height = this.options.height, devicePixelRatio = this.options.devicePixelRatio) {
+
+  resize (width = this.options.width, height = this.options.height, devicePixelRatio = this.options.devicePixelRatio) {
     this.renderer.xr.isPresenting = false;
 
     this.renderer.setSize(width, height);
@@ -346,7 +349,8 @@ export class XRPackageEngine extends EventTarget {
     this.options.height = height;
     this.options.devicePixelRatio = devicePixelRatio;
   }
-  async add(p) {
+
+  async add (p) {
     p.parent = this;
     this.packages.push(p);
 
@@ -356,7 +360,7 @@ export class XRPackageEngine extends EventTarget {
 
     await p.waitForLoad();
 
-    const {type} = p;
+    const { type } = p;
     const adder = xrTypeAdders[type];
     if (adder) {
       await adder.call(this, p);
@@ -365,10 +369,11 @@ export class XRPackageEngine extends EventTarget {
       throw new Error(`unknown xr_type: ${type}`);
     }
   }
-  remove(p) {
+
+  remove (p) {
     const index = this.packages.indexOf(p);
     if (index !== -1) {
-      const {type} = p;
+      const { type } = p;
       const remover = xrTypeRemovers[type];
       if (remover) {
         remover.call(this, p);
@@ -384,7 +389,8 @@ export class XRPackageEngine extends EventTarget {
       throw new Error(`unknown xr_type: ${type}`);
     }
   }
-  setMatrix(m) {
+
+  setMatrix (m) {
     this.matrix.copy(m);
     // this.container.matrix.getInverse(m).decompose(this.container.position, this.container.quaternion, this.container.scale);
 
@@ -392,7 +398,8 @@ export class XRPackageEngine extends EventTarget {
       this.packages[i].matrixWorldNeedsUpdate = true;
     }
   }
-  getProxySession({
+
+  getProxySession ({
     order = 0,
   } = {}) {
     const session = Object.create(this.fakeSession);
@@ -401,7 +408,8 @@ export class XRPackageEngine extends EventTarget {
     session.removeEventListener = this.fakeSession.removeEventListener.bind(this.fakeSession);
     return session;
   }
-  async setSession(realSession) {
+
+  async setSession (realSession) {
     if (this.cancelFrame) {
       this.cancelFrame();
       this.cancelFrame = null;
@@ -432,7 +440,7 @@ export class XRPackageEngine extends EventTarget {
       this.loadReferenceSpaceInterval = setInterval(_loadReferenceSpace, 1000);
 
       const baseLayer = new window.OldXR.XRWebGLLayer(realSession, this.proxyContext);
-      realSession.updateRenderState({baseLayer});
+      realSession.updateRenderState({ baseLayer });
 
       await new Promise((accept, reject) => {
         const _recurse = () => {
@@ -492,13 +500,15 @@ export class XRPackageEngine extends EventTarget {
     const xrfb = this.realSession ? this.realSession.renderState.baseLayer.framebuffer : this.fakeXrFramebuffer;
     this.setXrFramebuffer(xrfb);
   }
-  setXrFramebuffer(xrfb) {
+
+  setXrFramebuffer (xrfb) {
     this.fakeSession.xrFramebuffer = xrfb;
     for (let i = 0; i < this.packages.length; i++) {
       this.packages[i].setXrFramebuffer(xrfb);
     }
   }
-  tick(timestamp = performance.now(), frame = null) {
+
+  tick (timestamp = performance.now(), frame = null) {
     this.renderer.clear(true, true, true);
 
     if (!this.session) {
@@ -510,7 +520,7 @@ export class XRPackageEngine extends EventTarget {
     // this.dispatchEvent(new CustomEvent('tick'));
 
     // update pose
-    const {realSession, xrState} = this;
+    const { realSession, xrState } = this;
     if (realSession) {
       const pose = frame.getViewerPose(this.referenceSpace);
       if (pose) {
@@ -518,7 +528,7 @@ export class XRPackageEngine extends EventTarget {
         const gamepads = navigator.getGamepads();
 
         const _loadHmd = () => {
-          const {views} = pose;
+          const { views } = pose;
 
           xrState.poseMatrix.set(pose.transform.matrix);
 
@@ -546,8 +556,8 @@ export class XRPackageEngine extends EventTarget {
 
             let pose, gamepad;
             if ((pose = frame.getPose(inputSource.targetRaySpace, this.referenceSpace)) && (gamepad = inputSource.gamepad || gamepads[i])) {
-              const {transform} = pose;
-              const {position, orientation, matrix} = transform;
+              const { transform } = pose;
+              const { position, orientation, matrix } = transform;
               if (position) { // new WebXR api
                 xrGamepad.position[0] = position.x;
                 xrGamepad.position[1] = position.y;
@@ -615,7 +625,7 @@ export class XRPackageEngine extends EventTarget {
     _computeDerivedGamepadsData();
 
     {
-      const {rig, camera} = this;
+      const { rig, camera } = this;
       if (rig) {
         if (this.rigMatrixEnabled) {
           localMatrix.copy(this.rigMatrix)
@@ -648,7 +658,7 @@ export class XRPackageEngine extends EventTarget {
         HANDS.forEach(handedness => {
           const grabuse = this.grabuses[handedness];
           if (grabuse) {
-            const {startTime, endTime} = grabuse;
+            const { startTime, endTime } = grabuse;
             const input = rig.inputs[_oppositeHand(handedness) + 'Gamepad'];
             const now = Date.now();
             if (now < endTime) {
@@ -658,7 +668,7 @@ export class XRPackageEngine extends EventTarget {
                   .applyQuaternion(input.quaternion)
               );
               input.quaternion.multiply(
-                localQuaternion.set(0, 0, 0, 1).slerp(localQuaternion2.setFromAxisAngle(localVector.set(1, 0, 0), -Math.PI*0.5), Math.sin(f * Math.PI))
+                localQuaternion.set(0, 0, 0, 1).slerp(localQuaternion2.setFromAxisAngle(localVector.set(1, 0, 0), -Math.PI * 0.5), Math.sin(f * Math.PI))
               );
             } else {
               this.grabuses[handedness] = null;
@@ -741,7 +751,8 @@ export class XRPackageEngine extends EventTarget {
       gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, oldDrawFbo);
     }
   }
-  packageRequestAnimationFrame(fn, win, order) {
+
+  packageRequestAnimationFrame (fn, win, order) {
     this.rafs.push(fn);
 
     const id = ++this.ids;
@@ -750,16 +761,19 @@ export class XRPackageEngine extends EventTarget {
     fn[symbols.orderSymbol] = order;
     return id;
   }
-  packageCancelAnimationFrame(id) {
+
+  packageCancelAnimationFrame (id) {
     const index = this.rafs.findIndex(fn => fn[symbols.rafCbsSymbol].id === id);
     if (index !== -1) {
       this.rafs.splice(index, 1);
     }
   }
-  packageRequestPresent(p) {
+
+  packageRequestPresent (p) {
     p.context.requestPresentPromise.resolve();
   }
-  setCamera(camera) {
+
+  setCamera (camera) {
     camera.matrixWorld.toArray(this.xrState.poseMatrix);
 
     camera.matrixWorldInverse.toArray(this.xrState.leftViewMatrix);
@@ -768,7 +782,8 @@ export class XRPackageEngine extends EventTarget {
     this.xrState.rightViewMatrix.set(this.xrState.leftViewMatrix);
     this.xrState.rightProjectionMatrix.set(this.xrState.leftProjectionMatrix);
   }
-  setRigMatrix(rigMatrix) {
+
+  setRigMatrix (rigMatrix) {
     if (rigMatrix) {
       this.rigMatrix.copy(rigMatrix);
       this.rigMatrixEnabled = true;
@@ -776,12 +791,14 @@ export class XRPackageEngine extends EventTarget {
       this.rigMatrixEnabled = false;
     }
   }
-  setGamepadsConnected(connected) {
+
+  setGamepadsConnected (connected) {
     for (let i = 0; i < this.xrState.gamepads.length; i++) {
       this.xrState.gamepads[i].connected[0] = connected ? 1 : 0;
     }
   }
-  grabdown(handedness) {
+
+  grabdown (handedness) {
     if (this.rig && !this.grabs[handedness]) {
       const input = this.rig.inputs[_oppositeHand(handedness) + 'Gamepad'];
       const inputPosition = localVector
@@ -802,17 +819,20 @@ export class XRPackageEngine extends EventTarget {
       }
     }
   }
-  grabup(handedness) {
+
+  grabup (handedness) {
     this.grabs[handedness] = null;
   }
-  grabuse(handedness) {
+
+  grabuse (handedness) {
     const now = Date.now();
     this.grabuses[handedness] = {
       startTime: now,
       endTime: now + 200,
     };
   }
-  grabtriggerdown(handedness) {
+
+  grabtriggerdown (handedness) {
     const index = handedness === 'right' ? 1 : 0;
     const xrGamepad = this.xrState.gamepads[index];
     const button = xrGamepad.buttons[0];
@@ -820,7 +840,8 @@ export class XRPackageEngine extends EventTarget {
     button.pressed[0] = 1;
     button.value[0] = 1;
   }
-  grabtriggerup(handedness) {
+
+  grabtriggerup (handedness) {
     const index = handedness === 'right' ? 1 : 0;
     const xrGamepad = this.xrState.gamepads[index];
     const button = xrGamepad.buttons[0];
@@ -828,7 +849,8 @@ export class XRPackageEngine extends EventTarget {
     button.pressed[0] = 0;
     button.value[0] = 0;
   }
-  equip(slot) {
+
+  equip (slot) {
     if (this.rig) {
       if (this.equips[slot]) {
         this.equips[slot] = null;
@@ -853,7 +875,8 @@ export class XRPackageEngine extends EventTarget {
       }
     }
   }
-  async wearAvatar(p) {
+
+  async wearAvatar (p) {
     await p.waitForLoad();
 
     if (this.rig) {
@@ -862,7 +885,7 @@ export class XRPackageEngine extends EventTarget {
       this.rig = null;
     }
 
-    const {model} = p.context;
+    const { model } = p.context;
     if (model) {
       model.scene.traverse(o => {
         o.frustumCulled = false;
@@ -884,7 +907,8 @@ export class XRPackageEngine extends EventTarget {
       data: this.avatar,
     }));
   }
-  defaultAvatar() {
+
+  defaultAvatar () {
     if (this.rig) {
       this.container.remove(this.rig.model);
       this.rig.destroy();
@@ -905,24 +929,26 @@ export class XRPackageEngine extends EventTarget {
       data: this.avatar,
     }));
   }
-  reset() {
+
+  reset () {
     const ps = this.packages.slice();
     for (let i = 0; i < ps.length; i++) {
       this.remove(ps[i]);
     }
   }
-  async importScene(uint8Array) {
+
+  async importScene (uint8Array) {
     const p = new XRPackage(uint8Array);
     await p.waitForLoad();
     if (p.type === 'xrpackage-scene@0.0.1') {
       this.reset();
 
       const j = p.context.json;
-      const {xrpackage_scene: xrPackageScene} = j;
-      const {children} = xrPackageScene;
+      const { xrpackage_scene: xrPackageScene } = j;
+      const { children } = xrPackageScene;
       for (let i = 0; i < children.length; i++) {
         const child = children[i];
-        const {id, hash, matrix} = child;
+        const { id, hash, matrix } = child;
         if (hash) {
           const p = await XRPackage.download(hash);
           p.id = id;
@@ -946,7 +972,8 @@ export class XRPackageEngine extends EventTarget {
       throw new Error('invalid type: ' + p.type);
     }
   }
-  async exportScene() {
+
+  async exportScene () {
     const manifestJsonPath = primaryUrl + '/manifest.json';
     const builder = new wbn.BundleBuilder(manifestJsonPath);
     const manifestJson = {
@@ -975,7 +1002,8 @@ export class XRPackageEngine extends EventTarget {
     }
     return builder.createBundle();
   }
-  async uploadScene() {
+
+  async uploadScene () {
     const manifestJsonPath = primaryUrl + '/manifest.json';
     const builder = new wbn.BundleBuilder(manifestJsonPath);
     const hashes = await Promise.all(this.packages.map(p => p.upload()));
@@ -1006,13 +1034,14 @@ export class XRPackageEngine extends EventTarget {
     });
     if (res.ok) {
       const j = await res.json();
-      const {hash} = j;
+      const { hash } = j;
       return hash;
     } else {
       throw new Error('upload failed: ' + res.status);
     }
   }
-  async downloadScene(hash) {
+
+  async downloadScene (hash) {
     const res = await fetch(`${apiHost}/${hash}.wbn`);
     if (res.ok) {
       const arrayBuffer = await res.arrayBuffer();

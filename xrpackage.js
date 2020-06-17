@@ -1,4 +1,6 @@
 import * as XR from './xrpackage/XR.js';
+import { XRPackage } from './xrpackage-api.js';
+import { XRPackageEngine } from './xrpackage-engine.js';
 
 window.OldXR = {
   XR: window.XR,
@@ -35,3 +37,8 @@ window.XRInputSourceEvent = XR.XRInputSourceEvent;
 window.XRSpace = XR.XRSpace;
 window.XRReferenceSpace = XR.XRReferenceSpace;
 window.XRBoundedReferenceSpace = XR.XRBoundedReferenceSpace;
+
+export {
+  XRPackage,
+  XRPackageEngine
+}
