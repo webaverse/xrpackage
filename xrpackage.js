@@ -1037,10 +1037,25 @@ export class XRPackageEngine extends EventTarget {
     };
     _computeDerivedGamepadsData();
 
+    const _computePose = () => {
+      if (this.rigMatrixEnabled) {
+        localMatrix.copy(this.rigMatrix)
+          .premultiply(localMatrix2.getInverse(this.matrix))
+          .toArray(this.xrState.poseMatrix);
+      } else {
+        localMatrix.fromArray(xrState.leftViewMatrix)
+          .getInverse(localMatrix)
+          .toArray(this.xrState.poseMatrix);
+      }
+    };
+    _computePose();
+
     {
       const {rig, camera} = this;
       if (rig) {
-        if (this.rigMatrixEnabled) {
+        localMatrix.fromArray(this.xrState.poseMatrix)
+          .decompose(localVector, localQuaternion, localVector2);
+        /* if (this.rigMatrixEnabled) {
           localMatrix.copy(this.rigMatrix)
             .premultiply(localMatrix2.getInverse(this.matrix))
             .decompose(localVector, localQuaternion, localVector2);
@@ -1049,7 +1064,7 @@ export class XRPackageEngine extends EventTarget {
           m.getInverse(m);
           m.premultiply(localMatrix2.getInverse(this.matrix));
           m.decompose(localVector, localQuaternion, localVector2);
-        }
+        } */
         rig.inputs.hmd.position.copy(localVector);
         rig.inputs.hmd.quaternion.copy(localQuaternion);
         if (this.realSession) {
@@ -1193,7 +1208,7 @@ export class XRPackageEngine extends EventTarget {
     p.context.requestPresentPromise.resolve();
   }
   setCamera(camera) {
-    camera.matrixWorld.toArray(this.xrState.poseMatrix);
+    // camera.matrixWorld.toArray(this.xrState.poseMatrix);
 
     camera.matrixWorldInverse.toArray(this.xrState.leftViewMatrix);
     camera.projectionMatrix.toArray(this.xrState.leftProjectionMatrix);
