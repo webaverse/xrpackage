@@ -123,7 +123,8 @@ const _makeFloorMesh = () => {
   return mesh;
 };
 const floorMesh = _makeFloorMesh();
-container.add(floorMesh);
+// container.add(floorMesh);
+pe.scene.add(floorMesh);
 
 function animate(timestamp, frame) {
   /* const timeFactor = 1000;

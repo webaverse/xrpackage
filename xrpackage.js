@@ -24,6 +24,7 @@ const localQuaternion2 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localArray = Array(16);
+const localFloat32Array = new Float32Array(16);
 
 function makePromise() {
   let resolve, reject;
@@ -166,6 +167,8 @@ const _makeXrState = () => {
   result.leftFov.set(Float32Array.from([45, 45, 45, 45]));
   result.rightFov = _makeTypedArray(Float32Array, 4);
   result.rightFov.set(result.leftFov);
+  // result.numViews = _makeTypedArray(Uint32Array, 1);
+  // result.numViews[0] = 2
   const _makeGamepad = () => ({
     connected: _makeTypedArray(Uint32Array, 1),
     position: _makeTypedArray(Float32Array, 3),
@@ -524,6 +527,8 @@ export class XRPackageEngine extends EventTarget {
     this.packages = [];
     this.ids = 0;
     this.rafs = [];
+    this.runningRafs = [];
+    this.subdrawing = false;
     this.grabs = {
       left: null,
       right: null,
@@ -814,6 +819,88 @@ export class XRPackageEngine extends EventTarget {
     for (let i = 0; i < this.packages.length; i++) {
       this.packages[i].matrixWorldNeedsUpdate = true;
     }
+  }
+  render(pak, width, height, viewMatrix, projectionMatrix, framebuffer) {
+    // console.log('render', pak, width, height, viewMatrix, projectionMatrix, framebuffer);
+
+    const {
+      renderWidth: [_renderWidth],
+      renderHeight: [_renderHeight],
+      // numViews: [_numViews],
+    } = this.xrState;
+    // const _matrix = this.matrix.clone();
+    const _matrix = this.camera.matrix.clone();
+    const _matrixWorld = this.camera.matrixWorld.clone();
+    const _matrixWorldInverse = this.camera.matrixWorldInverse.clone();
+    const _position = this.camera.position.clone();
+    const _quaternion = this.camera.quaternion.clone();
+    const _scale = this.camera.scale.clone();
+    // const _matrixWorldInverse = this.camera.matrixWorldInverse.clone();
+    const _projectionMatrix = this.camera.projectionMatrix.clone();
+    const _framebuffer = this.renderer.getFramebuffer();
+    const _xrfb = this.fakeSession.xrFramebuffer;
+
+    this.xrState.renderWidth[0] = width/2;
+    this.xrState.renderHeight[0] = height;
+    // this.xrState.numViews[0] = 1;
+    // this.camera.matrixWorld.fromArray(viewMatrix);
+    // this.camera.matrixWorldInverse.getInverse(this.camera.matrixWorld);
+    this.camera.matrix.fromArray(viewMatrix)
+      .decompose(this.camera.position, this.camera.quaternion, this.camera.scale);
+    // this.camera.position.set(0, 1, 0);
+    // this.camera.updateMatrixWorld();
+    // this.camera.matrixWorldInverse.getInverse(this.camera.matrixWorld);
+    this.camera.projectionMatrix.fromArray(projectionMatrix);
+    this.camera.updateMatrixWorld();
+    this.setCamera(this.camera);
+
+    // this.setMatrix(localMatrix.fromArray(viewMatrix));
+    // console.log('got framebuffer', framebuffer);
+    this.setXrFramebuffer(framebuffer);
+    // this.renderer.setFramebuffer(framebuffer);
+    const timestamp = performance.now();
+    this.renderer.xr.preAnimationFrame(timestamp, this.fakeSession._frame);
+    /* for (let i = 0; i < this.packages.length; i++) {
+      const p = this.packages[i];
+      if (
+        p !== pak &&
+        p.context.iframe && p.context.iframe.contentWindow && p.context.iframe.contentWindow.xrpackage && p.context.iframe.contentWindow.xrpackage.session && p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer
+      ) {
+        // p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer.context._exokitClearEnabled(false);
+        p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer.context._exokitSetXrFramebuffer(framebuffer);
+      }
+    } */
+
+    this.renderer.setClearColor(new THREE.Color(0x00FF00), 1);
+    this.renderer.clear(true, true, true);
+    this.draw(timestamp, pak);
+    this.renderer.setClearColor(new THREE.Color(0x0), 0);
+
+    this.xrState.renderWidth[0] = _renderWidth;
+    this.xrState.renderHeight[0] = _renderHeight;
+    // this.xrState.numViews[0] = _numViews;
+    this.camera.matrix.copy(_matrix);
+    this.camera.matrixWorld.copy(_matrixWorld);
+    this.camera.matrixWorldInverse.copy(_matrixWorldInverse);
+    this.camera.position.copy(_position);
+    this.camera.quaternion.copy(_quaternion);
+    this.camera.scale.copy(_scale);
+    this.camera.projectionMatrix.copy(_projectionMatrix);
+    this.setCamera(this.camera);
+    // this.setMatrix(_matrix);
+    // this.renderer.setFramebuffer(_framebuffer);
+    this.setXrFramebuffer(_xrfb);
+    this.renderer.xr.preAnimationFrame(timestamp, this.fakeSession._frame);
+    /* for (let i = 0; i < this.packages.length; i++) {
+      const p = this.packages[i];
+      if (
+        p !== pak &&
+        p.context.iframe && p.context.iframe.contentWindow && p.context.iframe.contentWindow.xrpackage && p.context.iframe.contentWindow.xrpackage.session && p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer
+      ) {
+        // p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer.context._exokitClearEnabled(false);
+        p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer.context._exokitSetXrFramebuffer(_xrfb);
+      }
+    } */
   }
   getProxySession({
     order = 0,
@@ -1120,18 +1207,9 @@ export class XRPackageEngine extends EventTarget {
       }
     }
 
-    // update matrices
-    for (let i = 0; i < this.packages.length; i++) {
-      this.packages[i].updateMatrixWorld();
-    }
-
-    const xrfb = this.realSession ? this.realSession.renderState.baseLayer.framebuffer : this.fakeXrFramebuffer;
+    // tick workers
     for (let i = 0; i < this.packages.length; i++) {
       const p = this.packages[i];
-      if (p.context.iframe && p.context.iframe.contentWindow && p.context.iframe.contentWindow.xrpackage && p.context.iframe.contentWindow.xrpackage.session && p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer) {
-        // p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer.context._exokitClearEnabled(false);
-        p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer.context._exokitSetXrFramebuffer(xrfb);
-      }
       if (p.context.worker) {
         p.context.worker.postMessage({
           method: 'tick',
@@ -1139,26 +1217,20 @@ export class XRPackageEngine extends EventTarget {
       }
     }
 
-    // tick rafs
-    const _tickRafs = () => {
-      const rafs = this.rafs.slice()
-        .sort((a, b) => a[symbols.orderSymbol] - b[symbols.orderSymbol]);
-      this.rafs.length = 0;
-      const timestamp = performance.now();
-      for (let i = 0; i < rafs.length; i++) {
-        const raf = rafs[i];
-        const rafWindow = raf[symbols.windowSymbol];
-        const rafPackage = this.packages.find(p => p.context.iframe && p.context.iframe.contentWindow === rafWindow);
-        if (!rafPackage || rafPackage.visible) {
-          raf(timestamp);
-        } else {
-          this.rafs.push(raf);
-        }
+    const xrfb = this.realSession ? this.realSession.renderState.baseLayer.framebuffer : this.fakeXrFramebuffer;
+    for (let i = 0; i < this.packages.length; i++) {
+      const p = this.packages[i];
+      if (
+        // p !== skipPackage &&
+        p.context.iframe && p.context.iframe.contentWindow && p.context.iframe.contentWindow.xrpackage && p.context.iframe.contentWindow.xrpackage.session && p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer
+      ) {
+        // p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer.context._exokitClearEnabled(false);
+        p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer.context._exokitSetXrFramebuffer(xrfb);
       }
-    };
-    _tickRafs();
+    }
 
-    this.renderer.render(this.scene, this.camera);
+    // draw packages
+    this.draw(timestamp);
 
     if (!this.realSession) {
       const gl = this.proxyContext;
@@ -1189,14 +1261,65 @@ export class XRPackageEngine extends EventTarget {
       }
     }
   }
-  packageRequestAnimationFrame(fn, win, order) {
-    this.rafs.push(fn);
+  draw(timestamp = performance.now(), skipPackage = null) {
+    // update matrices
+    for (let i = 0; i < this.packages.length; i++) {
+      const p = this.packages[i];
+      if (p !== skipPackage) {
+        p.updateMatrixWorld();
+      }
+    }
 
-    const id = ++this.ids;
-    fn[symbols.rafCbsSymbol] = id;
-    fn[symbols.windowSymbol] = win;
-    fn[symbols.orderSymbol] = order;
-    return id;
+    // tick rafs
+    if (!skipPackage) {
+      this.runningRafs = this.rafs
+        .sort((a, b) => a[symbols.orderSymbol] - b[symbols.orderSymbol]);
+      this.rafs = [];
+      for (let i = 0; i < this.runningRafs.length; i++) {
+        const raf = this.runningRafs[i];
+        const rafWindow = raf[symbols.windowSymbol];
+        const rafPackage = this.packages.find(p => p.context.iframe && p.context.iframe.contentWindow === rafWindow);
+        if (rafWindow === window || rafPackage.visible) {
+          raf(timestamp);
+        } else {
+          this.rafs.push(raf);
+        }
+      }
+      this.runningRafs.length = 0;
+    } else {
+      if (!this.subdrawing) {
+        this.subdrawing = true;
+
+        // console.log('would have rafed', this.runningRafs);
+        for (let i = 0; i < this.runningRafs.length; i++) {
+          const raf = this.runningRafs[i];
+          const rafWindow = raf[symbols.windowSymbol];
+          const rafPackage = this.packages.find(p => p.context.iframe && p.context.iframe.contentWindow === rafWindow);
+          if (!!rafPackage && rafPackage !== skipPackage) {
+            // console.log('subdrawing', rafPackage, skipPackage);
+            raf(timestamp);
+          }
+        }
+
+        this.subdrawing = false;
+      }
+    }
+
+    // render local scene
+    this.renderer.render(this.scene, this.camera);
+  }
+  packageRequestAnimationFrame(fn, win, order) {
+    if (!this.subdrawing) {
+      this.rafs.push(fn);
+
+      const id = ++this.ids;
+      fn[symbols.rafCbsSymbol] = id;
+      fn[symbols.windowSymbol] = win;
+      fn[symbols.orderSymbol] = order;
+      return id;
+    } else {
+      return -1;
+    }
   }
   packageCancelAnimationFrame(id) {
     const index = this.rafs.findIndex(fn => fn[symbols.rafCbsSymbol].id === id);
@@ -1324,6 +1447,9 @@ export class XRPackageEngine extends EventTarget {
         // debug: !newModel,
       });
       this.container.add(this.rig.model);
+      /* this.rig.model.children[2].children[1].children[0].onBeforeRender = () => {
+        console.log('render ava');
+      }; */
 
       this.avatar = p;
     }

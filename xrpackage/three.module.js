@@ -23446,9 +23446,8 @@ function WebXRManager( renderer, gl ) {
 
 	var onAnimationFrameCallback = null;
 
-	function onAnimationFrame( time, frame ) {
-
-		pose = frame.getViewerPose( referenceSpace );
+    function preAnimationFrame(time, frame) {
+    	pose = frame.getViewerPose( referenceSpace );
 
 		if ( pose !== null ) {
 
@@ -23506,6 +23505,12 @@ function WebXRManager( renderer, gl ) {
 			controller.update( inputSource, frame, referenceSpace );
 
 		}
+    }
+    this.preAnimationFrame = preAnimationFrame;
+
+	function onAnimationFrame( time, frame ) {
+
+		preAnimationFrame(time, frame);
 
 		if ( onAnimationFrameCallback ) onAnimationFrameCallback( time, frame );
 
@@ -26087,6 +26092,8 @@ function WebGLRenderer( parameters ) {
 			( material.isShaderMaterial && material.lights === true );
 
 	}
+
+	this.getFramebuffer = () => _framebuffer;
 
 	//
 	this.setFramebuffer = function ( value ) {

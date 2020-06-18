@@ -1,4 +1,4 @@
-const LOCAL_DEV = false;
+const LOCAL_DEV = true;
 
 /*!
     localForage -- Offline Storage, Improved
@@ -1836,7 +1836,7 @@ self.addEventListener('fetch', event => {
           let match = pathname.match(/(\/xrpackage\/.*)$/);
           if (match) {
             if (LOCAL_DEV) {
-              pathname = match[1];
+              pathname = '/x' + match[1];
             } else {
               pathname = 'https://xrpackage.org' + match[1];
             }
