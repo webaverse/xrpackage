@@ -1838,7 +1838,7 @@ self.addEventListener('fetch', event => {
             if (LOCAL_DEV) {
               pathname = match[1];
             } else {
-              pathname = 'https://xrpackage.org' + match[1];
+              pathname = 'https://static.xrpackage.org' + match[1];
             }
             pathnameChanged = true;
           }
