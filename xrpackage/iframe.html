@@ -138,7 +138,9 @@ class XRPackageManager extends EventTarget {
     this.loadPromise.resolve({});
   }
   setXrFramebuffer(xrfb) {
-    this.session.xrFramebuffer = xrfb;
+    if (this.session) {
+      this.session.xrFramebuffer = xrfb;
+    }
   }
   get packages() {
     return this._engine.packages.slice();
