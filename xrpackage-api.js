@@ -1,14 +1,14 @@
 import * as THREE from './xrpackage/three.module.js';
 import wbn from './xrpackage/wbn.js';
-import { GLTFLoader } from './xrpackage/GLTFLoader.js';
-import { VOXLoader } from './xrpackage/VOXLoader.js';
+import { GLTFLoader } from './xrpackage/loaders/GLTFLoader.js';
+import { VOXLoader } from './xrpackage/loaders/VOXLoader.js';
 import Avatar from './xrpackage/avatars/avatars.js';
 import utils from './xrpackage/utils.js';
 import { xrTypeLoaders } from './xrTypes.js';
 import { XRPackageEngine } from './xrpackage-engine.js';
 
 const { requestSw } = utils;
-export const apiHost = `https://ipfs.exokit.org/ipfs`;
+const apiHost = `https://ipfs.exokit.org/ipfs`;
 const primaryUrl = `https://xrpackage.org`;
 
 const localMatrix = new THREE.Matrix4();
