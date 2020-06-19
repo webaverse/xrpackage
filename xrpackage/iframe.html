@@ -154,6 +154,9 @@ class XRPackageManager extends EventTarget {
   remove(p) {
     return this._engine.remove(p);
   }
+  render(width, height, viewMatrix, projectionMatrix, framebuffer) {
+    return this._engine.render(this._package, width, height, viewMatrix, projectionMatrix, framebuffer);
+  }
   setMatrix(matrixArray) {
     this.xrOffsetMatrix.fromArray(matrixArray);
   }
