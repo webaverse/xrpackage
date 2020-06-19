@@ -23446,8 +23446,7 @@ function WebXRManager( renderer, gl ) {
 
 	var onAnimationFrameCallback = null;
 
-	function onAnimationFrame( time, frame ) {
-
+    function preAnimationFrame(time, frame) {
 		pose = frame.getViewerPose( referenceSpace );
 
 		if ( pose !== null ) {
@@ -23506,6 +23505,12 @@ function WebXRManager( renderer, gl ) {
 			controller.update( inputSource, frame, referenceSpace );
 
 		}
+    }
+    this.preAnimationFrame = preAnimationFrame;
+
+	function onAnimationFrame( time, frame ) {
+
+		preAnimationFrame(time, frame);
 
 		if ( onAnimationFrameCallback ) onAnimationFrameCallback( time, frame );
 
