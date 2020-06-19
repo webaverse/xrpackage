@@ -207,6 +207,10 @@ xrpk install [id]
 
 This will download the given package id locally.
 
+## See also
+
+The [frontend site for XRPackage](https://github.com/webaverse/xrpackage-site)
+
 ## Tips:
 
 ### Building packages
