@@ -771,12 +771,15 @@ export class XRPackageEngine extends EventTarget {
     this.options.height = height;
     this.options.devicePixelRatio = devicePixelRatio;
   }
-  async add(p) {
+  async add(p, reason) {
     p.parent = this;
     this.packages.push(p);
 
     this.dispatchEvent(new MessageEvent('packageadd', {
-      data: p,
+      data: {
+        package: p,
+        reason,
+      },
     }));
 
     await p.waitForLoad();
@@ -786,11 +789,11 @@ export class XRPackageEngine extends EventTarget {
     if (adder) {
       await adder.call(this, p);
     } else {
-      this.remove(p);
+      this.remove(p, 'addFailed');
       throw new Error(`unknown xr_type: ${type}`);
     }
   }
-  remove(p) {
+  remove(p, reason) {
     const index = this.packages.indexOf(p);
     if (index !== -1) {
       const {type} = p;
@@ -802,7 +805,10 @@ export class XRPackageEngine extends EventTarget {
         this.packages.splice(index, 1);
 
         this.dispatchEvent(new MessageEvent('packageremove', {
-          data: p,
+          data: {
+            package: p,
+            reason,
+          },
         }));
       }
     } else {
@@ -1436,7 +1442,7 @@ export class XRPackageEngine extends EventTarget {
   reset() {
     const ps = this.packages.slice();
     for (let i = 0; i < ps.length; i++) {
-      this.remove(ps[i]);
+      this.remove(ps[i], 'reset');
     }
   }
   async importScene(uint8Array) {
@@ -1455,8 +1461,8 @@ export class XRPackageEngine extends EventTarget {
           const p = await XRPackage.download(hash);
           p.id = id;
           p.setMatrix(localMatrix.fromArray(matrix));
-          console.log('load matrix 1', matrix);
-          this.add(p);
+          // console.log('load matrix 1', matrix);
+          this.add(p, 'importScene');
         } else {
           const idUrl = primaryUrl + '/' + id + '.wbn';
           const file = p.files.find(f => f.url === idUrl);
@@ -1464,7 +1470,7 @@ export class XRPackageEngine extends EventTarget {
             const p = new XRPackage(file.response.body);
             p.id = id;
             p.setMatrix(localMatrix.fromArray(matrix));
-            this.add(p);
+            this.add(p, 'importScene');
           } else {
             console.warn('unknown file id', id);
           }
@@ -1703,8 +1709,8 @@ export class XRPackage extends EventTarget {
   async reload() {
     const {parent} = this;
     if (parent) {
-      parent.remove(this);
-      await parent.add(this);
+      parent.remove(this, 'reload');
+      await parent.add(this, 'reload');
     }
   }
   getManifestJson() {
