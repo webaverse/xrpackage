@@ -14,6 +14,7 @@ const {hasWebGL2, requestSw} = utils;
 export const apiHost = `https://ipfs.exokit.org/ipfs`;
 
 const primaryUrl = `https://xrpackage.org`;
+const microphoneWorkletUrl = import.meta.url.replace(/\/[^\/]+$/, '/xrpackage/avatars/microphone-worklet.js');
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -53,6 +54,11 @@ const _cloneBundle = (bundle, options = {}) => {
     }
   }
   return builder;
+};
+const _setMicrophoneMediaStream = _oldSetMicrophoneMediaStream => function setMicrophoneMediaStream(mediaStream) {
+  return _oldSetMicrophoneMediaStream.call(this, mediaStream, {
+    microphoneWorkletUrl,
+  });
 };
 
 const HANDS = ['left', 'right'];
@@ -868,9 +874,7 @@ export class XRPackageEngine extends EventTarget {
     this.renderer.xr.preAnimationFrame(timestamp, this.fakeSession._frame);
   }
   setMicStream(pak, micStream) {
-    this.rig.setMicrophoneMediaStream(micStream, {
-      microphoneWorkletUrl: import.meta.url.replace(/\/[^\/]+$/, '/xrpackage/avatars/microphone-worklet.js'),
-    });
+    this.rig.setMicrophoneMediaStream(micStream);
   }
   getProxySession({
     order = 0,
@@ -1414,6 +1418,7 @@ export class XRPackageEngine extends EventTarget {
         microphoneMediaStream: null,
         // debug: !newModel,
       });
+      this.rig.setMicrophoneMediaStream = _setMicrophoneMediaStream(this.rig.setMicrophoneMediaStream);
       this.container.add(this.rig.model);
 
       this.avatar = p;
@@ -2039,6 +2044,7 @@ export class XRPackage extends EventTarget {
           // debug: !newModel,
         });
       }
+      this.context.rig.setMicrophoneMediaStream = _setMicrophoneMediaStream(this.context.rig.setMicrophoneMediaStream);
     }
     const {rig} = this.context;
     rig.inputs.hmd.position.fromArray(head[0]);
