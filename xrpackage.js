@@ -1884,6 +1884,7 @@ export class XRPackage extends EventTarget {
             });
             scene = o.scene;
           } catch(err) {
+            console.warn(err);
             scene = null;
           }
           URL.revokeObjectURL(u);
