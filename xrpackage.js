@@ -867,6 +867,11 @@ export class XRPackageEngine extends EventTarget {
     this.setXrFramebuffer(_xrfb);
     this.renderer.xr.preAnimationFrame(timestamp, this.fakeSession._frame);
   }
+  setMicStream(pak, micStream) {
+    this.rig.setMicrophoneMediaStream(micStream, {
+      microphoneWorkletUrl: import.meta.url.replace(/\/[^\/]+$/, '/xrpackage/avatars/microphone-worklet.js'),
+    });
+  }
   getProxySession({
     order = 0,
   } = {}) {

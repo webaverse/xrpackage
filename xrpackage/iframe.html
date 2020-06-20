@@ -177,6 +177,9 @@ class XRPackageManager extends EventTarget {
       },
     }));
   }
+  setMicStream(micStream) {
+    return this._engine.setMicStream(this._package, micStream);
+  }
 }
 window.xrpackage = new XRPackageManager();
 })();
