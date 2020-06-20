@@ -1877,14 +1877,14 @@ export class XRPackage extends EventTarget {
             type: previewIcon.type,
           });
           const u = URL.createObjectURL(b);
-          const {scene} = await new Promise((accept, reject) => {
-            new GLTFLoader().load(u, accept, function onProgress() {}, err => {
-              console.warn(err);
-              return {scene: null};
+          try {
+            const {scene} = await new Promise((accept, reject) => {
+              new GLTFLoader().load(u, accept, function onProgress() {}, reject);
             });
-          });
-          URL.revokeObjectURL(u);
-          return scene;
+            return scene;
+          } finally {
+            URL.revokeObjectURL(u);
+          }
         } else {
           return null;
         }
