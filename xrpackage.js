@@ -1106,6 +1106,7 @@ export class XRPackageEngine extends EventTarget {
       } else {
         localMatrix.fromArray(xrState.leftViewMatrix)
           .getInverse(localMatrix)
+          .premultiply(localMatrix2.getInverse(this.matrix))
           .toArray(this.xrState.poseMatrix);
       }
     };
