@@ -2030,7 +2030,7 @@ export class XRPackage extends EventTarget {
           hair: true,
           visemes: true,
           decapitate: false,
-          microphoneMediaStream: null,
+          // microphoneMediaStream: null,
           // debug: !newModel,
         });
       } else {
@@ -2039,7 +2039,7 @@ export class XRPackage extends EventTarget {
           hair: true,
           visemes: true,
           decapitate: false,
-          microphoneMediaStream: null,
+          // microphoneMediaStream: null,
           // debug: !newModel,
         });
       }
