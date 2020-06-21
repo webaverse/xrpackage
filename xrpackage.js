@@ -843,7 +843,7 @@ export class XRPackageEngine extends EventTarget {
     const _projectionMatrix = this.camera.projectionMatrix.clone();
     const _xrfb = this.fakeSession.xrFramebuffer;
 
-    this.xrState.renderWidth[0] = width/2;
+    this.xrState.renderWidth[0] = width * (this.realSession ? 1 : 0.5);
     this.xrState.renderHeight[0] = height;
     this.camera.matrix.fromArray(viewMatrix)
       .decompose(this.camera.position, this.camera.quaternion, this.camera.scale);
