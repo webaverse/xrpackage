@@ -1870,7 +1870,7 @@ export class XRPackage extends EventTarget {
     }
     return builder.createBundle();
   }
-  async getScreenshotImage() {
+  async getScreenshotImageUrl() {
     const j = this.getManifestJson();
     if (j) {
       const {icons = []} = j;
@@ -1883,22 +1883,30 @@ export class XRPackage extends EventTarget {
             type: previewIcon.type,
           });
           const u = URL.createObjectURL(b);
-          const img = await new Promise((accept, reject) => {
-            const img = new Image();
-            img.src = u;
-            img.onload = () => {
-              accept(img);
-            };
-            img.onerror = reject;
-          });
-          URL.revokeObjectURL(u);
-          return img;
+          return u;
         } else {
           return null;
         }
       } else {
         return null;
       }
+    } else {
+      return null;
+    }
+  }
+  async getScreenshotImage() {
+    const u = await this.getScreenshotImageUrl();
+    if (u) {
+      const img = await new Promise((accept, reject) => {
+        const img = new Image();
+        img.src = u;
+        img.onload = () => {
+          accept(img);
+        };
+        img.onerror = reject;
+      });
+      URL.revokeObjectURL(u);
+      return img;
     } else {
       return null;
     }
