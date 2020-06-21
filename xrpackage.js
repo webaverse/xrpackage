@@ -841,6 +841,10 @@ export class XRPackageEngine extends EventTarget {
     const _quaternion = this.camera.quaternion.clone();
     const _scale = this.camera.scale.clone();
     const _projectionMatrix = this.camera.projectionMatrix.clone();
+    const _leftViewMatrix = this.xrState.leftViewMatrix.slice();
+    const _rightViewMatrix = this.xrState.rightViewMatrix.slice();
+    const _leftProjectionMatrix = this.xrState.leftProjectionMatrix.slice();
+    const _rightProjectionMatrix = this.xrState.rightProjectionMatrix.slice();
     const _xrfb = this.fakeSession.xrFramebuffer;
 
     this.xrState.renderWidth[0] = width * (this.realSession ? 1 : 0.5);
@@ -862,14 +866,22 @@ export class XRPackageEngine extends EventTarget {
 
     this.xrState.renderWidth[0] = _renderWidth;
     this.xrState.renderHeight[0] = _renderHeight;
-    this.camera.matrix.copy(_matrix);
-    this.camera.matrixWorld.copy(_matrixWorld);
-    this.camera.matrixWorldInverse.copy(_matrixWorldInverse);
-    this.camera.position.copy(_position);
-    this.camera.quaternion.copy(_quaternion);
-    this.camera.scale.copy(_scale);
-    this.camera.projectionMatrix.copy(_projectionMatrix);
-    this.setCamera(this.camera);
+    if (!this.realSession) {
+      this.camera.matrix.copy(_matrix);
+      this.camera.matrixWorld.copy(_matrixWorld);
+      this.camera.matrixWorldInverse.copy(_matrixWorldInverse);
+      this.camera.position.copy(_position);
+      this.camera.quaternion.copy(_quaternion);
+      this.camera.scale.copy(_scale);
+      this.camera.projectionMatrix.copy(_projectionMatrix);
+      this.setCamera(this.camera);
+    } else {
+      this.xrState.leftViewMatrix.set(_leftViewMatrix);
+      this.xrState.leftProjectionMatrix.set(_leftProjectionMatrix);
+      
+      this.xrState.rightViewMatrix.set(_rightViewMatrix);
+      this.xrState.rightProjectionMatrix.set(_rightProjectionMatrix);
+    }
     this.setXrFramebuffer(_xrfb);
     this.renderer.xr.preAnimationFrame(timestamp, this.fakeSession._frame);
   }
