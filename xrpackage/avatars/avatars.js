@@ -1010,6 +1010,9 @@ class Avatar {
           if (aaMorphTargetIndex === undefined) {
             aaMorphTargetIndex = morphTargetDictionary['morphTarget26'];
           }
+          if (aaMorphTargetIndex === undefined) {
+            aaMorphTargetIndex = morphTargetDictionary['29'];
+          }
           if (aaMorphTargetIndex !== undefined) {
             morphTargetInfluences[aaMorphTargetIndex] = aaValue;
           }
@@ -1018,6 +1021,9 @@ class Avatar {
           if (blinkLeftMorphTargetIndex === undefined) {
             blinkLeftMorphTargetIndex = morphTargetDictionary['morphTarget16'];
           }
+          if (blinkLeftMorphTargetIndex === undefined) {
+            blinkLeftMorphTargetIndex = morphTargetDictionary['12'];
+          }
           if (blinkLeftMorphTargetIndex !== undefined) {
             morphTargetInfluences[blinkLeftMorphTargetIndex] = blinkValue;
           }
@@ -1025,6 +1031,9 @@ class Avatar {
           let blinkRightMorphTargetIndex = morphTargetDictionary['vrc.blink_right'];
           if (blinkRightMorphTargetIndex === undefined) {
             blinkRightMorphTargetIndex = morphTargetDictionary['morphTarget17'];
+          }
+          if (blinkLeftMorphTargetIndex === undefined) {
+            blinkLeftMorphTargetIndex = morphTargetDictionary['13'];
           }
           if (blinkRightMorphTargetIndex !== undefined) {
             morphTargetInfluences[blinkRightMorphTargetIndex] = blinkValue;
