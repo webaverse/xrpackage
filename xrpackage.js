@@ -935,7 +935,7 @@ export class XRPackageEngine extends EventTarget {
       await _loadReferenceSpace();
       this.loadReferenceSpaceInterval = setInterval(_loadReferenceSpace, 1000);
 
-      const baseLayer = new window.OldXR.XRWebGLLayer(realSession, this.proxyContext);
+      const baseLayer = new OldXR.XRWebGLLayer(realSession, this.proxyContext);
       realSession.updateRenderState({baseLayer});
 
       await new Promise((accept, reject) => {
@@ -2115,7 +2115,7 @@ export class XRPackage extends EventTarget {
   }
 }
 
-window.OldXR = {
+const OldXR = {
   XR: window.XR,
   XRSession: window.XRSession,
   XRRenderState: window.XRRenderState,
