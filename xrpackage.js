@@ -2015,8 +2015,8 @@ export class XRPackage extends EventTarget {
       this.matrixWorldNeedsUpdate = false;
 
       localMatrix
-        .copy(this.parent.matrix)
-        .premultiply(this.matrix);
+        .copy(this.matrix)
+        .premultiply(this.parent.matrix);
 
       this.context.object &&
         this.context.object.matrix
