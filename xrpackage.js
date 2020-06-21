@@ -855,6 +855,9 @@ export class XRPackageEngine extends EventTarget {
     this.camera.projectionMatrix.fromArray(projectionMatrix);
     this.camera.updateMatrixWorld();
     this.setCamera(this.camera);
+    if (this.rig) {
+      this.rig.undecapitate();
+    }
 
     this.setXrFramebuffer(framebuffer);
     const timestamp = performance.now();
@@ -884,6 +887,9 @@ export class XRPackageEngine extends EventTarget {
       this.xrState.rightProjectionMatrix.set(_rightProjectionMatrix);
     }
     this.setXrFramebuffer(_xrfb);
+    if (this.rig) {
+      this.rig.decapitate();
+    }
     this.renderer.xr.preAnimationFrame(timestamp, this.fakeSession._frame);
   }
   setMicStream(pak, micStream) {
