@@ -547,9 +547,10 @@ export class XRPackageEngine extends EventTarget {
       back: null,
     };
     this.rig = null;
+    this.rigPackage = null;
     this.rigMatrix = new THREE.Matrix4();
     this.rigMatrixEnabled = false;
-    this.avatar = null;
+    // this.avatar = null;
     this.realSession = null;
     this.referenceSpace = null;
     this.loadReferenceSpaceInterval = 0;
@@ -1135,72 +1136,66 @@ export class XRPackageEngine extends EventTarget {
     _computePose();
 
     {
-      const {rig, camera} = this;
-      if (rig) {
+      const {rig, rigPackage, camera} = this;
+      if (rig || rigPackage) {
         localMatrix.fromArray(this.xrState.poseMatrix)
           .decompose(localVector, localQuaternion, localVector2);
-        /* if (this.rigMatrixEnabled) {
-          localMatrix.copy(this.rigMatrix)
-            .premultiply(localMatrix2.getInverse(this.matrix))
-            .decompose(localVector, localQuaternion, localVector2);
-        } else {
-          const m = localMatrix.fromArray(xrState.leftViewMatrix);
-          m.getInverse(m);
-          m.premultiply(localMatrix2.getInverse(this.matrix));
-          m.decompose(localVector, localQuaternion, localVector2);
-        } */
-        rig.inputs.hmd.position.copy(localVector);
-        rig.inputs.hmd.quaternion.copy(localQuaternion);
-        if (this.realSession) {
-          localMatrix
-            .compose(localVector.fromArray(xrState.gamepads[1].position), localQuaternion.fromArray(xrState.gamepads[1].orientation), localVector2.set(1, 1, 1))
-            .premultiply(localMatrix2.getInverse(this.matrix))
-            .decompose(rig.inputs.leftGamepad.position, rig.inputs.leftGamepad.quaternion, localVector2);
-          localMatrix
-            .compose(localVector.fromArray(xrState.gamepads[0].position), localQuaternion.fromArray(xrState.gamepads[0].orientation), localVector2.set(1, 1, 1))
-            .premultiply(localMatrix2.getInverse(this.matrix))
-            .decompose(rig.inputs.rightGamepad.position, rig.inputs.rightGamepad.quaternion, localVector2);
-        } else {
-          rig.inputs.leftGamepad.position.copy(localVector).add(localVector2.copy(leftHandOffset).applyQuaternion(localQuaternion));
-          rig.inputs.leftGamepad.quaternion.copy(localQuaternion);
-          rig.inputs.rightGamepad.position.copy(localVector).add(localVector2.copy(rightHandOffset).applyQuaternion(localQuaternion));
-          rig.inputs.rightGamepad.quaternion.copy(localQuaternion);
-        }
+        if (rig) {
+          rig.inputs.hmd.position.copy(localVector);
+          rig.inputs.hmd.quaternion.copy(localQuaternion);
+          if (this.realSession) {
+            localMatrix
+              .compose(localVector.fromArray(xrState.gamepads[1].position), localQuaternion.fromArray(xrState.gamepads[1].orientation), localVector2.set(1, 1, 1))
+              .premultiply(localMatrix2.getInverse(this.matrix))
+              .decompose(rig.inputs.leftGamepad.position, rig.inputs.leftGamepad.quaternion, localVector2);
+            localMatrix
+              .compose(localVector.fromArray(xrState.gamepads[0].position), localQuaternion.fromArray(xrState.gamepads[0].orientation), localVector2.set(1, 1, 1))
+              .premultiply(localMatrix2.getInverse(this.matrix))
+              .decompose(rig.inputs.rightGamepad.position, rig.inputs.rightGamepad.quaternion, localVector2);
+          } else {
+            rig.inputs.leftGamepad.position.copy(localVector).add(localVector2.copy(leftHandOffset).applyQuaternion(localQuaternion));
+            rig.inputs.leftGamepad.quaternion.copy(localQuaternion);
+            rig.inputs.rightGamepad.position.copy(localVector).add(localVector2.copy(rightHandOffset).applyQuaternion(localQuaternion));
+            rig.inputs.rightGamepad.quaternion.copy(localQuaternion);
+          }
 
-        HANDS.forEach(handedness => {
-          const grabuse = this.grabuses[handedness];
-          if (grabuse) {
-            const {startTime, endTime} = grabuse;
-            const input = rig.inputs[_oppositeHand(handedness) + 'Gamepad'];
-            const now = Date.now();
-            if (now < endTime) {
-              const f = Math.min(Math.max((now - startTime) / (endTime - startTime), 0), 1);
-              input.position.add(
-                localVector.set(0, Math.sin(f * Math.PI * 2) * 0.2, (-1 + Math.cos(f * Math.PI * 2)) * 0.2)
-                  .applyQuaternion(input.quaternion)
-              );
-              input.quaternion.multiply(
-                localQuaternion.set(0, 0, 0, 1).slerp(localQuaternion2.setFromAxisAngle(localVector.set(1, 0, 0), -Math.PI*0.5), Math.sin(f * Math.PI))
-              );
-            } else {
-              this.grabuses[handedness] = null;
+          HANDS.forEach(handedness => {
+            const grabuse = this.grabuses[handedness];
+            if (grabuse) {
+              const {startTime, endTime} = grabuse;
+              const input = rig.inputs[_oppositeHand(handedness) + 'Gamepad'];
+              const now = Date.now();
+              if (now < endTime) {
+                const f = Math.min(Math.max((now - startTime) / (endTime - startTime), 0), 1);
+                input.position.add(
+                  localVector.set(0, Math.sin(f * Math.PI * 2) * 0.2, (-1 + Math.cos(f * Math.PI * 2)) * 0.2)
+                    .applyQuaternion(input.quaternion)
+                );
+                input.quaternion.multiply(
+                  localQuaternion.set(0, 0, 0, 1).slerp(localQuaternion2.setFromAxisAngle(localVector.set(1, 0, 0), -Math.PI*0.5), Math.sin(f * Math.PI))
+                );
+              } else {
+                this.grabuses[handedness] = null;
+              }
             }
-          }
-          const grab = this.grabs[handedness];
-          if (grab) {
-            const input = rig.inputs[_oppositeHand(handedness) + 'Gamepad'];
-            grab.setMatrix(localMatrix.compose(input.position, input.quaternion, input.scale));
-          }
-        });
-        SLOTS.forEach(slot => {
-          const equip = this.equips[slot];
-          if (equip) {
-            const input = _getSlotInput(rig, slot);
-            equip.setMatrix(localMatrix.compose(input.position, input.quaternion, input.scale));
-          }
-        });
+            const grab = this.grabs[handedness];
+            if (grab) {
+              const input = rig.inputs[_oppositeHand(handedness) + 'Gamepad'];
+              grab.setMatrix(localMatrix.compose(input.position, input.quaternion, input.scale));
+            }
+          });
+          SLOTS.forEach(slot => {
+            const equip = this.equips[slot];
+            if (equip) {
+              const input = _getSlotInput(rig, slot);
+              equip.setMatrix(localMatrix.compose(input.position, input.quaternion, input.scale));
+            }
+          });
 
-        rig.update();
+          rig.update();
+        } else if (rigPackage) {
+          rigPackage.setMatrix(localMatrix);
+        }
       }
     }
 
@@ -1427,6 +1422,10 @@ export class XRPackageEngine extends EventTarget {
       this.rig.destroy();
       this.rig = null;
     }
+    if (this.rigPackage) {
+      this.remove(this.rigPackage);
+      this.rigPackage = null;
+    }
 
     const {model} = p.context;
     if (model) {
@@ -1444,12 +1443,15 @@ export class XRPackageEngine extends EventTarget {
       this.rig.setMicrophoneMediaStream = _setMicrophoneMediaStream(this.rig.setMicrophoneMediaStream);
       this.container.add(this.rig.model);
 
-      this.avatar = p;
+      // this.avatar = p;
+    } else {
+      await this.add(p);
+      this.rigPackage = p;
     }
 
-    this.dispatchEvent(new MessageEvent('avatarchange', {
+    /* this.dispatchEvent(new MessageEvent('avatarchange', {
       data: this.avatar,
-    }));
+    })); */
   }
   defaultAvatar() {
     if (this.rig) {
@@ -1466,11 +1468,11 @@ export class XRPackageEngine extends EventTarget {
     });
     this.container.add(this.rig.model);
 
-    this.avatar = null;
+    // this.avatar = null;
 
-    this.dispatchEvent(new MessageEvent('avatarchange', {
+    /* this.dispatchEvent(new MessageEvent('avatarchange', {
       data: this.avatar,
-    }));
+    })); */
   }
   reset() {
     const ps = this.packages.slice();
@@ -2078,9 +2080,9 @@ export class XRPackage extends EventTarget {
     }
   }
   setPose(pose) {
-    const {rig} = this.context;
+    const [head, leftGamepad, rightGamepad] = pose;
+    const {rig, rigPackage} = this.context;
     if (rig) {
-      const [head, leftGamepad, rightGamepad] = pose;
       rig.inputs.hmd.position.fromArray(head[0]);
       rig.inputs.hmd.quaternion.fromArray(head[1]);
       rig.inputs.leftGamepad.position.fromArray(rightGamepad[0]);
@@ -2088,6 +2090,10 @@ export class XRPackage extends EventTarget {
       rig.inputs.rightGamepad.position.fromArray(leftGamepad[0]);
       rig.inputs.rightGamepad.quaternion.fromArray(leftGamepad[1]);
       rig.update();
+    } else if (rigPackage) {
+      rigPackage.setMatrix(
+        localMatrix.compose(localVector.fromArray(head[0]), localQuaternion.fromArray(head[1]), localVector2.set(1, 1, 1))
+      );
     }
   }
   setXrFramebuffer(xrfb) {
