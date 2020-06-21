@@ -856,7 +856,9 @@ export class XRPackageEngine extends EventTarget {
     this.camera.projectionMatrix.fromArray(projectionMatrix);
     this.camera.updateMatrixWorld();
     this.setCamera(this.camera);
-    if (this.rig) {
+    let wasDecapitated = false;
+    if (this.rig && this.rig.decapitated) {
+      wasDecapitated = true;
       this.rig.undecapitate();
     }
 
@@ -888,7 +890,7 @@ export class XRPackageEngine extends EventTarget {
       this.xrState.rightProjectionMatrix.set(_rightProjectionMatrix);
     }
     this.setXrFramebuffer(_xrfb);
-    if (this.rig) {
+    if (wasDecapitated) {
       this.rig.decapitate();
     }
     this.renderer.xr.preAnimationFrame(timestamp, this.fakeSession._frame);
