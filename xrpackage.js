@@ -1465,7 +1465,7 @@ export class XRPackageEngine extends EventTarget {
 
       // this.avatar = p;
     } else {
-      await this.add(p);
+      await this.add(p, 'avatar');
       this.rigPackage = p;
     }
 
