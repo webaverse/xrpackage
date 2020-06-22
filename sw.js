@@ -1762,7 +1762,7 @@ self.addEventListener('fetch', event => {
     event.respondWith(
       clients.get(clientId)
         .then(client => {
-            if (client.type === 'window' && client.frameType === 'top-level') {
+            if (client && client.type === 'window' && client.frameType === 'top-level') {
                 if (request.method === 'GET') {
                     return localforage.getItem(request.url)
                         .then(v => v ? new Response(v) : new Response(null, {
