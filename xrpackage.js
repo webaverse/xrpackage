@@ -1755,7 +1755,7 @@ export class XRPackage extends EventTarget {
   }
   async getHash() {
     if (this.hash === null) {
-      this.hash = await _hashData(p.data);
+      this.hash = await _hashData(this.data);
     }
     return this.hash;
   }
