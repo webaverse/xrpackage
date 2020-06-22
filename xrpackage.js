@@ -1515,6 +1515,7 @@ export class XRPackageEngine extends EventTarget {
         if (hash) {
           const p = await XRPackage.download(hash);
           p.id = id;
+          p.hash = hash;
           p.setMatrix(localMatrix.fromArray(matrix));
           // console.log('load matrix 1', matrix);
           this.add(p, 'importScene');
