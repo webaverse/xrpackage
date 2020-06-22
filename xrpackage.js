@@ -55,6 +55,26 @@ const _cloneBundle = (bundle, options = {}) => {
   }
   return builder;
 };
+const _hashData = (() => {
+  let nodePromise = null;
+  return async d => {
+    if (!nodePromise) {
+      nodePromise = import('https://cdn.jsdelivr.net/npm/ipfs/dist/index.min.js')
+        .then(() =>
+          Ipfs.create({
+            repo: 'inmem',
+            offline: true,
+            start: false,
+            silent: true,
+            // init: false,
+          })
+        );
+    }
+    const node = await nodePromise;
+    const {value: {path}} = await node.add(d).next();
+    return path;
+  };
+})();
 const _setMicrophoneMediaStream = _oldSetMicrophoneMediaStream => function setMicrophoneMediaStream(mediaStream) {
   return _oldSetMicrophoneMediaStream.call(this, mediaStream, {
     microphoneWorkletUrl,
@@ -1613,6 +1633,7 @@ export class XRPackage extends EventTarget {
     this.matrixWorldNeedsUpdate = true;
     this._visible = true;
     this.parent = null;
+    this.hash = null;
     this.context = {};
     this.loaded = false;
 
@@ -1731,6 +1752,12 @@ export class XRPackage extends EventTarget {
     if (o) {
       o.visible = visible;
     }
+  }
+  async getHash() {
+    if (this.hash === null) {
+      this.hash = await _hashData(p.data);
+    }
+    return this.hash;
   }
   setSchema(key, value) {
     this.schema[key] = value;
