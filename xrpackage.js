@@ -2167,7 +2167,7 @@ export class XRPackage extends EventTarget {
         });
         this.context.object = new THREE.Object3D();
         this.context.object.add(this.context.rig.model);
-        this.xr_type = 'vrm@0.0.1';
+        this.type = 'vrm@0.0.1';
       }
       this.context.rig.setMicrophoneMediaStream = _setMicrophoneMediaStream(this.context.rig.setMicrophoneMediaStream);
     }
