@@ -1038,6 +1038,18 @@ export class XRPackageEngine extends EventTarget {
       this.packages[i].setXrFramebuffer(xrfb);
     }
   }
+  setClearFreeFramebuffer(fb) {
+    for (let i = 0; i < this.packages.length; i++) {
+      const p = this.packages[i];
+      if (
+        // p !== skipPackage &&
+        p.context.iframe && p.context.iframe.contentWindow && p.context.iframe.contentWindow.xrpackage && p.context.iframe.contentWindow.xrpackage.session && p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer
+      ) {
+        // p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer.context._exokitClearEnabled(false);
+        p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer.context._exokitSetXrFramebuffer(fb);
+      }
+    }
+  }
   tick(timestamp = performance.now(), frame = null) {
     this.renderer.clear(true, true, true);
 
@@ -1242,17 +1254,7 @@ export class XRPackageEngine extends EventTarget {
       }
     }
 
-    const xrfb = this.realSession ? this.realSession.renderState.baseLayer.framebuffer : this.fakeXrFramebuffer;
-    for (let i = 0; i < this.packages.length; i++) {
-      const p = this.packages[i];
-      if (
-        // p !== skipPackage &&
-        p.context.iframe && p.context.iframe.contentWindow && p.context.iframe.contentWindow.xrpackage && p.context.iframe.contentWindow.xrpackage.session && p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer
-      ) {
-        // p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer.context._exokitClearEnabled(false);
-        p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer.context._exokitSetXrFramebuffer(xrfb);
-      }
-    }
+    this.setClearFreeFramebuffer(this.realSession ? this.realSession.renderState.baseLayer.framebuffer : this.fakeXrFramebuffer);
 
     // draw packages
     this.draw(timestamp);
