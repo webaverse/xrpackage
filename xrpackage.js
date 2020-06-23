@@ -2163,7 +2163,7 @@ export class XRPackage extends EventTarget {
           visemes: true,
           decapitate: false,
           // microphoneMediaStream: null,
-          // debug: !newModel,
+          debug: true,
         });
       }
       this.context.rig.setMicrophoneMediaStream = _setMicrophoneMediaStream(this.context.rig.setMicrophoneMediaStream);
