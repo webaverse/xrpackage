@@ -1695,7 +1695,6 @@ export class XRPackage extends EventTarget {
     this.parent = null;
     this.hash = null;
     this.context = {};
-    this.loaded = false;
 
     if (a instanceof XRPackage) {
       this.data = a.data;
@@ -1716,7 +1715,8 @@ export class XRPackage extends EventTarget {
       this.files = files;
     }
 
-    if (this.data.byteLength > 0) {
+    this.loaded = this.data.byteLength === 0;
+    if (!this.loaded) {
       this.load();
     }
   }
