@@ -1409,6 +1409,9 @@ export class XRPackageEngine extends EventTarget {
       this.xrState.gamepads[i].connected[0] = connected ? 1 : 0;
     }
   }
+  getEnv(key) {
+    return this.env[key];
+  }
   setEnv(key, value) {
     this.env[key] = value;
     this.dispatchEvent(new MessageEvent('envchange', {
@@ -1417,9 +1420,6 @@ export class XRPackageEngine extends EventTarget {
         value,
       },
     }));
-  }
-  getEnv(key) {
-    return this.env[key];
   }
   grabdown(handedness) {
     if (this.rig && !this.grabs[handedness]) {
