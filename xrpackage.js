@@ -1470,7 +1470,7 @@ export class XRPackageEngine extends EventTarget {
         hair: true,
         visemes: true,
         decapitate: true,
-        microphoneMediaStream: null,
+        // microphoneMediaStream: null,
         // debug: !newModel,
       });
       this.rig.setMicrophoneMediaStream = _setMicrophoneMediaStream(this.rig.setMicrophoneMediaStream);
