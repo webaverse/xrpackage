@@ -1701,21 +1701,24 @@ export class XRPackage extends EventTarget {
       this.data = a.data;
       this.files = a.files.slice();
     } else {
-      this.data = a;
-
-      const bundle = new wbn.Bundle(a);
+      this.data = a || new Uint8Array();
       const files = [];
-      for (const url of bundle.urls) {
-        const response = bundle.getResponse(url);
-        files.push({
-          url,
-          response,
-        });
+      if (this.data.byteLength > 0) {
+        const bundle = new wbn.Bundle(a);
+        for (const url of bundle.urls) {
+          const response = bundle.getResponse(url);
+          files.push({
+            url,
+            response,
+          });
+        }
       }
       this.files = files;
     }
 
-    this.load();
+    if (this.data.byteLength > 0) {
+      this.load();
+    }
   }
   load() {
     const j = this.getManifestJson();
