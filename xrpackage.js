@@ -926,24 +926,12 @@ export class XRPackageEngine extends EventTarget {
     }
 
     if (mediaStream) {
-      /* const childMediaStreams = [];
-      mediaStream.duplicate = async options => {
-        const childMediaStream = await navigator.mediaDevices.getUserMedia(options);
-        childMediaStreams.push(childMediaStream);
-        return childMediaStream;
-      }; */
-      const _closeTracks = mediaStream => {
-        const audioTracks = mediaStream.getAudioTracks();
+      mediaStream.close = function close() {
+        const audioTracks = this.getAudioTracks();
         for (const audioTrack of audioTracks) {
           audioTrack.stop();
           audioTrack.dispatchEvent(new MessageEvent('ended'));
-        };
-      };
-      mediaStream.close = () => {
-        _closeTracks(mediaStream);
-        /* for (const childMediaStream of childMediaStreams) {
-          _closeTracks(childMediaStream);
-        } */
+        }
       };
     }
 
