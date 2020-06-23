@@ -916,7 +916,7 @@ export class XRPackageEngine extends EventTarget {
     }
     this.renderer.xr.preAnimationFrame(timestamp, this.fakeSession._frame);
   }
-  setMicStream(pak, micStream) {
+  setMicrophoneMediaStream(micStream) {
     this.rig && this.rig.setMicrophoneMediaStream(micStream);
   }
   getProxySession({
