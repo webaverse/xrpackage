@@ -2165,6 +2165,8 @@ export class XRPackage extends EventTarget {
           // microphoneMediaStream: null,
           debug: true,
         });
+        this.context.object = new THREE.Object3D();
+        this.context.object.add(this.context.rig.model);
       }
       this.context.rig.setMicrophoneMediaStream = _setMicrophoneMediaStream(this.context.rig.setMicrophoneMediaStream);
     }
