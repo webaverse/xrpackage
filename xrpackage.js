@@ -1199,6 +1199,10 @@ export class XRPackageEngine extends EventTarget {
               .compose(localVector.fromArray(xrState.gamepads[0].position), localQuaternion.fromArray(xrState.gamepads[0].orientation), localVector2.set(1, 1, 1))
               .premultiply(localMatrix2.getInverse(this.matrix))
               .decompose(rig.inputs.rightGamepad.position, rig.inputs.rightGamepad.quaternion, localVector2);
+            rig.inputs.leftGamepad.pointer = xrState.gamepads[1].buttons[0].value;
+            rig.inputs.leftGamepad.grip = xrState.gamepads[1].buttons[1].value;
+            rig.inputs.rightGamepad.pointer = xrState.gamepads[0].buttons[0].value;
+            rig.inputs.rightGamepad.grip = xrState.gamepads[0].buttons[1].value;
           } else {
             rig.inputs.leftGamepad.position.copy(localVector).add(localVector2.copy(leftHandOffset).applyQuaternion(localQuaternion));
             rig.inputs.leftGamepad.quaternion.copy(localQuaternion);
