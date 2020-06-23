@@ -1,5 +1,5 @@
 import * as XR from './xrpackage/XR.js';
-import { XRPackage } from './xrpackage-api.js';
+import { XRPackage } from './xrpackage-package.js';
 import { XRPackageEngine } from './xrpackage-engine.js';
 
 window.OldXR = {
