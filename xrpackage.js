@@ -920,14 +920,33 @@ export class XRPackageEngine extends EventTarget {
   }
   setMicrophoneMediaStream(mediaStream) {
     if (this.microphoneMediaStream) {
-      const audioTracks = this.microphoneMediaStream.getAudioTracks();
+      const {microphoneMediaStream} = this;
       this.microphoneMediaStream = null;
-      for (let i = 0; i < audioTracks.length; i++) {
-        const audioTrack = audioTracks[i];
-        audioTrack.stop();
-        audioTrack.dispatchEvent(new MessageEvent('ended'));
-      }
+      microphoneMediaStream.close();
     }
+
+    if (mediaStream) {
+      /* const childMediaStreams = [];
+      mediaStream.duplicate = async options => {
+        const childMediaStream = await navigator.mediaDevices.getUserMedia(options);
+        childMediaStreams.push(childMediaStream);
+        return childMediaStream;
+      }; */
+      const _closeTracks = mediaStream => {
+        const audioTracks = mediaStream.getAudioTracks();
+        for (const audioTrack of audioTracks) {
+          audioTrack.stop();
+          audioTrack.dispatchEvent(new MessageEvent('ended'));
+        };
+      };
+      mediaStream.close = () => {
+        _closeTracks(mediaStream);
+        /* for (const childMediaStream of childMediaStreams) {
+          _closeTracks(childMediaStream);
+        } */
+      };
+    }
+
     this.microphoneMediaStream = mediaStream;
     this.rig && this.rig.setMicrophoneMediaStream(mediaStream);
     this.dispatchEvent(new MessageEvent('usermediachanged', {
