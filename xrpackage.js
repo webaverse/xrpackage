@@ -884,6 +884,7 @@ export class XRPackageEngine extends EventTarget {
     }
 
     this.setXrFramebuffer(framebuffer);
+    this.setClearFreeFramebuffer(framebuffer);
     const timestamp = performance.now();
     this.renderer.xr.preAnimationFrame(timestamp, this.fakeSession._frame);
 
@@ -911,6 +912,7 @@ export class XRPackageEngine extends EventTarget {
       this.xrState.rightProjectionMatrix.set(_rightProjectionMatrix);
     }
     this.setXrFramebuffer(_xrfb);
+    this.setClearFreeFramebuffer(this.realSession ? this.realSession.renderState.baseLayer.framebuffer : this.fakeXrFramebuffer);
     if (wasDecapitated) {
       this.rig.decapitate();
     }
