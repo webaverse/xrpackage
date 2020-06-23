@@ -2,6 +2,8 @@ class MicrophoneWorker extends EventTarget {
   constructor(mediaStream, options = {}) {
     super();
 
+    this.live = true;
+
     const audio = document.createElement('audio');
     audio.srcObject = mediaStream;
     audio.muted = true;
@@ -18,14 +20,17 @@ class MicrophoneWorker extends EventTarget {
           }));
         }
         audioWorkletNode.port.onmessage = e => {
-          this.dispatchEvent(new MessageEvent('volume', {
-            data: e.data,
-          }));
+          if (this.live) {
+            this.dispatchEvent(new MessageEvent('volume', {
+              data: e.data,
+            }));
+          }
         };
         mediaStreamSource.connect(audioWorkletNode).connect(this.audioContext.destination);
       });
   }
   close() {
+    this.live = false;
     this.audioContext.close();
   }
 }
