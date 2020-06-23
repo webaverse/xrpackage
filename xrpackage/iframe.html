@@ -181,6 +181,9 @@ class XRPackageManager extends EventTarget {
       },
     }));
   }
+  getEnv(key) {
+    return this._engine.getEnv(key);
+  }
   /* setMicrophoneMediaStream(micStream) {
     return this._engine.setMicrophoneMediaStream(micStream);
   } */

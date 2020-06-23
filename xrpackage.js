@@ -552,6 +552,7 @@ export class XRPackageEngine extends EventTarget {
     this.rafs = [];
     this.runningRafs = [];
     this.subdrawing = false;
+    this.env = {};
     this.grabs = {
       left: null,
       right: null,
@@ -1407,6 +1408,18 @@ export class XRPackageEngine extends EventTarget {
     for (let i = 0; i < this.xrState.gamepads.length; i++) {
       this.xrState.gamepads[i].connected[0] = connected ? 1 : 0;
     }
+  }
+  setEnv(key, value) {
+    this.env[key] = value;
+    this.dispatchEvent(new MessageEvent('envchange', {
+      data: {
+        key,
+        value,
+      },
+    }));
+  }
+  getEnv(key) {
+    return this.env[key];
   }
   grabdown(handedness) {
     if (this.rig && !this.grabs[handedness]) {
