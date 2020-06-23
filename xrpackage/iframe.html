@@ -68,6 +68,10 @@ class XRPackageManager extends EventTarget {
     session.oncancelanimationframe = engine.packageCancelAnimationFrame.bind(engine);
     this.session = session;
 
+    navigator.mediaDevices.getUserMedia = function getUserMedia(options) {
+      return engine.getUserMedia(options);
+    };
+
     delete Navigator.prototype.xr;
     const xr = new XR.XR(window);
     Object.defineProperty(window.navigator, 'xr', {

@@ -1353,6 +1353,24 @@ export class XRPackageEngine extends EventTarget {
   packageRequestPresent(p) {
     p.context.requestPresentPromise.resolve();
   }
+  async getUserMedia(options) {
+    if (options.audio) {
+      if (!this.microphoneMediaStream) {
+        await new Promise((accept, reject) => {
+          const _usermediachanged = e => {
+            if (this.microphoneMediaStream) {
+              accept();
+              this.removeEventListener('usermediachanged', _usermediachanged);
+            }
+          };
+          this.addEventListener('usermediachanged', _usermediachanged);
+        });
+      }
+      return this.microphoneMediaStream;
+    } else {
+      return null;
+    }
+  }
   setCamera(camera) {
     // camera.matrixWorld.toArray(this.xrState.poseMatrix);
 
