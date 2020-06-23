@@ -1055,9 +1055,7 @@ class Avatar {
     if (this.microphoneWorker) {
       this.microphoneWorker.close();
       this.microphoneWorker = null;
-      setTimeout(() => {
-        this.volume = 0;
-      });
+      this.volume = 0;
     }
     if (microphoneMediaStream) {
       this.microphoneWorker = new MicrophoneWorker(microphoneMediaStream, options);
