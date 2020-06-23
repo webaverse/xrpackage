@@ -570,7 +570,7 @@ export class XRPackageEngine extends EventTarget {
     this.rigPackage = null;
     this.rigMatrix = new THREE.Matrix4();
     this.rigMatrixEnabled = false;
-    // this.avatar = null;
+    this.microphoneMediaStream = null;
     this.realSession = null;
     this.referenceSpace = null;
     this.loadReferenceSpaceInterval = 0;
@@ -916,8 +916,21 @@ export class XRPackageEngine extends EventTarget {
     }
     this.renderer.xr.preAnimationFrame(timestamp, this.fakeSession._frame);
   }
-  setMicrophoneMediaStream(micStream) {
-    this.rig && this.rig.setMicrophoneMediaStream(micStream);
+  setMicrophoneMediaStream(mediaStream) {
+    if (this.microphoneMediaStream) {
+      const audioTracks = this.microphoneMediaStream.getAudioTracks();
+      this.microphoneMediaStream = null;
+      for (let i = 0; i < audioTracks.length; i++) {
+        const audioTrack = audioTracks[i];
+        audioTrack.stop();
+        audioTrack.dispatchEvent(new MessageEvent('ended'));
+      }
+    }
+    this.microphoneMediaStream = mediaStream;
+    this.rig && this.rig.setMicrophoneMediaStream(mediaStream);
+    this.dispatchEvent(new MessageEvent('usermediachanged', {
+      data: mediaStream,
+    }));
   }
   getProxySession({
     order = 0,
