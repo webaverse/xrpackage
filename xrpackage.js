@@ -544,7 +544,7 @@ export class XRPackageEngine extends EventTarget {
     this.matrixWorld = this.matrix;
 
     this.name = 'XRPackage Scene';
-    this.packages = [];
+    this.children = [];
     this.ids = 0;
     this.rafs = [];
     this.runningRafs = [];
@@ -797,8 +797,12 @@ export class XRPackageEngine extends EventTarget {
     this.options.devicePixelRatio = devicePixelRatio;
   }
   async add(p, reason) {
+    if (p.parent) {
+      p.parent.remove(p, 'move');
+    }
+
     p.parent = this;
-    this.packages.push(p);
+    this.children.push(p);
 
     this.dispatchEvent(new MessageEvent('packageadd', {
       data: {
@@ -810,10 +814,10 @@ export class XRPackageEngine extends EventTarget {
     await p.ensureRunStop();
   }
   remove(p, reason) {
-    const index = this.packages.indexOf(p);
+    const index = this.children.indexOf(p);
     if (index !== -1) {
       p.parent = null;
-      this.packages.splice(index, 1);
+      this.children.splice(index, 1);
 
       this.dispatchEvent(new MessageEvent('packageremove', {
         data: {
@@ -831,8 +835,8 @@ export class XRPackageEngine extends EventTarget {
   }
   setMatrix(m) {
     this.matrix.copy(m);
-    for (let i = 0; i < this.packages.length; i++) {
-      this.packages[i].matrixWorldNeedsUpdate = true;
+    for (let i = 0; i < this.children.length; i++) {
+      this.children[i].matrixWorldNeedsUpdate = true;
     }
   }
   render(pak, width, height, viewMatrix, projectionMatrix, framebuffer) {
@@ -1028,13 +1032,13 @@ export class XRPackageEngine extends EventTarget {
   }
   setXrFramebuffer(xrfb) {
     this.fakeSession.xrFramebuffer = xrfb;
-    for (let i = 0; i < this.packages.length; i++) {
-      this.packages[i].setXrFramebuffer(xrfb);
+    for (let i = 0; i < this.children.length; i++) {
+      this.children[i].setXrFramebuffer(xrfb);
     }
   }
   setClearFreeFramebuffer(fb) {
-    for (let i = 0; i < this.packages.length; i++) {
-      const p = this.packages[i];
+    for (let i = 0; i < this.children.length; i++) {
+      const p = this.children[i];
       if (
         // p !== skipPackage &&
         p.context.iframe && p.context.iframe.contentWindow && p.context.iframe.contentWindow.xrpackage && p.context.iframe.contentWindow.xrpackage.session && p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer
@@ -1243,8 +1247,8 @@ export class XRPackageEngine extends EventTarget {
     }
 
     // tick workers
-    for (let i = 0; i < this.packages.length; i++) {
-      const p = this.packages[i];
+    for (let i = 0; i < this.children.length; i++) {
+      const p = this.children[i];
       if (p.context.worker) {
         p.context.worker.postMessage({
           method: 'tick',
@@ -1288,8 +1292,8 @@ export class XRPackageEngine extends EventTarget {
   }
   draw(timestamp = performance.now(), skipPackage = null) {
     // update matrices
-    for (let i = 0; i < this.packages.length; i++) {
-      const p = this.packages[i];
+    for (let i = 0; i < this.children.length; i++) {
+      const p = this.children[i];
       if (p !== skipPackage) {
         p.updateMatrixWorld();
       }
@@ -1412,7 +1416,7 @@ export class XRPackageEngine extends EventTarget {
       const inputPosition = localVector
         .copy(input.position)
         // .applyMatrix4(localMatrix.getInverse(this.matrix));
-      const ps = this.packages
+      const ps = this.children
         .sort((a, b) => {
           a.matrix.decompose(localVector2, localQuaternion, localVector4);
           b.matrix.decompose(localVector3, localQuaternion, localVector4);
@@ -1462,7 +1466,7 @@ export class XRPackageEngine extends EventTarget {
         const inputPosition = localVector
           .copy(input.position)
           // .applyMatrix4(localMatrix.getInverse(this.matrix));
-        const ps = this.packages
+        const ps = this.children
           .sort((a, b) => {
             a.matrix.decompose(localVector2, localQuaternion, localVector4);
             b.matrix.decompose(localVector3, localQuaternion, localVector4);
@@ -1539,7 +1543,7 @@ export class XRPackageEngine extends EventTarget {
     })); */
   }
   reset() {
-    const ps = this.packages.slice();
+    const ps = this.children.slice();
     for (let i = 0; i < ps.length; i++) {
       this.remove(ps[i], 'reset');
     }
@@ -1588,7 +1592,7 @@ export class XRPackageEngine extends EventTarget {
       xr_type: 'xrpackage-scene@0.0.1',
       start_url: 'manifest.json',
       xrpackage_scene: {
-        children: this.packages.map(p => {
+        children: this.children.map(p => {
           return {
             id: p.id,
             // hash: p.hash,
@@ -1600,8 +1604,8 @@ export class XRPackageEngine extends EventTarget {
     builder.addExchange(manifestJsonPath, 200, {
       'Content-Type': 'application/json',
     }, JSON.stringify(manifestJson, null, 2));
-    for (let i = 0; i < this.packages.length; i++) {
-      const p = this.packages[i];
+    for (let i = 0; i < this.children.length; i++) {
+      const p = this.children[i];
       builder.addExchange(primaryUrl + '/' + p.id + '.wbn', 200, {
         'Content-Type': 'application/json',
       }, p.data);
@@ -1611,14 +1615,14 @@ export class XRPackageEngine extends EventTarget {
   async uploadScene() {
     const manifestJsonPath = primaryUrl + '/manifest.json';
     const builder = new wbn.BundleBuilder(manifestJsonPath);
-    const hashes = await Promise.all(this.packages.map(p => p.upload()));
+    const hashes = await Promise.all(this.children.map(p => p.upload()));
     const manifestJson = {
       name: 'XRPackage Scene',
       description: 'XRPackage scene exported with the browser frontend.',
       xr_type: 'xrpackage-scene@0.0.1',
       start_url: 'manifest.json',
       xrpackage_scene: {
-        children: this.packages.map((p, i) => {
+        children: this.children.map((p, i) => {
           return {
             id: p.id,
             hash: hashes[i],
@@ -1673,6 +1677,7 @@ export class XRPackage extends EventTarget {
     this.schema = {};
     this.details = {};
 
+    this.children = [];
     this.matrix = a instanceof XRPackage ? a.matrix.clone() : new THREE.Matrix4();
     this.matrixWorld = a instanceof XRPackage ? a.matrixWorld.clone() : new THREE.Matrix4();
     this.matrixWorldNeedsUpdate = true;
@@ -1700,6 +1705,9 @@ export class XRPackage extends EventTarget {
       }
       this.files = files;
     }
+
+    this.add = XRPackageEngine.prototype.add.bind(this);
+    this.remove = XRPackageEngine.prototype.remove.bind(this);
 
     this.loaded = this.data.byteLength === 0;
     if (!this.loaded) {
