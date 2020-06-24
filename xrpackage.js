@@ -426,11 +426,7 @@ const xrTypeAdders = {
 };
 const xrTypeRemovers = {
   'webxr-site@0.0.1': function(p) {
-    this.rafs = this.rafs.filter(raf => {
-      const rafWindow = raf[symbols.windowSymbol];
-      const rafPackage = this.packages.find(p => p.context.iframe && p.context.iframe.contentWindow === rafWindow);
-      return rafPackage !== p;
-    });
+    this.rafs = this.rafs.filter(raf => raf[symbols.packageSymbol] !== p);
 
     const emitKeyboardEvent = p.context.emitKeyboardEvent;
 
@@ -503,7 +499,62 @@ const _setFramebufferMsRenderbuffer = (gl, xrfb, width, height, devicePixelRatio
     xrfb.depthTex = depthTex;
   }
 };
-export class XRPackageEngine extends EventTarget {
+class XRNode extends EventTarget {
+  constructor() {
+    super();
+  }
+  async add(p, reason) {
+    if (p.parent) {
+      p.parent.remove(p, 'move');
+    }
+
+    p.parent = this;
+    this.children.push(p);
+    this.matrixWorldNeedsUpdate = true;
+
+    this.dispatchEvent(new MessageEvent('packageadd', {
+      data: {
+        package: p,
+        reason,
+      },
+    }));
+
+    await p.ensureRunStop();
+  }
+  remove(p, reason) {
+    const index = this.children.indexOf(p);
+    if (index !== -1) {
+      p.parent = null;
+      this.children.splice(index, 1);
+
+      this.dispatchEvent(new MessageEvent('packageremove', {
+        data: {
+          package: p,
+          reason,
+        },
+      }));
+
+      setTimeout(() => {
+        p.recurse(p => {
+          p.ensureRunStop();
+        });
+      });
+    } else {
+      throw new Error('package is not a child of this node');
+    }
+  }
+  recurse(fn) {
+    fn(this);
+    this.recurseChildren(fn);
+  }
+  recurseChildren(fn) {
+    for (const p of this.children) {
+      fn(p);
+      p.recurseChildren(fn);
+    }
+  }
+}
+export class XRPackageEngine extends XRNode {
   constructor(options) {
     super();
 
@@ -545,9 +596,10 @@ export class XRPackageEngine extends EventTarget {
     this.xrState.renderWidth[0] = options.width / 2 * options.devicePixelRatio;
     this.xrState.renderHeight[0] = options.height * options.devicePixelRatio;
     this.matrix = new THREE.Matrix4();
+    this.matrixWorld = this.matrix;
 
     this.name = 'XRPackage Scene';
-    this.packages = [];
+    this.children = [];
     this.ids = 0;
     this.rafs = [];
     this.runningRafs = [];
@@ -621,7 +673,7 @@ export class XRPackageEngine extends EventTarget {
     container.add(directionalLight2);
 
     this.fakeSession = new XR.XRSession(this.xrState, this.matrix);
-    this.fakeSession.onrequestanimationframe = fn => this.packageRequestAnimationFrame(fn, globalThis, 0);
+    this.fakeSession.onrequestanimationframe = fn => this.packageRequestAnimationFrame(fn, globalThis, null, 0);
     this.fakeSession.oncancelanimationframe = this.packageCancelAnimationFrame.bind(this);
 
     renderer.xr.setSession(this.fakeSession);
@@ -799,57 +851,11 @@ export class XRPackageEngine extends EventTarget {
     this.options.height = height;
     this.options.devicePixelRatio = devicePixelRatio;
   }
-  async add(p, reason) {
-    p.parent = this;
-    this.packages.push(p);
-
-    this.dispatchEvent(new MessageEvent('packageadd', {
-      data: {
-        package: p,
-        reason,
-      },
-    }));
-
-    await p.waitForLoad();
-
-    const {type} = p;
-    const adder = xrTypeAdders[type];
-    if (adder) {
-      await adder.call(this, p);
-    } else {
-      this.remove(p, 'addFailed');
-      throw new Error(`unknown xr_type: ${type}`);
-    }
-  }
-  remove(p, reason) {
-    const index = this.packages.indexOf(p);
-    if (index !== -1) {
-      const {type} = p;
-      const remover = xrTypeRemovers[type];
-      if (remover) {
-        remover.call(this, p);
-        p.parent = null;
-
-        this.packages.splice(index, 1);
-
-        this.dispatchEvent(new MessageEvent('packageremove', {
-          data: {
-            package: p,
-            reason,
-          },
-        }));
-      }
-    } else {
-      throw new Error(`unknown xr_type: ${type}`);
-    }
-  }
   setMatrix(m) {
     this.matrix.copy(m);
-    // this.container.matrix.getInverse(m).decompose(this.container.position, this.container.quaternion, this.container.scale);
-
-    for (let i = 0; i < this.packages.length; i++) {
-      this.packages[i].matrixWorldNeedsUpdate = true;
-    }
+    this.recurseChildren(p => {
+      p.matrixWorldNeedsUpdate = true;
+    });
   }
   render(pak, width, height, viewMatrix, projectionMatrix, framebuffer) {
     const {
@@ -946,7 +952,7 @@ export class XRPackageEngine extends EventTarget {
     order = 0,
   } = {}) {
     const session = Object.create(this.fakeSession);
-    session.onrequestanimationframe = fn => this.packageRequestAnimationFrame(fn, globalThis, order);
+    session.onrequestanimationframe = fn => this.packageRequestAnimationFrame(fn, globalThis, null, order);
     session.addEventListener = this.fakeSession.addEventListener.bind(this.fakeSession);
     session.removeEventListener = this.fakeSession.removeEventListener.bind(this.fakeSession);
     return session;
@@ -1044,13 +1050,12 @@ export class XRPackageEngine extends EventTarget {
   }
   setXrFramebuffer(xrfb) {
     this.fakeSession.xrFramebuffer = xrfb;
-    for (let i = 0; i < this.packages.length; i++) {
-      this.packages[i].setXrFramebuffer(xrfb);
-    }
+    this.recurseChildren(p => {
+      p.setXrFramebuffer(xrfb);
+    });
   }
   setClearFreeFramebuffer(fb) {
-    for (let i = 0; i < this.packages.length; i++) {
-      const p = this.packages[i];
+    this.recurseChildren(p => {
       if (
         // p !== skipPackage &&
         p.context.iframe && p.context.iframe.contentWindow && p.context.iframe.contentWindow.xrpackage && p.context.iframe.contentWindow.xrpackage.session && p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer
@@ -1058,7 +1063,7 @@ export class XRPackageEngine extends EventTarget {
         // p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer.context._exokitClearEnabled(false);
         p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer.context._exokitSetXrFramebuffer(fb);
       }
-    }
+    });
   }
   tick(timestamp = performance.now(), frame = null) {
     this.renderer.clear(true, true, true);
@@ -1259,8 +1264,8 @@ export class XRPackageEngine extends EventTarget {
     }
 
     // tick workers
-    for (let i = 0; i < this.packages.length; i++) {
-      const p = this.packages[i];
+    for (let i = 0; i < this.children.length; i++) {
+      const p = this.children[i];
       if (p.context.worker) {
         p.context.worker.postMessage({
           method: 'tick',
@@ -1302,14 +1307,14 @@ export class XRPackageEngine extends EventTarget {
       }
     }
   }
+  updateMatrixWorld() {
+    this.recurseChildren(p => {
+      p.updateMatrixWorld();
+    });
+  }
   draw(timestamp = performance.now(), skipPackage = null) {
     // update matrices
-    for (let i = 0; i < this.packages.length; i++) {
-      const p = this.packages[i];
-      if (p !== skipPackage) {
-        p.updateMatrixWorld();
-      }
-    }
+    this.updateMatrixWorld();
 
     // tick rafs
     if (!skipPackage) {
@@ -1319,7 +1324,7 @@ export class XRPackageEngine extends EventTarget {
       for (let i = 0; i < this.runningRafs.length; i++) {
         const raf = this.runningRafs[i];
         const rafWindow = raf[symbols.windowSymbol];
-        const rafPackage = this.packages.find(p => p.context.iframe && p.context.iframe.contentWindow === rafWindow);
+        const rafPackage = raf[symbols.packageSymbol];
         if (rafWindow === window || rafPackage.visible) {
           raf(timestamp);
         } else {
@@ -1334,7 +1339,7 @@ export class XRPackageEngine extends EventTarget {
         for (let i = 0; i < this.runningRafs.length; i++) {
           const raf = this.runningRafs[i];
           const rafWindow = raf[symbols.windowSymbol];
-          const rafPackage = this.packages.find(p => p.context.iframe && p.context.iframe.contentWindow === rafWindow);
+          const rafPackage = raf[symbols.packageSymbol];
           if (!!rafPackage && rafPackage !== skipPackage) {
             raf(timestamp);
           }
@@ -1347,13 +1352,14 @@ export class XRPackageEngine extends EventTarget {
     // render local scene
     this.renderer.render(this.scene, this.camera);
   }
-  packageRequestAnimationFrame(fn, win, order) {
+  packageRequestAnimationFrame(fn, win, pak, order) {
     if (!this.subdrawing) {
       this.rafs.push(fn);
 
       const id = ++this.ids;
       fn[symbols.rafCbsSymbol] = id;
       fn[symbols.windowSymbol] = win;
+      fn[symbols.packageSymbol] = pak;
       fn[symbols.orderSymbol] = order;
       return id;
     } else {
@@ -1427,7 +1433,7 @@ export class XRPackageEngine extends EventTarget {
       const inputPosition = localVector
         .copy(input.position)
         // .applyMatrix4(localMatrix.getInverse(this.matrix));
-      const ps = this.packages
+      const ps = this.children
         .sort((a, b) => {
           a.matrix.decompose(localVector2, localQuaternion, localVector4);
           b.matrix.decompose(localVector3, localQuaternion, localVector4);
@@ -1477,7 +1483,7 @@ export class XRPackageEngine extends EventTarget {
         const inputPosition = localVector
           .copy(input.position)
           // .applyMatrix4(localMatrix.getInverse(this.matrix));
-        const ps = this.packages
+        const ps = this.children
           .sort((a, b) => {
             a.matrix.decompose(localVector2, localQuaternion, localVector4);
             b.matrix.decompose(localVector3, localQuaternion, localVector4);
@@ -1554,7 +1560,7 @@ export class XRPackageEngine extends EventTarget {
     })); */
   }
   reset() {
-    const ps = this.packages.slice();
+    const ps = this.children.slice();
     for (let i = 0; i < ps.length; i++) {
       this.remove(ps[i], 'reset');
     }
@@ -1576,7 +1582,6 @@ export class XRPackageEngine extends EventTarget {
           p.id = id;
           p.hash = hash;
           p.setMatrix(localMatrix.fromArray(matrix));
-          // console.log('load matrix 1', matrix);
           this.add(p, 'importScene');
         } else {
           const idUrl = primaryUrl + '/' + id + '.wbn';
@@ -1604,7 +1609,7 @@ export class XRPackageEngine extends EventTarget {
       xr_type: 'xrpackage-scene@0.0.1',
       start_url: 'manifest.json',
       xrpackage_scene: {
-        children: this.packages.map(p => {
+        children: this.children.map(p => {
           return {
             id: p.id,
             // hash: p.hash,
@@ -1616,8 +1621,8 @@ export class XRPackageEngine extends EventTarget {
     builder.addExchange(manifestJsonPath, 200, {
       'Content-Type': 'application/json',
     }, JSON.stringify(manifestJson, null, 2));
-    for (let i = 0; i < this.packages.length; i++) {
-      const p = this.packages[i];
+    for (let i = 0; i < this.children.length; i++) {
+      const p = this.children[i];
       builder.addExchange(primaryUrl + '/' + p.id + '.wbn', 200, {
         'Content-Type': 'application/json',
       }, p.data);
@@ -1627,14 +1632,14 @@ export class XRPackageEngine extends EventTarget {
   async uploadScene() {
     const manifestJsonPath = primaryUrl + '/manifest.json';
     const builder = new wbn.BundleBuilder(manifestJsonPath);
-    const hashes = await Promise.all(this.packages.map(p => p.upload()));
+    const hashes = await Promise.all(this.children.map(p => p.upload()));
     const manifestJson = {
       name: 'XRPackage Scene',
       description: 'XRPackage scene exported with the browser frontend.',
       xr_type: 'xrpackage-scene@0.0.1',
       start_url: 'manifest.json',
       xrpackage_scene: {
-        children: this.packages.map((p, i) => {
+        children: this.children.map((p, i) => {
           return {
             id: p.id,
             hash: hashes[i],
@@ -1677,8 +1682,8 @@ export class XRPackageEngine extends EventTarget {
   }
 }
 
-let packageIds = 0;
-export class XRPackage extends EventTarget {
+let packageIds = Math.floor(Math.random() * 0xFFFFFF);
+export class XRPackage extends XRNode {
   constructor(a) {
     super();
 
@@ -1689,9 +1694,12 @@ export class XRPackage extends EventTarget {
     this.schema = {};
     this.details = {};
 
+    this.children = [];
     this.matrix = a instanceof XRPackage ? a.matrix.clone() : new THREE.Matrix4();
+    this.matrixWorld = a instanceof XRPackage ? a.matrixWorld.clone() : new THREE.Matrix4();
     this.matrixWorldNeedsUpdate = true;
     this._visible = true;
+    this.runningEngine = null;
     this.parent = null;
     this.hash = null;
     this.context = {};
@@ -1805,6 +1813,28 @@ export class XRPackage extends EventTarget {
       });
     }
   }
+  async add(p, reason) {
+    await super.add(p, reason);
+
+    this.context.iframe && this.context.iframe.contentWindow && this.context.iframe.contentWindow.xrpackage &&
+      this.context.iframe.contentWindow.xrpackage.dispatchEvent(new MessageEvent('packageadd', {
+        data: {
+          package: p,
+          reason,
+        },
+      }));
+  }
+  remove(p, reason) {
+    super.remove(p, reason);
+
+    this.context.iframe && this.context.iframe.contentWindow && this.context.iframe.contentWindow.xrpackage &&
+      this.context.iframe.contentWindow.xrpackage.dispatchEvent(new MessageEvent('packageremove', {
+        data: {
+          package: p,
+          reason,
+        },
+      }));
+  }
   get visible() {
     return this._visible;
   }
@@ -1815,6 +1845,17 @@ export class XRPackage extends EventTarget {
     if (o) {
       o.visible = visible;
     }
+  }
+  getParentEngine() {
+    for (let p = this; !!p; p = p.parent) {
+      if (p instanceof XRPackageEngine) {
+        return p;
+      }
+    }
+    return null;
+  }
+  isAttached() {
+    return this.getParentEngine() !== null;
   }
   async getHash() {
     if (this.hash === null) {
@@ -1831,13 +1872,13 @@ export class XRPackage extends EventTarget {
       this.context.iframe && this.context.iframe.contentWindow.xrpackage.sendEvent(name, value);
     }
   }
-  async reload() {
+  /* async reload() {
     const {parent} = this;
     if (parent) {
       parent.remove(this, 'reload');
       await parent.add(this, 'reload');
     }
-  }
+  } */
   getManifestJson() {
     const manifestJsonFile = this.files.find(file => new URL(file.url).pathname === '/manifest.json');
     if (manifestJsonFile) {
@@ -2105,6 +2146,33 @@ export class XRPackage extends EventTarget {
       return null;
     }
   }
+  async ensureRunStop() {
+    await this.waitForLoad();
+
+    const {runningEngine} = this;
+    const currentEngine = this.getParentEngine();
+    const running = !!runningEngine;
+    const attached = !!currentEngine;
+    if (attached && !running) {
+      const {type} = this;
+      const adder = xrTypeAdders[type];
+      if (adder) {
+        this.runningEngine = currentEngine;
+        await adder.call(currentEngine, this);
+      } else {
+        throw new Error(`unknown xr_type: ${type}`);
+      }
+    } else if (running && !attached) {
+      const {type} = this;
+      const remover = xrTypeRemovers[type];
+      if (remover) {
+        this.runningEngine = null;
+        remover.call(runningEngine, this);
+      } else {
+        throw new Error(`unknown xr_type: ${type}`);
+      }
+    }
+  }
   setMatrix(m) {
     this.matrix.copy(m);
     this.matrixWorldNeedsUpdate = true;
@@ -2112,31 +2180,37 @@ export class XRPackage extends EventTarget {
       data: this.matrix,
     }));
   }
-  updateMatrixWorld() {
-    if (this.matrixWorldNeedsUpdate) {
+  updateMatrixWorld(force = false) {
+    if (this.matrixWorldNeedsUpdate || force) {
       this.matrixWorldNeedsUpdate = false;
 
-      localMatrix
-        .copy(this.matrix)
-        .premultiply(this.parent.matrix);
+      this.matrixWorld
+        .copy(this.parent.matrixWorld)
+        .multiply(this.matrix);
 
       this.context.object &&
         this.context.object.matrix
           .copy(this.matrix)
           .decompose(this.context.object.position, this.context.object.quaternion, this.context.object.scale);
-      this.context.iframe && this.context.iframe.contentWindow && this.context.iframe.contentWindow.xrpackage && this.context.iframe.contentWindow.xrpackage.setMatrix(localMatrix.toArray(localArray));
+      this.context.iframe && this.context.iframe.contentWindow && this.context.iframe.contentWindow.xrpackage &&
+        this.context.iframe.contentWindow.xrpackage.setMatrix(this.matrixWorld.toArray(localArray));
+
+      this.recurseChildren(p => {
+        p.updateMatrixWorld(true);
+      });
     }
   }
   grabrelease() {
-    if (this.parent) {
-      for (const k in this.parent.grabs) {
-        if (this.parent.grabs[k] === this) {
-          this.parent.grabs[k] = null;
+    const engine = this.getParentEngine();
+    if (engine) {
+      for (const k in engine.grabs) {
+        if (engine.grabs[k] === this) {
+          engine.grabs[k] = null;
         }
       }
-      for (const k in this.parent.equips) {
-        if (this.parent.equips[k] === this) {
-          this.parent.equips[k] = null;
+      for (const k in engine.equips) {
+        if (engine.equips[k] === this) {
+          engine.equips[k] = null;
         }
       }
     }
@@ -2167,6 +2241,7 @@ export class XRPackage extends EventTarget {
         });
         this.context.object = new THREE.Object3D();
         this.context.object.add(this.context.rig.model);
+        this.name = 'Default avatar';
         this.type = 'vrm@0.0.1';
       }
       this.context.rig.setMicrophoneMediaStream = _setMicrophoneMediaStream(this.context.rig.setMicrophoneMediaStream);

@@ -1,5 +1,6 @@
 const module = {exports: {}};
 module.exports.windowSymbol = Symbol('windowSymbol');
+module.exports.packageSymbol = Symbol('packageSymbol');
 module.exports.addRunSymbol = Symbol('addRunSymbol');
 module.exports.computedStyleSymbol = Symbol('computedStyleSymbol');
 module.exports.disabledEventsSymbol = Symbol('disabledEventsSymbol');

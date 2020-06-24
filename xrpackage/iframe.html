@@ -53,7 +53,7 @@ class XRPackageManager extends EventTarget {
 
     this.xrState = xrState;
 
-    window.requestAnimationFrame = fn => engine.packageRequestAnimationFrame(fn, globalThis, 0);
+    window.requestAnimationFrame = fn => engine.packageRequestAnimationFrame(fn, globalThis, pkg, 0);
     window.cancelAnimationFrame = engine.packageCancelAnimationFrame.bind(engine);
     
     hijackCanvas(context);
@@ -64,7 +64,7 @@ class XRPackageManager extends EventTarget {
     window.WebGL2RenderingContext = WebGL2RenderingContext;
 
     const session = new XR.XRSession(this.xrState, this.xrOffsetMatrix);
-    session.onrequestanimationframe = fn => engine.packageRequestAnimationFrame(fn, globalThis, 0);
+    session.onrequestanimationframe = fn => engine.packageRequestAnimationFrame(fn, globalThis, pkg, 0);
     session.oncancelanimationframe = engine.packageCancelAnimationFrame.bind(engine);
     this.session = session;
 
@@ -152,11 +152,14 @@ class XRPackageManager extends EventTarget {
   get package() {
     return this._package;
   }
+  get children() {
+    return this._package.children.slice();
+  }
   add(p) {
-    return this._engine.add(p);
+    return this._package.add(p);
   }
   remove(p) {
-    return this._engine.remove(p);
+    return this._package.remove(p);
   }
   render(width, height, viewMatrix, projectionMatrix, framebuffer) {
     return this._engine.render(this._package, width, height, viewMatrix, projectionMatrix, framebuffer);
