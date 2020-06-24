@@ -803,6 +803,7 @@ export class XRPackageEngine extends EventTarget {
 
     p.parent = this;
     this.children.push(p);
+    this.matrixWorldNeedsUpdate = true;
 
     this.dispatchEvent(new MessageEvent('packageadd', {
       data: {
@@ -835,8 +836,14 @@ export class XRPackageEngine extends EventTarget {
   }
   setMatrix(m) {
     this.matrix.copy(m);
-    for (let i = 0; i < this.children.length; i++) {
-      this.children[i].matrixWorldNeedsUpdate = true;
+    this.recurseChildren(p => {
+      p.matrixWorldNeedsUpdate = true;
+    });
+  }
+  recurseChildren(fn) {
+    for (const p of this.children) {
+      fn(p);
+      p.recurseChildren(fn);
     }
   }
   render(pak, width, height, viewMatrix, projectionMatrix, framebuffer) {
@@ -1290,14 +1297,14 @@ export class XRPackageEngine extends EventTarget {
       }
     }
   }
+  updateMatrixWorld() {
+    for (const p of this.children) {
+      p.updateMatrixWorld();
+    }
+  }
   draw(timestamp = performance.now(), skipPackage = null) {
     // update matrices
-    for (let i = 0; i < this.children.length; i++) {
-      const p = this.children[i];
-      if (p !== skipPackage) {
-        p.updateMatrixWorld();
-      }
-    }
+    this.updateMatrixWorld();
 
     // tick rafs
     if (!skipPackage) {
@@ -1708,6 +1715,7 @@ export class XRPackage extends EventTarget {
 
     this.add = XRPackageEngine.prototype.add.bind(this);
     this.remove = XRPackageEngine.prototype.remove.bind(this);
+    this.recurseChildren = XRPackageEngine.prototype.recurseChildren.bind(this);
 
     this.loaded = this.data.byteLength === 0;
     if (!this.loaded) {
@@ -2144,8 +2152,8 @@ export class XRPackage extends EventTarget {
       data: this.matrix,
     }));
   }
-  updateMatrixWorld() {
-    if (this.matrixWorldNeedsUpdate) {
+  updateMatrixWorld(force = false) {
+    if (this.matrixWorldNeedsUpdate || force) {
       this.matrixWorldNeedsUpdate = false;
 
       this.matrixWorld
@@ -2158,6 +2166,10 @@ export class XRPackage extends EventTarget {
           .decompose(this.context.object.position, this.context.object.quaternion, this.context.object.scale);
       this.context.iframe && this.context.iframe.contentWindow && this.context.iframe.contentWindow.xrpackage &&
         this.context.iframe.contentWindow.xrpackage.setMatrix(this.matrixWorld.toArray(localArray));
+
+      for (const p of this.children) {
+        p.updateMatrixWorld(true);
+      }
     }
   }
   grabrelease() {
