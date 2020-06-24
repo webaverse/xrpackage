@@ -1302,9 +1302,9 @@ export class XRPackageEngine extends XRNode {
     }
   }
   updateMatrixWorld() {
-    for (const p of this.children) {
+    this.recurseChildren(p => {
       p.updateMatrixWorld();
-    }
+    });
   }
   draw(timestamp = performance.now(), skipPackage = null) {
     // update matrices
@@ -2189,9 +2189,9 @@ export class XRPackage extends XRNode {
       this.context.iframe && this.context.iframe.contentWindow && this.context.iframe.contentWindow.xrpackage &&
         this.context.iframe.contentWindow.xrpackage.setMatrix(this.matrixWorld.toArray(localArray));
 
-      for (const p of this.children) {
+      this.recurseChildren(p => {
         p.updateMatrixWorld(true);
-      }
+      });
     }
   }
   grabrelease() {
