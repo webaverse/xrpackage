@@ -1676,7 +1676,7 @@ export class XRPackageEngine extends XRNode {
   }
 }
 
-let packageIds = 0;
+let packageIds = Math.floor(Math.random() * 0xFFFFFF);
 export class XRPackage extends XRNode {
   constructor(a) {
     super();
