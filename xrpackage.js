@@ -1832,13 +1832,16 @@ export class XRPackage extends EventTarget {
       o.visible = visible;
     }
   }
-  isAttached() {
+  getParentEngine() {
     for (let p = this; !!p; p = p.parent) {
       if (p instanceof XRPackageEngine) {
-        return true;
+        return p;
       }
     }
-    return false;
+    return null;
+  }
+  isAttached() {
+    return this.getParentEngine() !== null;
   }
   async getHash() {
     if (this.hash === null) {
@@ -2152,15 +2155,16 @@ export class XRPackage extends EventTarget {
     }
   }
   grabrelease() {
-    if (this.parent) {
-      for (const k in this.parent.grabs) {
-        if (this.parent.grabs[k] === this) {
-          this.parent.grabs[k] = null;
+    const engine = this.getParentEngine();
+    if (engine) {
+      for (const k in engine.grabs) {
+        if (engine.grabs[k] === this) {
+          engine.grabs[k] = null;
         }
       }
-      for (const k in this.parent.equips) {
-        if (this.parent.equips[k] === this) {
-          this.parent.equips[k] = null;
+      for (const k in engine.equips) {
+        if (engine.equips[k] === this) {
+          engine.equips[k] = null;
         }
       }
     }
