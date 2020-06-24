@@ -426,11 +426,7 @@ const xrTypeAdders = {
 };
 const xrTypeRemovers = {
   'webxr-site@0.0.1': function(p) {
-    this.rafs = this.rafs.filter(raf => {
-      const rafWindow = raf[symbols.windowSymbol];
-      const rafPackage = this.packages.find(p => p.context.iframe && p.context.iframe.contentWindow === rafWindow);
-      return rafPackage !== p;
-    });
+    this.rafs = this.rafs.filter(raf => raf[symbols.packageSymbol] !== p);
 
     const emitKeyboardEvent = p.context.emitKeyboardEvent;
 
@@ -622,7 +618,7 @@ export class XRPackageEngine extends EventTarget {
     container.add(directionalLight2);
 
     this.fakeSession = new XR.XRSession(this.xrState, this.matrix);
-    this.fakeSession.onrequestanimationframe = fn => this.packageRequestAnimationFrame(fn, globalThis, 0);
+    this.fakeSession.onrequestanimationframe = fn => this.packageRequestAnimationFrame(fn, globalThis, null, 0);
     this.fakeSession.oncancelanimationframe = this.packageCancelAnimationFrame.bind(this);
 
     renderer.xr.setSession(this.fakeSession);
@@ -934,7 +930,7 @@ export class XRPackageEngine extends EventTarget {
     order = 0,
   } = {}) {
     const session = Object.create(this.fakeSession);
-    session.onrequestanimationframe = fn => this.packageRequestAnimationFrame(fn, globalThis, order);
+    session.onrequestanimationframe = fn => this.packageRequestAnimationFrame(fn, globalThis, null, order);
     session.addEventListener = this.fakeSession.addEventListener.bind(this.fakeSession);
     session.removeEventListener = this.fakeSession.removeEventListener.bind(this.fakeSession);
     return session;
@@ -1307,7 +1303,7 @@ export class XRPackageEngine extends EventTarget {
       for (let i = 0; i < this.runningRafs.length; i++) {
         const raf = this.runningRafs[i];
         const rafWindow = raf[symbols.windowSymbol];
-        const rafPackage = this.packages.find(p => p.context.iframe && p.context.iframe.contentWindow === rafWindow);
+        const rafPackage = raf[symbols.packageSymbol];
         if (rafWindow === window || rafPackage.visible) {
           raf(timestamp);
         } else {
@@ -1322,7 +1318,7 @@ export class XRPackageEngine extends EventTarget {
         for (let i = 0; i < this.runningRafs.length; i++) {
           const raf = this.runningRafs[i];
           const rafWindow = raf[symbols.windowSymbol];
-          const rafPackage = this.packages.find(p => p.context.iframe && p.context.iframe.contentWindow === rafWindow);
+          const rafPackage = raf[symbols.packageSymbol];
           if (!!rafPackage && rafPackage !== skipPackage) {
             raf(timestamp);
           }
@@ -1335,13 +1331,14 @@ export class XRPackageEngine extends EventTarget {
     // render local scene
     this.renderer.render(this.scene, this.camera);
   }
-  packageRequestAnimationFrame(fn, win, order) {
+  packageRequestAnimationFrame(fn, win, pak, order) {
     if (!this.subdrawing) {
       this.rafs.push(fn);
 
       const id = ++this.ids;
       fn[symbols.rafCbsSymbol] = id;
       fn[symbols.windowSymbol] = win;
+      fn[symbols.packageSymbol] = pak;
       fn[symbols.orderSymbol] = order;
       return id;
     } else {
