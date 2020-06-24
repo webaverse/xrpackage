@@ -1044,13 +1044,12 @@ export class XRPackageEngine extends XRNode {
   }
   setXrFramebuffer(xrfb) {
     this.fakeSession.xrFramebuffer = xrfb;
-    for (let i = 0; i < this.children.length; i++) {
-      this.children[i].setXrFramebuffer(xrfb);
-    }
+    this.recurseChildren(p => {
+      p.setXrFramebuffer(xrfb);
+    });
   }
   setClearFreeFramebuffer(fb) {
-    for (let i = 0; i < this.children.length; i++) {
-      const p = this.children[i];
+    this.recurseChildren(p => {
       if (
         // p !== skipPackage &&
         p.context.iframe && p.context.iframe.contentWindow && p.context.iframe.contentWindow.xrpackage && p.context.iframe.contentWindow.xrpackage.session && p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer
@@ -1058,7 +1057,7 @@ export class XRPackageEngine extends XRNode {
         // p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer.context._exokitClearEnabled(false);
         p.context.iframe.contentWindow.xrpackage.session.renderState.baseLayer.context._exokitSetXrFramebuffer(fb);
       }
-    }
+    });
   }
   tick(timestamp = performance.now(), frame = null) {
     this.renderer.clear(true, true, true);
