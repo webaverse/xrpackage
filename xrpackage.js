@@ -811,7 +811,7 @@ export class XRPackageEngine extends EventTarget {
       },
     }));
 
-    await this.ensureRunStop(p);
+    await p.ensureRunStop();
   }
   remove(p, reason) {
     const index = this.packages.indexOf(p);
@@ -827,42 +827,14 @@ export class XRPackageEngine extends EventTarget {
       }));
 
       setTimeout(() => {
-        this.ensureRunStop(p);
+        p.ensureRunStop();
       });
     } else {
       throw new Error(`unknown xr_type: ${type}`);
     }
   }
-  async ensureRunStop(p) {
-    await p.waitForLoad();
-
-    const {running} = p;
-    const attached = p.isAttached();
-    if (attached && !running) {
-      const {type} = p;
-      const adder = xrTypeAdders[type];
-      if (adder) {
-        p.running = true;
-        await adder.call(this, p);
-      } else {
-        this.remove(p, 'addFailed');
-        throw new Error(`unknown xr_type: ${type}`);
-      }
-    } else if (running && !attached) {
-      const {type} = p;
-      const remover = xrTypeRemovers[type];
-      if (remover) {
-        p.running = false;
-        remover.call(this, p);
-      } else {
-        throw new Error(`unknown xr_type: ${type}`);
-      }
-    }
-  }
   setMatrix(m) {
     this.matrix.copy(m);
-    // this.container.matrix.getInverse(m).decompose(this.container.position, this.container.quaternion, this.container.scale);
-
     for (let i = 0; i < this.packages.length; i++) {
       this.packages[i].matrixWorldNeedsUpdate = true;
     }
@@ -1592,7 +1564,6 @@ export class XRPackageEngine extends EventTarget {
           p.id = id;
           p.hash = hash;
           p.setMatrix(localMatrix.fromArray(matrix));
-          // console.log('load matrix 1', matrix);
           this.add(p, 'importScene');
         } else {
           const idUrl = primaryUrl + '/' + id + '.wbn';
@@ -1709,7 +1680,7 @@ export class XRPackage extends EventTarget {
     this.matrixWorld = a instanceof XRPackage ? a.matrixWorld.clone() : new THREE.Matrix4();
     this.matrixWorldNeedsUpdate = true;
     this._visible = true;
-    this.running = false;
+    this.runningEngine = null;
     this.parent = null;
     this.hash = null;
     this.context = {};
@@ -2132,6 +2103,33 @@ export class XRPackage extends EventTarget {
       return box;
     } else {
       return null;
+    }
+  }
+  async ensureRunStop() {
+    await this.waitForLoad();
+
+    const {runningEngine} = this;
+    const currentEngine = this.getParentEngine();
+    const running = !!runningEngine;
+    const attached = !!currentEngine;
+    if (attached && !running) {
+      const {type} = this;
+      const adder = xrTypeAdders[type];
+      if (adder) {
+        this.runningEngine = currentEngine;
+        await adder.call(currentEngine, this);
+      } else {
+        throw new Error(`unknown xr_type: ${type}`);
+      }
+    } else if (running && !attached) {
+      const {type} = this;
+      const remover = xrTypeRemovers[type];
+      if (remover) {
+        this.runningEngine = null;
+        remover.call(runningEngine, this);
+      } else {
+        throw new Error(`unknown xr_type: ${type}`);
+      }
     }
   }
   setMatrix(m) {
