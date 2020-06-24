@@ -156,10 +156,10 @@ class XRPackageManager extends EventTarget {
     return this._package.children.slice();
   }
   add(p) {
-    return this._engine.add(p);
+    return this._package.add(p);
   }
   remove(p) {
-    return this._engine.remove(p);
+    return this._package.remove(p);
   }
   render(width, height, viewMatrix, projectionMatrix, framebuffer) {
     return this._engine.render(this._package, width, height, viewMatrix, projectionMatrix, framebuffer);
