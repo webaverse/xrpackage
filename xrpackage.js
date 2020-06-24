@@ -1855,13 +1855,13 @@ export class XRPackage extends EventTarget {
       this.context.iframe && this.context.iframe.contentWindow.xrpackage.sendEvent(name, value);
     }
   }
-  async reload() {
+  /* async reload() {
     const {parent} = this;
     if (parent) {
       parent.remove(this, 'reload');
       await parent.add(this, 'reload');
     }
-  }
+  } */
   getManifestJson() {
     const manifestJsonFile = this.files.find(file => new URL(file.url).pathname === '/manifest.json');
     if (manifestJsonFile) {
