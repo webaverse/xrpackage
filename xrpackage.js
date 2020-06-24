@@ -2236,6 +2236,7 @@ export class XRPackage extends XRNode {
         });
         this.context.object = new THREE.Object3D();
         this.context.object.add(this.context.rig.model);
+        this.name = 'Default avatar';
         this.type = 'vrm@0.0.1';
       }
       this.context.rig.setMicrophoneMediaStream = _setMicrophoneMediaStream(this.context.rig.setMicrophoneMediaStream);
