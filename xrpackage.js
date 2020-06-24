@@ -499,7 +499,56 @@ const _setFramebufferMsRenderbuffer = (gl, xrfb, width, height, devicePixelRatio
     xrfb.depthTex = depthTex;
   }
 };
-export class XRPackageEngine extends EventTarget {
+class XRNode extends EventTarget {
+  constructor() {
+    super();
+  }
+  async add(p, reason) {
+    if (p.parent) {
+      p.parent.remove(p, 'move');
+    }
+
+    p.parent = this;
+    this.children.push(p);
+    this.matrixWorldNeedsUpdate = true;
+
+    this.dispatchEvent(new MessageEvent('packageadd', {
+      data: {
+        package: p,
+        reason,
+      },
+    }));
+
+    await p.ensureRunStop();
+  }
+  remove(p, reason) {
+    const index = this.children.indexOf(p);
+    if (index !== -1) {
+      p.parent = null;
+      this.children.splice(index, 1);
+
+      this.dispatchEvent(new MessageEvent('packageremove', {
+        data: {
+          package: p,
+          reason,
+        },
+      }));
+
+      setTimeout(() => {
+        p.ensureRunStop();
+      });
+    } else {
+      throw new Error('package is not a child of this node');
+    }
+  }
+  recurseChildren(fn) {
+    for (const p of this.children) {
+      fn(p);
+      p.recurseChildren(fn);
+    }
+  }
+}
+export class XRPackageEngine extends XRNode {
   constructor(options) {
     super();
 
@@ -796,55 +845,11 @@ export class XRPackageEngine extends EventTarget {
     this.options.height = height;
     this.options.devicePixelRatio = devicePixelRatio;
   }
-  async add(p, reason) {
-    if (p.parent) {
-      p.parent.remove(p, 'move');
-    }
-
-    p.parent = this;
-    this.children.push(p);
-    this.matrixWorldNeedsUpdate = true;
-
-    this.dispatchEvent(new MessageEvent('packageadd', {
-      data: {
-        package: p,
-        reason,
-      },
-    }));
-
-    await p.ensureRunStop();
-  }
-  remove(p, reason) {
-    const index = this.children.indexOf(p);
-    if (index !== -1) {
-      p.parent = null;
-      this.children.splice(index, 1);
-
-      this.dispatchEvent(new MessageEvent('packageremove', {
-        data: {
-          package: p,
-          reason,
-        },
-      }));
-
-      setTimeout(() => {
-        p.ensureRunStop();
-      });
-    } else {
-      throw new Error('package is not a child of this node');
-    }
-  }
   setMatrix(m) {
     this.matrix.copy(m);
     this.recurseChildren(p => {
       p.matrixWorldNeedsUpdate = true;
     });
-  }
-  recurseChildren(fn) {
-    for (const p of this.children) {
-      fn(p);
-      p.recurseChildren(fn);
-    }
   }
   render(pak, width, height, viewMatrix, projectionMatrix, framebuffer) {
     const {
@@ -1673,7 +1678,7 @@ export class XRPackageEngine extends EventTarget {
 }
 
 let packageIds = 0;
-export class XRPackage extends EventTarget {
+export class XRPackage extends XRNode {
   constructor(a) {
     super();
 
@@ -1712,10 +1717,6 @@ export class XRPackage extends EventTarget {
       }
       this.files = files;
     }
-
-    this.add = XRPackageEngine.prototype.add.bind(this);
-    this.remove = XRPackageEngine.prototype.remove.bind(this);
-    this.recurseChildren = XRPackageEngine.prototype.recurseChildren.bind(this);
 
     this.loaded = this.data.byteLength === 0;
     if (!this.loaded) {
@@ -1806,6 +1807,28 @@ export class XRPackage extends EventTarget {
         }, {once: true});
       });
     }
+  }
+  async add(p, reason) {
+    await super.add(p, reason);
+
+    this.context.iframe && this.context.iframe.contentWindow && this.context.iframe.contentWindow.xrpackage &&
+      this.context.iframe.contentWindow.xrpackage.dispatchEvent(new MessageEvent('packageadd', {
+        data: {
+          package: p,
+          reason,
+        },
+      }));
+  }
+  remove(p, reason) {
+    super.remove(p, reason);
+
+    this.context.iframe && this.context.iframe.contentWindow && this.context.iframe.contentWindow.xrpackage &&
+      this.context.iframe.contentWindow.xrpackage.dispatchEvent(new MessageEvent('packageremove', {
+        data: {
+          package: p,
+          reason,
+        },
+      }));
   }
   get visible() {
     return this._visible;
