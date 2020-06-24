@@ -535,11 +535,17 @@ class XRNode extends EventTarget {
       }));
 
       setTimeout(() => {
-        p.ensureRunStop();
+        p.recurse(p => {
+          p.ensureRunStop();
+        });
       });
     } else {
       throw new Error('package is not a child of this node');
     }
+  }
+  recurse(fn) {
+    fn(this);
+    this.recurseChildren(fn);
   }
   recurseChildren(fn) {
     for (const p of this.children) {
