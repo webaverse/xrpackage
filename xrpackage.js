@@ -545,6 +545,7 @@ export class XRPackageEngine extends EventTarget {
     this.xrState.renderWidth[0] = options.width / 2 * options.devicePixelRatio;
     this.xrState.renderHeight[0] = options.height * options.devicePixelRatio;
     this.matrix = new THREE.Matrix4();
+    this.matrixWorld = this.matrix;
 
     this.name = 'XRPackage Scene';
     this.packages = [];
@@ -1705,6 +1706,7 @@ export class XRPackage extends EventTarget {
     this.details = {};
 
     this.matrix = a instanceof XRPackage ? a.matrix.clone() : new THREE.Matrix4();
+    this.matrixWorld = a instanceof XRPackage ? a.matrixWorld.clone() : new THREE.Matrix4();
     this.matrixWorldNeedsUpdate = true;
     this._visible = true;
     this.running = false;
@@ -2143,15 +2145,16 @@ export class XRPackage extends EventTarget {
     if (this.matrixWorldNeedsUpdate) {
       this.matrixWorldNeedsUpdate = false;
 
-      localMatrix
-        .copy(this.matrix)
-        .premultiply(this.parent.matrix);
+      this.matrixWorld
+        .copy(this.parent.matrixWorld)
+        .multiply(this.matrix);
 
       this.context.object &&
         this.context.object.matrix
           .copy(this.matrix)
           .decompose(this.context.object.position, this.context.object.quaternion, this.context.object.scale);
-      this.context.iframe && this.context.iframe.contentWindow && this.context.iframe.contentWindow.xrpackage && this.context.iframe.contentWindow.xrpackage.setMatrix(localMatrix.toArray(localArray));
+      this.context.iframe && this.context.iframe.contentWindow && this.context.iframe.contentWindow.xrpackage &&
+        this.context.iframe.contentWindow.xrpackage.setMatrix(this.matrixWorld.toArray(localArray));
     }
   }
   grabrelease() {
