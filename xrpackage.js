@@ -831,7 +831,7 @@ export class XRPackageEngine extends EventTarget {
         p.ensureRunStop();
       });
     } else {
-      throw new Error(`unknown xr_type: ${type}`);
+      throw new Error('package is not a child of this node');
     }
   }
   setMatrix(m) {
