@@ -810,37 +810,52 @@ export class XRPackageEngine extends EventTarget {
       },
     }));
 
-    await p.waitForLoad();
-
-    const {type} = p;
-    const adder = xrTypeAdders[type];
-    if (adder) {
-      await adder.call(this, p);
-    } else {
-      this.remove(p, 'addFailed');
-      throw new Error(`unknown xr_type: ${type}`);
-    }
+    await this.ensureRunStop(p);
   }
   remove(p, reason) {
     const index = this.packages.indexOf(p);
     if (index !== -1) {
+      p.parent = null;
+      this.packages.splice(index, 1);
+
+      this.dispatchEvent(new MessageEvent('packageremove', {
+        data: {
+          package: p,
+          reason,
+        },
+      }));
+
+      setTimeout(() => {
+        this.ensureRunStop(p);
+      });
+    } else {
+      throw new Error(`unknown xr_type: ${type}`);
+    }
+  }
+  async ensureRunStop(p) {
+    await p.waitForLoad();
+
+    const {running} = p;
+    const attached = p.isAttached();
+    if (attached && !running) {
+      const {type} = p;
+      const adder = xrTypeAdders[type];
+      if (adder) {
+        p.running = true;
+        await adder.call(this, p);
+      } else {
+        this.remove(p, 'addFailed');
+        throw new Error(`unknown xr_type: ${type}`);
+      }
+    } else if (running && !attached) {
       const {type} = p;
       const remover = xrTypeRemovers[type];
       if (remover) {
+        p.running = false;
         remover.call(this, p);
-        p.parent = null;
-
-        this.packages.splice(index, 1);
-
-        this.dispatchEvent(new MessageEvent('packageremove', {
-          data: {
-            package: p,
-            reason,
-          },
-        }));
+      } else {
+        throw new Error(`unknown xr_type: ${type}`);
       }
-    } else {
-      throw new Error(`unknown xr_type: ${type}`);
     }
   }
   setMatrix(m) {
@@ -1692,6 +1707,7 @@ export class XRPackage extends EventTarget {
     this.matrix = a instanceof XRPackage ? a.matrix.clone() : new THREE.Matrix4();
     this.matrixWorldNeedsUpdate = true;
     this._visible = true;
+    this.running = false;
     this.parent = null;
     this.hash = null;
     this.context = {};
@@ -1815,6 +1831,14 @@ export class XRPackage extends EventTarget {
     if (o) {
       o.visible = visible;
     }
+  }
+  isAttached() {
+    for (let p = this; !!p; p = p.parent) {
+      if (p instanceof XRPackageEngine) {
+        return true;
+      }
+    }
+    return false;
   }
   async getHash() {
     if (this.hash === null) {
