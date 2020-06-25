@@ -877,12 +877,14 @@ export class XRPackageEngine extends XRNode {
 
     this.xrState.renderWidth[0] = width * (this.realSession ? 1 : 0.5);
     this.xrState.renderHeight[0] = height;
-    this.camera.matrix.fromArray(viewMatrix)
-      .premultiply(pak.matrix)
-      .premultiply(this.matrix)
-      .decompose(this.camera.position, this.camera.quaternion, this.camera.scale);
-    this.camera.projectionMatrix.fromArray(projectionMatrix);
-    this.camera.updateMatrixWorld();
+    {
+      this.camera.matrix.fromArray(viewMatrix)
+      pak && this.camera.matrix.premultiply(pak.matrix)
+      this.camera.matrix.premultiply(this.matrix)
+        .decompose(this.camera.position, this.camera.quaternion, this.camera.scale);
+      this.camera.projectionMatrix.fromArray(projectionMatrix);
+      this.camera.updateMatrixWorld();
+    }
     this.setCamera(this.camera);
     let wasDecapitated = false;
     if (this.rig && this.rig.decapitated) {
@@ -895,7 +897,7 @@ export class XRPackageEngine extends XRNode {
     const timestamp = performance.now();
     this.renderer.xr.preAnimationFrame(timestamp, this.fakeSession._frame);
 
-    this.renderer.setClearColor(new THREE.Color(0x00FF00), 1);
+    this.renderer.setClearColor(new THREE.Color(0xFFFFFF), 0);
     this.renderer.clear(true, true, true);
     this.draw(timestamp, pak);
     this.renderer.setClearColor(new THREE.Color(0x0), 0);
@@ -1572,8 +1574,10 @@ export class XRPackageEngine extends XRNode {
       this.reset();
 
       const j = p.context.json;
-      const {xrpackage_scene: xrPackageScene} = j;
+      const {name, xrpackage_scene: xrPackageScene} = j;
       const {children} = xrPackageScene;
+
+      this.name = name;
       for (let i = 0; i < children.length; i++) {
         const child = children[i];
         const {id, hash, matrix} = child;
@@ -1634,7 +1638,7 @@ export class XRPackageEngine extends XRNode {
     const builder = new wbn.BundleBuilder(manifestJsonPath);
     const hashes = await Promise.all(this.children.map(p => p.upload()));
     const manifestJson = {
-      name: 'XRPackage Scene',
+      name: this.name,
       description: 'XRPackage scene exported with the browser frontend.',
       xr_type: 'xrpackage-scene@0.0.1',
       start_url: 'manifest.json',
@@ -1808,6 +1812,15 @@ export class XRPackage extends XRNode {
     if (!this.loaded) {
       await new Promise((accept, reject) => {
         this.addEventListener('load', e => {
+          accept();
+        }, {once: true});
+      });
+    }
+  }
+  async waitForRun() {
+    if (!this.runningEngine) {
+      await new Promise((accept, reject) => {
+        this.addEventListener('run', e => {
           accept();
         }, {once: true});
       });
@@ -2159,6 +2172,7 @@ export class XRPackage extends XRNode {
       if (adder) {
         this.runningEngine = currentEngine;
         await adder.call(currentEngine, this);
+        this.dispatchEvent(new MessageEvent('run'));
       } else {
         throw new Error(`unknown xr_type: ${type}`);
       }
@@ -2168,6 +2182,7 @@ export class XRPackage extends XRNode {
       if (remover) {
         this.runningEngine = null;
         remover.call(runningEngine, this);
+        this.dispatchEvent(new MessageEvent('stop'));
       } else {
         throw new Error(`unknown xr_type: ${type}`);
       }
@@ -2278,6 +2293,7 @@ export class XRPackage extends XRNode {
     if (res.ok) {
       const j = await res.json();
       const {hash} = j;
+      this.hash = hash;
       return hash;
     } else {
       throw new Error('upload failed: ' + res.status);
