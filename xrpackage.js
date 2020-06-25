@@ -877,12 +877,14 @@ export class XRPackageEngine extends XRNode {
 
     this.xrState.renderWidth[0] = width * (this.realSession ? 1 : 0.5);
     this.xrState.renderHeight[0] = height;
-    this.camera.matrix.fromArray(viewMatrix)
-      .premultiply(pak.matrix)
-      .premultiply(this.matrix)
-      .decompose(this.camera.position, this.camera.quaternion, this.camera.scale);
-    this.camera.projectionMatrix.fromArray(projectionMatrix);
-    this.camera.updateMatrixWorld();
+    {
+      this.camera.matrix.fromArray(viewMatrix)
+      pak && this.camera.matrix.premultiply(pak.matrix)
+      this.camera.matrix.premultiply(this.matrix)
+        .decompose(this.camera.position, this.camera.quaternion, this.camera.scale);
+      this.camera.projectionMatrix.fromArray(projectionMatrix);
+      this.camera.updateMatrixWorld();
+    }
     this.setCamera(this.camera);
     let wasDecapitated = false;
     if (this.rig && this.rig.decapitated) {
