@@ -1574,8 +1574,10 @@ export class XRPackageEngine extends XRNode {
       this.reset();
 
       const j = p.context.json;
-      const {xrpackage_scene: xrPackageScene} = j;
+      const {name, xrpackage_scene: xrPackageScene} = j;
       const {children} = xrPackageScene;
+
+      this.name = name;
       for (let i = 0; i < children.length; i++) {
         const child = children[i];
         const {id, hash, matrix} = child;
@@ -1636,7 +1638,7 @@ export class XRPackageEngine extends XRNode {
     const builder = new wbn.BundleBuilder(manifestJsonPath);
     const hashes = await Promise.all(this.children.map(p => p.upload()));
     const manifestJson = {
-      name: 'XRPackage Scene',
+      name: this.name,
       description: 'XRPackage scene exported with the browser frontend.',
       xr_type: 'xrpackage-scene@0.0.1',
       start_url: 'manifest.json',
