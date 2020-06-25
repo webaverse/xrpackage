@@ -2293,6 +2293,7 @@ export class XRPackage extends XRNode {
     if (res.ok) {
       const j = await res.json();
       const {hash} = j;
+      this.hash = hash;
       return hash;
     } else {
       throw new Error('upload failed: ' + res.status);
