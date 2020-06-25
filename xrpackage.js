@@ -895,7 +895,7 @@ export class XRPackageEngine extends XRNode {
     const timestamp = performance.now();
     this.renderer.xr.preAnimationFrame(timestamp, this.fakeSession._frame);
 
-    this.renderer.setClearColor(new THREE.Color(0x00FF00), 1);
+    this.renderer.setClearColor(new THREE.Color(0xFFFFFF), 0);
     this.renderer.clear(true, true, true);
     this.draw(timestamp, pak);
     this.renderer.setClearColor(new THREE.Color(0x0), 0);
