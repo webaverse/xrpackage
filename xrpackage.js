@@ -1813,6 +1813,15 @@ export class XRPackage extends XRNode {
       });
     }
   }
+  async waitForRun() {
+    if (!this.runningEngine) {
+      await new Promise((accept, reject) => {
+        this.addEventListener('run', e => {
+          accept();
+        }, {once: true});
+      });
+    }
+  }
   async add(p, reason) {
     await super.add(p, reason);
 
@@ -2159,6 +2168,7 @@ export class XRPackage extends XRNode {
       if (adder) {
         this.runningEngine = currentEngine;
         await adder.call(currentEngine, this);
+        this.dispatchEvent(new MessageEvent('run'));
       } else {
         throw new Error(`unknown xr_type: ${type}`);
       }
@@ -2168,6 +2178,7 @@ export class XRPackage extends XRNode {
       if (remover) {
         this.runningEngine = null;
         remover.call(runningEngine, this);
+        this.dispatchEvent(new MessageEvent('stop'));
       } else {
         throw new Error(`unknown xr_type: ${type}`);
       }
