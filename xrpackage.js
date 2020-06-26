@@ -654,6 +654,8 @@ export class XRPackageEngine extends XRNode {
     camera.position.set(0, 1, 2);
     camera.rotation.order = 'YXZ';
     this.camera = camera;
+    
+    this.scale = 1;
 
     const container = new THREE.Object3D();
     scene.add(container);
@@ -1395,6 +1397,16 @@ export class XRPackageEngine extends XRNode {
 
     this.xrState.rightViewMatrix.set(this.xrState.leftViewMatrix);
     this.xrState.rightProjectionMatrix.set(this.xrState.leftProjectionMatrix);
+  }
+  setScale(scale) {
+    this.scale = scale;
+
+    this.matrix.decompose(localVector, localQuaternion, localVector2);
+    localVector2.set(scale, scale, scale);
+    this.matrix.compose(localVector, localQuaternion, localVector2);
+    this.matrixWorldNeedsUpdate = true;
+
+    this.container.scale.set(scale, scale, scale);
   }
   setRigMatrix(rigMatrix) {
     if (rigMatrix) {
