@@ -1200,7 +1200,7 @@ export class XRPackageEngine extends XRNode {
       if (rig || rigPackage) {
         localMatrix.fromArray(this.xrState.poseMatrix)
           .decompose(localVector, localQuaternion, localVector2);
-        localVector.divideScalar(this.scale);
+        localVector.multiplyScalar(this.scale);
         if (rig) {
           rig.inputs.hmd.position.copy(localVector);
           rig.inputs.hmd.quaternion.copy(localQuaternion);
@@ -1246,7 +1246,7 @@ export class XRPackageEngine extends XRNode {
             const grab = this.grabs[handedness];
             if (grab) {
               const input = rig.inputs[_oppositeHand(handedness) + 'Gamepad'];
-              grab.setMatrix(localMatrix.compose(input.position, input.quaternion, input.scale));
+              grab.setMatrix(localMatrix.compose(localVector.copy(input.position).divideScalar(this.scale), input.quaternion, input.scale));
             }
           });
           SLOTS.forEach(slot => {
@@ -1444,7 +1444,7 @@ export class XRPackageEngine extends XRNode {
       const input = this.rig.inputs[_oppositeHand(handedness) + 'Gamepad'];
       const inputPosition = localVector
         .copy(input.position)
-        // .applyMatrix4(localMatrix.getInverse(this.matrix));
+        .divideScalar(this.scale);
       const ps = this.children
         .sort((a, b) => {
           a.matrix.decompose(localVector2, localQuaternion, localVector4);
