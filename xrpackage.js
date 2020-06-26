@@ -499,6 +499,8 @@ const _setFramebufferMsRenderbuffer = (gl, xrfb, width, height, devicePixelRatio
     xrfb.depthTex = depthTex;
   }
 };
+const userHeight = 1.7;
+const _getHeightFactor = rigHeight => rigHeight / userHeight;
 class XRNode extends EventTarget {
   constructor() {
     super();
@@ -1085,21 +1087,31 @@ export class XRPackageEngine extends XRNode {
         const inputSources = Array.from(realSession.inputSources);
         const gamepads = navigator.getGamepads();
 
+        const _scaleMatrixArray = (srcMatrixArray, dstMatrixArray) => {
+          localMatrix.fromArray(srcMatrixArray)
+            .decompose(localVector, localQuaternion, localVector2);
+          localVector.divideScalar(this.scale);
+          localMatrix.compose(localVector, localQuaternion, localVector2)
+            .toArray(dstMatrixArray);
+        };
+        const _scaleMatrixPQS = (srcMatrixArray, p, q, s) => {
+          localMatrix.fromArray(srcMatrixArray)
+            .decompose(localVector, localQuaternion, localVector2);
+          localVector.divideScalar(this.scale);
+          p && localVector.toArray(p);
+          q && localQuaternion.toArray(q);
+          s && localVector2.toArray(s);
+        };
         const _loadHmd = () => {
           const {views} = pose;
 
-          xrState.poseMatrix.set(pose.transform.matrix);
+          _scaleMatrixArray(pose.transform.matrix, xrState.poseMatrix);
 
-          xrState.leftViewMatrix.set(views[0].transform.inverse.matrix);
+          _scaleMatrixArray(views[0].transform.inverse.matrix, xrState.leftViewMatrix);
           xrState.leftProjectionMatrix.set(views[0].projectionMatrix);
 
-          xrState.rightViewMatrix.set(views[1].transform.inverse.matrix);
+          _scaleMatrixArray(views[1].transform.inverse.matrix, xrState.rightViewMatrix);
           xrState.rightProjectionMatrix.set(views[1].projectionMatrix);
-
-          localMatrix
-            .fromArray(xrState.leftViewMatrix)
-            .getInverse(localMatrix)
-            .decompose(localVector, localQuaternion, localVector2);
         };
         _loadHmd();
 
@@ -1110,31 +1122,7 @@ export class XRPackageEngine extends XRNode {
 
             let pose, gamepad;
             if ((pose = frame.getPose(inputSource.targetRaySpace, this.referenceSpace)) && (gamepad = inputSource.gamepad || gamepads[i])) {
-              const {transform} = pose;
-              const {position, orientation, matrix} = transform;
-              if (position) { // new WebXR api
-                xrGamepad.position[0] = position.x;
-                xrGamepad.position[1] = position.y;
-                xrGamepad.position[2] = position.z;
-
-                xrGamepad.orientation[0] = orientation.x;
-                xrGamepad.orientation[1] = orientation.y;
-                xrGamepad.orientation[2] = orientation.z;
-                xrGamepad.orientation[3] = orientation.w;
-              } else if (matrix) { // old WebXR api
-                localMatrix
-                  .fromArray(transform.matrix)
-                  .decompose(localVector, localQuaternion, localVector2);
-
-                xrGamepad.position[0] = localVector.x;
-                xrGamepad.position[1] = localVector.y;
-                xrGamepad.position[2] = localVector.z;
-
-                xrGamepad.orientation[0] = localQuaternion.x;
-                xrGamepad.orientation[1] = localQuaternion.y;
-                xrGamepad.orientation[2] = localQuaternion.z;
-                xrGamepad.orientation[3] = localQuaternion.w;
-              }
+              _scaleMatrixPQS(pose.transform.matrix, xrGamepad.position, xrGamepad.orientation);
               
               for (let j = 0; j < gamepad.buttons.length; j++) {
                 const button = gamepad.buttons[j];
@@ -1210,10 +1198,13 @@ export class XRPackageEngine extends XRNode {
               .compose(localVector.fromArray(xrState.gamepads[1].position), localQuaternion.fromArray(xrState.gamepads[1].orientation), localVector2.set(1, 1, 1))
               .premultiply(localMatrix2)
               .decompose(rig.inputs.leftGamepad.position, rig.inputs.leftGamepad.quaternion, localVector2);
+            rig.inputs.leftGamepad.position.multiplyScalar(this.scale);
             localMatrix
               .compose(localVector.fromArray(xrState.gamepads[0].position), localQuaternion.fromArray(xrState.gamepads[0].orientation), localVector2.set(1, 1, 1))
               .premultiply(localMatrix2)
               .decompose(rig.inputs.rightGamepad.position, rig.inputs.rightGamepad.quaternion, localVector2);
+            rig.inputs.rightGamepad.position.multiplyScalar(this.scale);
+
             rig.inputs.leftGamepad.pointer = xrState.gamepads[1].buttons[0].value;
             rig.inputs.leftGamepad.grip = xrState.gamepads[1].buttons[1].value;
             rig.inputs.rightGamepad.pointer = xrState.gamepads[0].buttons[0].value;
@@ -1541,6 +1532,8 @@ export class XRPackageEngine extends XRNode {
       this.rig.setMicrophoneMediaStream = _setMicrophoneMediaStream(this.rig.setMicrophoneMediaStream);
       this.rigContainer.add(this.rig.model);
 
+      const heightFactor = _getHeightFactor(this.rig.height);
+      this.setScale(1/heightFactor);
     } else {
       await this.add(p, 'avatar');
       this.rigPackage = p;
