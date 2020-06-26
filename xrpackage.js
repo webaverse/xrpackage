@@ -2282,6 +2282,7 @@ export class XRPackage extends XRNode {
       rig.inputs.leftGamepad.quaternion.fromArray(rightGamepad[1]);
       rig.inputs.rightGamepad.position.fromArray(leftGamepad[0]);
       rig.inputs.rightGamepad.quaternion.fromArray(leftGamepad[1]);
+      // rig.inputs.hmd.scaleFactor = this.scale;
       rig.update();
     } else if (rigPackage) {
       rigPackage.setMatrix(
