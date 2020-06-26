@@ -1389,8 +1389,6 @@ export class XRPackageEngine extends XRNode {
     }
   }
   setCamera(camera) {
-    // camera.matrixWorld.toArray(this.xrState.poseMatrix);
-
     camera.matrixWorldInverse.toArray(this.xrState.leftViewMatrix);
     camera.projectionMatrix.toArray(this.xrState.leftProjectionMatrix);
 
