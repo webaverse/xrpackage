@@ -1411,7 +1411,8 @@ export class XRPackageEngine extends XRNode {
     this.matrix.compose(localVector, localQuaternion, localVector2);
     this.matrixWorldNeedsUpdate = true;
 
-    this.container.scale.set(scale, scale, scale);
+    const scaleFactor = 1/scale;
+    this.rigContainer.scale.set(scaleFactor, scaleFactor, scaleFactor);
   }
   setRigMatrix(rigMatrix) {
     if (rigMatrix) {
