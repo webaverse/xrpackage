@@ -1196,6 +1196,7 @@ export class XRPackageEngine extends XRNode {
       if (rig || rigPackage) {
         localMatrix.fromArray(this.xrState.poseMatrix)
           .decompose(localVector, localQuaternion, localVector2);
+        localVector.divideScalar(this.scale);
         if (rig) {
           rig.inputs.hmd.position.copy(localVector);
           rig.inputs.hmd.quaternion.copy(localQuaternion);
