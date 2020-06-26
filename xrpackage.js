@@ -1191,7 +1191,7 @@ export class XRPackageEngine extends XRNode {
     _computePose();
 
     {
-      const {rig, rigPackage, camera} = this;
+      const {rig, rigPackage} = this;
       if (rig || rigPackage) {
         localMatrix.fromArray(this.xrState.poseMatrix)
           .decompose(localVector, localQuaternion, localVector2);
