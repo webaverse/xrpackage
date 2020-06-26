@@ -1092,7 +1092,7 @@ export class XRPackageEngine extends XRNode {
           localMatrix
             .fromArray(xrState.leftViewMatrix)
             .getInverse(localMatrix)
-            .decompose(localVector, localQuaternion, localVector2)
+            .decompose(localVector, localQuaternion, localVector2);
         };
         _loadHmd();
 
