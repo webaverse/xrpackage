@@ -1541,15 +1541,10 @@ export class XRPackageEngine extends XRNode {
       this.rig.setMicrophoneMediaStream = _setMicrophoneMediaStream(this.rig.setMicrophoneMediaStream);
       this.rigContainer.add(this.rig.model);
 
-      // this.avatar = p;
     } else {
       await this.add(p, 'avatar');
       this.rigPackage = p;
     }
-
-    /* this.dispatchEvent(new MessageEvent('avatarchange', {
-      data: this.avatar,
-    })); */
   }
   defaultAvatar() {
     if (this.rig) {
@@ -1565,12 +1560,6 @@ export class XRPackageEngine extends XRNode {
       debug: true,
     });
     this.rigContainer.add(this.rig.model);
-
-    // this.avatar = null;
-
-    /* this.dispatchEvent(new MessageEvent('avatarchange', {
-      data: this.avatar,
-    })); */
   }
   reset() {
     const ps = this.children.slice();
