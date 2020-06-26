@@ -1070,11 +1070,6 @@ export class XRPackageEngine extends XRNode {
   tick(timestamp = performance.now(), frame = null) {
     this.renderer.clear(true, true, true);
 
-    if (!this.session) {
-      this.orbitControls.enabled && this.orbitControls.update();
-      this.setCamera(this.camera);
-    }
-
     // update pose
     const {realSession, xrState} = this;
     if (realSession) {
@@ -1155,6 +1150,9 @@ export class XRPackageEngine extends XRNode {
         _loadGamepad(0);
         _loadGamepad(1);
       }
+    } else {
+      this.orbitControls.enabled && this.orbitControls.update();
+      this.setCamera(this.camera);
     }
 
     const _computeDerivedGamepadsData = () => {
