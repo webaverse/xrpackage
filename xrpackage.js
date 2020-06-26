@@ -1205,13 +1205,14 @@ export class XRPackageEngine extends XRNode {
           rig.inputs.hmd.position.copy(localVector);
           rig.inputs.hmd.quaternion.copy(localQuaternion);
           if (this.realSession) {
+            localMatrix2.getInverse(this.matrix);
             localMatrix
               .compose(localVector.fromArray(xrState.gamepads[1].position), localQuaternion.fromArray(xrState.gamepads[1].orientation), localVector2.set(1, 1, 1))
-              .premultiply(localMatrix2.getInverse(this.matrix))
+              .premultiply(localMatrix2)
               .decompose(rig.inputs.leftGamepad.position, rig.inputs.leftGamepad.quaternion, localVector2);
             localMatrix
               .compose(localVector.fromArray(xrState.gamepads[0].position), localQuaternion.fromArray(xrState.gamepads[0].orientation), localVector2.set(1, 1, 1))
-              .premultiply(localMatrix2.getInverse(this.matrix))
+              .premultiply(localMatrix2)
               .decompose(rig.inputs.rightGamepad.position, rig.inputs.rightGamepad.quaternion, localVector2);
             rig.inputs.leftGamepad.pointer = xrState.gamepads[1].buttons[0].value;
             rig.inputs.leftGamepad.grip = xrState.gamepads[1].buttons[1].value;
