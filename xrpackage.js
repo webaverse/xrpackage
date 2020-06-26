@@ -597,6 +597,7 @@ export class XRPackageEngine extends XRNode {
     this.xrState.renderHeight[0] = options.height * options.devicePixelRatio;
     this.matrix = new THREE.Matrix4();
     this.matrixWorld = this.matrix;
+    this.matrixWorldNeedsUpdate = false;
 
     this.name = 'XRPackage Scene';
     this.children = [];
@@ -1301,9 +1302,11 @@ export class XRPackageEngine extends XRNode {
     }
   }
   updateMatrixWorld() {
+    const force = this.matrixWorldNeedsUpdate;
     this.recurseChildren(p => {
-      p.updateMatrixWorld();
+      p.updateMatrixWorld(force);
     });
+    this.matrixWorldNeedsUpdate = false;
   }
   draw(timestamp = performance.now(), skipPackage = null) {
     // update matrices
