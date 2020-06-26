@@ -1494,7 +1494,7 @@ export class XRPackageEngine extends XRNode {
         const input = _getSlotInput(this.rig, slot);
         const inputPosition = localVector
           .copy(input.position)
-          // .applyMatrix4(localMatrix.getInverse(this.matrix));
+          .divideScalar(this.scale);
         const ps = this.children
           .sort((a, b) => {
             a.matrix.decompose(localVector2, localQuaternion, localVector4);
