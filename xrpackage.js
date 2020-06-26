@@ -1075,9 +1075,6 @@ export class XRPackageEngine extends XRNode {
       this.setCamera(this.camera);
     }
 
-    // emit event
-    // this.dispatchEvent(new CustomEvent('tick'));
-
     // update pose
     const {realSession, xrState} = this;
     if (realSession) {
@@ -1096,15 +1093,11 @@ export class XRPackageEngine extends XRNode {
 
           xrState.rightViewMatrix.set(views[1].transform.inverse.matrix);
           xrState.rightProjectionMatrix.set(views[1].projectionMatrix);
-          
-          // console.log('load hmd', frame, pose, views, xrState.leftViewMatrix);
 
           localMatrix
             .fromArray(xrState.leftViewMatrix)
             .getInverse(localMatrix)
             .decompose(localVector, localQuaternion, localVector2)
-          // localVector.toArray(xrState.position);
-          // localQuaternion.toArray(xrState.orientation);
         };
         _loadHmd();
 
