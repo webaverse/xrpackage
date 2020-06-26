@@ -660,6 +660,10 @@ export class XRPackageEngine extends XRNode {
     const container = new THREE.Object3D();
     scene.add(container);
     this.container = container;
+    
+    const rigContainer = new THREE.Object3D();
+    scene.add(rigContainer);
+    this.rigContainer = rigContainer;
 
     const orbitControls = new OrbitControls(camera, canvas, document);
     orbitControls.screenSpacePanning = true;
@@ -1510,7 +1514,7 @@ export class XRPackageEngine extends XRNode {
     await p.waitForLoad();
 
     if (this.rig) {
-      this.container.remove(this.rig.model);
+      this.rigContainer.remove(this.rig.model);
       this.rig.destroy();
       this.rig = null;
     }
@@ -1533,7 +1537,7 @@ export class XRPackageEngine extends XRNode {
         // debug: !newModel,
       });
       this.rig.setMicrophoneMediaStream = _setMicrophoneMediaStream(this.rig.setMicrophoneMediaStream);
-      this.container.add(this.rig.model);
+      this.rigContainer.add(this.rig.model);
 
       // this.avatar = p;
     } else {
@@ -1547,7 +1551,7 @@ export class XRPackageEngine extends XRNode {
   }
   defaultAvatar() {
     if (this.rig) {
-      this.container.remove(this.rig.model);
+      this.rigContainer.remove(this.rig.model);
       this.rig.destroy();
       this.rig = null;
     }
@@ -1558,7 +1562,7 @@ export class XRPackageEngine extends XRNode {
       visemes: true,
       debug: true,
     });
-    this.container.add(this.rig.model);
+    this.rigContainer.add(this.rig.model);
 
     // this.avatar = null;
 
