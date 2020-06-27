@@ -167,6 +167,9 @@ class XRPackageManager extends EventTarget {
   setMatrix(matrixArray) {
     this.xrOffsetMatrix.fromArray(matrixArray);
   }
+  getAvatar() {
+    return this._engine.rig;
+  }
   setSchema(key, value) {
     this.schema[key] = value;
     window.navigator.xr.dispatchEvent(new MessageEvent('schemachange', {
