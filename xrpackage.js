@@ -2263,8 +2263,12 @@ export class XRPackage extends XRNode {
       rig.inputs.hmd.quaternion.fromArray(head[1]);
       rig.inputs.leftGamepad.position.fromArray(rightGamepad[0]);
       rig.inputs.leftGamepad.quaternion.fromArray(rightGamepad[1]);
+      rig.inputs.leftGamepad.pointer = rightGamepad[2];
+      rig.inputs.leftGamepad.grip = rightGamepad[3];
       rig.inputs.rightGamepad.position.fromArray(leftGamepad[0]);
       rig.inputs.rightGamepad.quaternion.fromArray(leftGamepad[1]);
+      rig.inputs.rightGamepad.pointer = leftGamepad[2];
+      rig.inputs.rightGamepad.grip = leftGamepad[3];
       // rig.inputs.hmd.scaleFactor = this.scale;
       rig.update();
     } else if (rigPackage) {
