@@ -1240,7 +1240,7 @@ export class XRPackageEngine extends XRNode {
             if (grab) {
               const input = rig.inputs[_oppositeHand(handedness) + 'Gamepad'];
               localVector.copy(input.position);
-              if (grab.type !== 'vrm@0.0.1') {
+              if (grab.type !== 'vrm@0.0.1') { // because vrm is in rigContainer
                 localVector.divideScalar(this.scale);
               }
               grab.setMatrix(localMatrix.compose(localVector, input.quaternion, input.scale));
