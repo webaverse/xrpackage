@@ -438,13 +438,13 @@ const xrTypeRemovers = {
     p.context.iframe = null;
   },
   'gltf@0.0.1': function(p) {
-    this.container.remove(p.context.object);
+    p.context.object.parent.remove(p.context.object);
   },
   'vrm@0.0.1': function(p) {
-    this.container.remove(p.context.object);
+    p.context.object.parent.remove(p.context.object);
   },
   'vox@0.0.1': function(p) {
-    this.container.remove(p.context.object);
+    p.context.object.parent.remove(p.context.object);
   },
 };
 
@@ -1508,7 +1508,7 @@ export class XRPackageEngine extends XRNode {
     await p.waitForLoad();
 
     if (this.rig) {
-      this.rigContainer.remove(this.rig.model);
+      this.rig.model.parent.remove(this.rig.model);
       this.rig.destroy();
       this.rig = null;
     }
@@ -1542,7 +1542,7 @@ export class XRPackageEngine extends XRNode {
   }
   defaultAvatar() {
     if (this.rig) {
-      this.rigContainer.remove(this.rig.model);
+      this.model.parent.remove(this.rig.model);
       this.rig.destroy();
       this.rig = null;
     }
