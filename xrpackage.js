@@ -1210,9 +1210,10 @@ export class XRPackageEngine extends XRNode {
             rig.inputs.rightGamepad.pointer = xrState.gamepads[0].buttons[0].value;
             rig.inputs.rightGamepad.grip = xrState.gamepads[0].buttons[1].value;
           } else {
-            rig.inputs.leftGamepad.position.copy(localVector).add(localVector2.copy(leftHandOffset).applyQuaternion(localQuaternion));
+            const handOffsetScale = rig.height/1.5;
+            rig.inputs.leftGamepad.position.copy(localVector).add(localVector2.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion));
             rig.inputs.leftGamepad.quaternion.copy(localQuaternion);
-            rig.inputs.rightGamepad.position.copy(localVector).add(localVector2.copy(rightHandOffset).applyQuaternion(localQuaternion));
+            rig.inputs.rightGamepad.position.copy(localVector).add(localVector2.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion));
             rig.inputs.rightGamepad.quaternion.copy(localQuaternion);
           }
 
