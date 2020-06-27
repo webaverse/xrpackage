@@ -387,7 +387,7 @@ class XRWebGLLayer {
   set framebufferHeight(framebufferHeight) {}
 }
 
-const _applyXrOffsetToPose = (pose, xrOffsetMatrix, inverse, premultiply) => {
+const _applyXrOffsetToPose = (pose, xrOffsetMatrix, inverse, premultiply, inverse2) => {
   localMatrix.fromArray(pose._realViewMatrix);
   const inverseXrOffsetMatrix = inverse ? localMatrix2.getInverse(xrOffsetMatrix) : xrOffsetMatrix;
   if (premultiply) {
@@ -396,7 +396,10 @@ const _applyXrOffsetToPose = (pose, xrOffsetMatrix, inverse, premultiply) => {
     localMatrix.multiply(inverseXrOffsetMatrix);
   }
   localMatrix.toArray(pose._localViewMatrix);
-  localMatrix.getInverse(localMatrix).toArray(pose.transform.matrix);
+  if (inverse2) {
+    localMatrix.getInverse(localMatrix);
+  }
+  localMatrix.toArray(pose.transform.matrix);
 };
 
 class XRFrame {
@@ -407,7 +410,7 @@ class XRFrame {
   }
   getViewerPose(coordinateSystem) {
     for (let i = 0; i < this._viewerPose.views.length; i++) {
-      _applyXrOffsetToPose(this._viewerPose.views[i], this.session.xrOffsetMatrix, false, false);
+      _applyXrOffsetToPose(this._viewerPose.views[i], this.session.xrOffsetMatrix, false, false, true);
     }
 
     return this._viewerPose;
@@ -416,8 +419,7 @@ class XRFrame {
     return this.getViewerPose.apply(this, arguments);
   } */
   getPose(sourceSpace, destinationSpace) {
-    _applyXrOffsetToPose(sourceSpace._pose, this.session.xrOffsetMatrix, true, true);
-
+    _applyXrOffsetToPose(sourceSpace._pose, this.session.xrOffsetMatrix, true, true, false);
     return sourceSpace._pose;
   }
   /* getInputPose(inputSource, coordinateSystem) { // non-standard
