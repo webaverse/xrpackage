@@ -1239,7 +1239,11 @@ export class XRPackageEngine extends XRNode {
             const grab = this.grabs[handedness];
             if (grab) {
               const input = rig.inputs[_oppositeHand(handedness) + 'Gamepad'];
-              grab.setMatrix(localMatrix.compose(localVector.copy(input.position).divideScalar(this.scale), input.quaternion, input.scale));
+              localVector.copy(input.position);
+              if (grab.type !== 'vrm@0.0.1') {
+                localVector.divideScalar(this.scale);
+              }
+              grab.setMatrix(localMatrix.compose(localVector, input.quaternion, input.scale));
             }
           });
           SLOTS.forEach(slot => {
