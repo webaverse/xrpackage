@@ -524,7 +524,7 @@ class XRViewerPose extends XRPose {
 class XRInputSource {
   constructor(handedness, targetRayMode, session) {
     this.session = session; // non-standard
-    this.xrStateGamepad = this.session.xrState.gamepads[this.handedness === 'right' ? 1 : 0]; // non-standard
+    this.xrStateGamepad = this.session.xrState.gamepads[handedness === 'right' ? 1 : 0]; // non-standard
 
     this.handedness = handedness;
     this.targetRayMode = targetRayMode;
