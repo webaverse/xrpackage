@@ -1476,7 +1476,7 @@ export class XRPackageEngine extends XRNode {
       },
     }));
   }
-  async getAccount(ref) {
+  /* async getAccount(ref) {
     const res = await fetch(`${contractHost}/${ref}`, {
       method: 'PUT',
     });
@@ -1513,7 +1513,7 @@ export class XRPackageEngine extends XRNode {
       ]),
     ]), { node: flowHost });
     return response;
-  }
+  } */
   grabdown(handedness) {
     if (this.rig && !this.grabs[handedness]) {
       const input = this.rig.inputs[_oppositeHand(handedness) + 'Gamepad'];
