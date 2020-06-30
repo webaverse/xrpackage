@@ -1660,7 +1660,6 @@ export class XRPackageEngine extends XRNode {
         if (hash) {
           const p = await XRPackage.download(hash);
           p.id = id;
-          p.hash = hash;
           p.setMatrix(localMatrix.fromArray(matrix));
           this.add(p, 'importScene');
         } else {
@@ -2386,7 +2385,9 @@ export class XRPackage extends XRNode {
     if (res.ok) {
       const arrayBuffer = await res.arrayBuffer();
       const uint8Array = new Uint8Array(arrayBuffer);
-      return new XRPackage(uint8Array);
+      const p = new XRPackage(uint8Array);
+      p.hash = hash;
+      return p;
     } else {
       if (res.status === 404) {
         return null;
