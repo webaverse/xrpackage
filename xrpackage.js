@@ -11,8 +11,13 @@ import {OrbitControls} from './xrpackage/OrbitControls.js';
 import Avatar from './xrpackage/avatars/avatars.js';
 import utils from './xrpackage/utils.js';
 const {hasWebGL2, requestSw} = utils;
-export const apiHost = `https://ipfs.exokit.org/ipfs`;
+import sdk from './dist/sdk.js';
+import t from './dist/types.js';
+import SigningFunction from './dist/signing-function.js';
 
+export const apiHost = `https://ipfs.exokit.org/ipfs`;
+const contractHost = `http://local.exokit.org:3001`;
+const flowHost = 'http://local.exokit.org:8080';
 const primaryUrl = `https://xrpackage.org`;
 const microphoneWorkletUrl = import.meta.url.replace(/\/[^\/]+$/, '/xrpackage/avatars/microphone-worklet.js');
 
@@ -79,6 +84,41 @@ const _setMicrophoneMediaStream = _oldSetMicrophoneMediaStream => function setMi
   return _oldSetMicrophoneMediaStream.call(this, mediaStream, {
     microphoneWorkletUrl,
   });
+};
+const _executeTransaction = async (address, privateKey, code) => {
+  const sf = SigningFunction.signingFunction(privateKey);
+  const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
+    sdk.getAccount(address),
+  ]), [
+    sdk.resolve([
+      sdk.resolveParams,
+    ]),
+  ]), { node: flowHost });
+  const seqNum = acctResponse.account.keys[0].sequenceNumber;
+
+  const response = await sdk.send(await sdk.pipe(await sdk.build([
+    sdk.authorizations([sdk.authorization(address, sf, 0)]),
+    sdk.payer(sdk.authorization(address, sf, 0)),
+    sdk.proposer(sdk.authorization(address, sf, 0, seqNum)),
+    sdk.limit(100),
+    sdk.transaction(code),
+  ]), [
+    sdk.resolve([
+      sdk.resolveParams,
+      sdk.resolveAccounts,
+      sdk.resolveSignatures,
+    ]),
+  ]), { node: flowHost });
+  const response2 = await sdk.send(await sdk.pipe(await sdk.build([
+    sdk.getTransactionStatus(response.transactionId),
+  ]), [
+    sdk.resolve([
+      sdk.resolveParams,
+    ]),
+  ]), { node: flowHost });
+  console.log('got contract response 2', response2);
+  // console.log('seal 3', seal);
+  return response2;
 };
 
 const HANDS = ['left', 'right'];
@@ -1436,6 +1476,44 @@ export class XRPackageEngine extends XRNode {
       },
     }));
   }
+  async getAccount(ref) {
+    const res = await fetch(`${contractHost}/${ref}`, {
+      method: 'PUT',
+    });
+    const j = await res.json();
+    return j;
+  }
+  async getPackageUserAddress(pak) {
+    const j = await this.getAccount(`${pak.name}/${this.getEnv('username')}`);
+    const {address} = j;
+    return address;
+  }
+  async executeTransactionAsRef(ref, code) {
+    const account = await this.getAccount(ref);
+    if (account) {
+      return await _executeTransaction(account.address, account.keys.privateKey, code);
+    } else {
+      throw new Error('no user account');
+    }
+  }
+  async executeTransactionAsPackageUser(pak, code) {
+    return await this.executeTransactionAsRef(`${pak.name}/${this.getEnv('username')}`, code);
+  }
+  async executeTransactionAsPackage(pak, code) {
+    return await this.executeTransactionAsRef(pak.name, code);
+  }
+  async executeScript(code) {
+    const response = await sdk.send(await sdk.pipe(await sdk.build([
+      sdk.script(code),
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+        sdk.resolveAccounts,
+        sdk.resolveSignatures,
+      ]),
+    ]), { node: flowHost });
+    return response;
+  }
   grabdown(handedness) {
     if (this.rig && !this.grabs[handedness]) {
       const input = this.rig.inputs[_oppositeHand(handedness) + 'Gamepad'];
@@ -1704,6 +1782,7 @@ export class XRPackage extends XRNode {
     this.runningEngine = null;
     this.parent = null;
     this.hash = null;
+    this.contractAddress = null;
     this.context = {};
 
     if (a instanceof XRPackage) {
