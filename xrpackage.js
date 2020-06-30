@@ -1476,44 +1476,23 @@ export class XRPackageEngine extends XRNode {
       },
     }));
   }
-  /* async getAccount(ref) {
-    const res = await fetch(`${contractHost}/${ref}`, {
-      method: 'PUT',
+  dispatchXrEvent(pak, type, data, onresponse) {
+    this.recurseChildren(p => {
+      if (p !== pak) {
+        p.context.iframe && p.context.iframe.contentWindow &&
+          p.context.iframe.contentWindow.navigator.xr.dispatchEvent(new MessageEvent('event', {
+            data: {
+              package: pak,
+              type,
+              data,
+              respond(response) {
+                onresponse && onresponse(response);
+              },
+            },
+          }));
+      }
     });
-    const j = await res.json();
-    return j;
   }
-  async getPackageUserAddress(pak) {
-    const j = await this.getAccount(`${pak.name}/${this.getEnv('username')}`);
-    const {address} = j;
-    return address;
-  }
-  async executeTransactionAsRef(ref, code) {
-    const account = await this.getAccount(ref);
-    if (account) {
-      return await _executeTransaction(account.address, account.keys.privateKey, code);
-    } else {
-      throw new Error('no user account');
-    }
-  }
-  async executeTransactionAsPackageUser(pak, code) {
-    return await this.executeTransactionAsRef(`${pak.name}/${this.getEnv('username')}`, code);
-  }
-  async executeTransactionAsPackage(pak, code) {
-    return await this.executeTransactionAsRef(pak.name, code);
-  }
-  async executeScript(code) {
-    const response = await sdk.send(await sdk.pipe(await sdk.build([
-      sdk.script(code),
-    ]), [
-      sdk.resolve([
-        sdk.resolveParams,
-        sdk.resolveAccounts,
-        sdk.resolveSignatures,
-      ]),
-    ]), { node: flowHost });
-    return response;
-  } */
   grabdown(handedness) {
     if (this.rig && !this.grabs[handedness]) {
       const input = this.rig.inputs[_oppositeHand(handedness) + 'Gamepad'];
@@ -1835,22 +1814,6 @@ export class XRPackage extends XRNode {
         } else {
           schema = {};
         }
-        let events;
-        if (xrDetails.events !== undefined && typeof xrDetails.events === 'object' && !Array.isArray(xrDetails.events) && Object.keys(xrDetails.events).every(k => {
-          const spec = xrDetails.events[k];
-          return spec && spec.type === 'string';
-        })) {
-          events = Object.keys(xrDetails.events).map(name => {
-            const spec = xrDetails.events[name];
-            const {type} = spec;
-            return {
-              name,
-              type,
-            };
-          });
-        } else {
-          events = [];
-        }
 
         const loader = xrTypeLoaders[xrType];
         if (loader) {
@@ -1858,7 +1821,6 @@ export class XRPackage extends XRNode {
           this.type = xrType;
           this.main = startUrl;
           this.schema = schema;
-          this.events = events;
           this.details = xrDetails;
 
           loader(this)
@@ -1956,18 +1918,6 @@ export class XRPackage extends XRNode {
     this.schema[key] = value;
     this.context.iframe && this.context.iframe.contentWindow.xrpackage.setSchema(key, value);
   }
-  sendEvent(name, value) {
-    if (this.events.some(e => e.name === name)) {
-      this.context.iframe && this.context.iframe.contentWindow.xrpackage.sendEvent(name, value);
-    }
-  }
-  /* async reload() {
-    const {parent} = this;
-    if (parent) {
-      parent.remove(this, 'reload');
-      await parent.add(this, 'reload');
-    }
-  } */
   getManifestJson() {
     const manifestJsonFile = this.files.find(file => new URL(file.url).pathname === '/manifest.json');
     if (manifestJsonFile) {

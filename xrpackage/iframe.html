@@ -113,6 +113,9 @@ class XRPackageManager extends EventTarget {
         });
       }
     })(window.navigator.xr.addEventListener);
+    window.navigator.xr.emit = (type = '', data = null, onresponse = null) => {
+      this._engine.dispatchXrEvent(this._package, type, data, onresponse);
+    };
     
     // window.Gamepad = Gamepad;
     window.XR = XR.XR;
@@ -175,14 +178,6 @@ class XRPackageManager extends EventTarget {
     window.navigator.xr.dispatchEvent(new MessageEvent('schemachange', {
       data: {
         key,
-        value,
-      },
-    }));
-  }
-  sendEvent(name, value) {
-    window.navigator.xr.dispatchEvent(new MessageEvent('event', {
-      data: {
-        name,
         value,
       },
     }));
