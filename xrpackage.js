@@ -11,9 +11,6 @@ import {OrbitControls} from './xrpackage/OrbitControls.js';
 import Avatar from './xrpackage/avatars/avatars.js';
 import utils from './xrpackage/utils.js';
 const {hasWebGL2, requestSw} = utils;
-import sdk from './dist/sdk.js';
-import t from './dist/types.js';
-import SigningFunction from './dist/signing-function.js';
 
 export const apiHost = `https://ipfs.exokit.org/ipfs`;
 const contractHost = `http://local.exokit.org:3001`;
