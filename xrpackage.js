@@ -1230,30 +1230,23 @@ export class XRPackageEngine extends XRNode {
         if (rig) {
           rig.inputs.hmd.position.copy(localVector);
           rig.inputs.hmd.quaternion.copy(localQuaternion);
-          // if (this.realSession) {
-            localMatrix2.getInverse(this.matrix);
-            localMatrix
-              .compose(localVector.fromArray(xrState.gamepads[1].position), localQuaternion.fromArray(xrState.gamepads[1].orientation), localVector2.set(1, 1, 1))
-              .premultiply(localMatrix2)
-              .decompose(rig.inputs.leftGamepad.position, rig.inputs.leftGamepad.quaternion, localVector2);
-            rig.inputs.leftGamepad.position.multiplyScalar(this.scale);
-            localMatrix
-              .compose(localVector.fromArray(xrState.gamepads[0].position), localQuaternion.fromArray(xrState.gamepads[0].orientation), localVector2.set(1, 1, 1))
-              .premultiply(localMatrix2)
-              .decompose(rig.inputs.rightGamepad.position, rig.inputs.rightGamepad.quaternion, localVector2);
-            rig.inputs.rightGamepad.position.multiplyScalar(this.scale);
+          localMatrix2.getInverse(this.matrix);
+          localMatrix
+            .compose(localVector.fromArray(xrState.gamepads[1].position), localQuaternion.fromArray(xrState.gamepads[1].orientation), localVector2.set(1, 1, 1))
+            .premultiply(localMatrix2)
+            .decompose(rig.inputs.leftGamepad.position, rig.inputs.leftGamepad.quaternion, localVector2);
+          rig.inputs.leftGamepad.position.multiplyScalar(this.scale);
+          localMatrix
+            .compose(localVector.fromArray(xrState.gamepads[0].position), localQuaternion.fromArray(xrState.gamepads[0].orientation), localVector2.set(1, 1, 1))
+            .premultiply(localMatrix2)
+            .decompose(rig.inputs.rightGamepad.position, rig.inputs.rightGamepad.quaternion, localVector2);
+          rig.inputs.rightGamepad.position.multiplyScalar(this.scale);
 
-            rig.inputs.leftGamepad.pointer = xrState.gamepads[1].buttons[0].value;
-            rig.inputs.leftGamepad.grip = xrState.gamepads[1].buttons[1].value;
-            rig.inputs.rightGamepad.pointer = xrState.gamepads[0].buttons[0].value;
-            rig.inputs.rightGamepad.grip = xrState.gamepads[0].buttons[1].value;
-          /* } else {
-            const handOffsetScale = rig.height/1.5;
-            rig.inputs.leftGamepad.position.copy(localVector).add(localVector2.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion));
-            rig.inputs.leftGamepad.quaternion.copy(localQuaternion);
-            rig.inputs.rightGamepad.position.copy(localVector).add(localVector2.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion));
-            rig.inputs.rightGamepad.quaternion.copy(localQuaternion);
-          } */
+          rig.inputs.leftGamepad.pointer = xrState.gamepads[1].buttons[0].value;
+          rig.inputs.leftGamepad.grip = xrState.gamepads[1].buttons[1].value;
+          rig.inputs.rightGamepad.pointer = xrState.gamepads[0].buttons[0].value;
+          rig.inputs.rightGamepad.grip = xrState.gamepads[0].buttons[1].value;
+
 
           HANDS.forEach(handedness => {
             const grabuse = this.grabuses[handedness];
