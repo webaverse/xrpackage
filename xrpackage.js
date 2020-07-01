@@ -13,7 +13,6 @@ import utils from './xrpackage/utils.js';
 const {hasWebGL2, requestSw} = utils;
 
 export const apiHost = `https://ipfs.exokit.org/ipfs`;
-const contractHost = `http://local.exokit.org:3001`;
 const primaryUrl = `https://xrpackage.org`;
 const microphoneWorkletUrl = import.meta.url.replace(/\/[^\/]+$/, '/xrpackage/avatars/microphone-worklet.js');
 
