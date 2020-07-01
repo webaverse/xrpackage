@@ -1750,7 +1750,6 @@ export class XRPackage extends XRNode {
     this.runningEngine = null;
     this.parent = null;
     this.hash = null;
-    this.contractAddress = null;
     this.context = {};
 
     if (a instanceof XRPackage) {
