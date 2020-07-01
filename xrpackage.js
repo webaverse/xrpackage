@@ -85,41 +85,6 @@ const _setMicrophoneMediaStream = _oldSetMicrophoneMediaStream => function setMi
     microphoneWorkletUrl,
   });
 };
-const _executeTransaction = async (address, privateKey, code) => {
-  const sf = SigningFunction.signingFunction(privateKey);
-  const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
-    sdk.getAccount(address),
-  ]), [
-    sdk.resolve([
-      sdk.resolveParams,
-    ]),
-  ]), { node: flowHost });
-  const seqNum = acctResponse.account.keys[0].sequenceNumber;
-
-  const response = await sdk.send(await sdk.pipe(await sdk.build([
-    sdk.authorizations([sdk.authorization(address, sf, 0)]),
-    sdk.payer(sdk.authorization(address, sf, 0)),
-    sdk.proposer(sdk.authorization(address, sf, 0, seqNum)),
-    sdk.limit(100),
-    sdk.transaction(code),
-  ]), [
-    sdk.resolve([
-      sdk.resolveParams,
-      sdk.resolveAccounts,
-      sdk.resolveSignatures,
-    ]),
-  ]), { node: flowHost });
-  const response2 = await sdk.send(await sdk.pipe(await sdk.build([
-    sdk.getTransactionStatus(response.transactionId),
-  ]), [
-    sdk.resolve([
-      sdk.resolveParams,
-    ]),
-  ]), { node: flowHost });
-  console.log('got contract response 2', response2);
-  // console.log('seal 3', seal);
-  return response2;
-};
 
 const HANDS = ['left', 'right'];
 const _oppositeHand = handedness => {
