@@ -11,8 +11,8 @@ import {OrbitControls} from './xrpackage/OrbitControls.js';
 import Avatar from './xrpackage/avatars/avatars.js';
 import utils from './xrpackage/utils.js';
 const {hasWebGL2, requestSw} = utils;
-export const apiHost = `https://ipfs.exokit.org/ipfs`;
 
+export const apiHost = `https://ipfs.exokit.org/ipfs`;
 const primaryUrl = `https://xrpackage.org`;
 const microphoneWorkletUrl = import.meta.url.replace(/\/[^\/]+$/, '/xrpackage/avatars/microphone-worklet.js');
 
@@ -1084,23 +1084,12 @@ export class XRPackageEngine extends XRNode {
     if (realSession) {
       const pose = frame.getViewerPose(this.referenceSpace);
       if (pose) {
-        const inputSources = Array.from(realSession.inputSources);
-        const gamepads = navigator.getGamepads();
-
         const _scaleMatrixArray = (srcMatrixArray, dstMatrixArray) => {
           localMatrix.fromArray(srcMatrixArray)
             .decompose(localVector, localQuaternion, localVector2);
           localVector.divideScalar(this.scale);
           localMatrix.compose(localVector, localQuaternion, localVector2)
             .toArray(dstMatrixArray);
-        };
-        const _scaleMatrixPQS = (srcMatrixArray, p, q, s) => {
-          localMatrix.fromArray(srcMatrixArray)
-            .decompose(localVector, localQuaternion, localVector2);
-          localVector.divideScalar(this.scale);
-          p && localVector.toArray(p);
-          q && localQuaternion.toArray(q);
-          s && localVector2.toArray(s);
         };
         const _loadHmd = () => {
           const {views} = pose;
@@ -1114,40 +1103,101 @@ export class XRPackageEngine extends XRNode {
           xrState.rightProjectionMatrix.set(views[1].projectionMatrix);
         };
         _loadHmd();
-
-        const _loadGamepad = i => {
-          const inputSource = inputSources[i];
-          if (inputSource) {
-            const xrGamepad = xrState.gamepads[inputSource.handedness === 'right' ? 1 : 0];
-
-            let pose, gamepad;
-            if ((pose = frame.getPose(inputSource.targetRaySpace, this.referenceSpace)) && (gamepad = inputSource.gamepad || gamepads[i])) {
-              _scaleMatrixPQS(pose.transform.matrix, xrGamepad.position, xrGamepad.orientation);
-              
-              for (let j = 0; j < gamepad.buttons.length; j++) {
-                const button = gamepad.buttons[j];
-                const xrButton = xrGamepad.buttons[j];
-                xrButton.pressed[0] = button.pressed;
-                xrButton.touched[0] = button.touched;
-                xrButton.value[0] = button.value;
-              }
-              
-              for (let j = 0; j < gamepad.axes.length; j++) {
-                xrGamepad.axes[j] = gamepad.axes[j];
-              }
-              
-              xrGamepad.connected[0] = 1;
-            } else {
-              xrGamepad.connected[0] = 0;
-            }
-          }
-        };
-        _loadGamepad(0);
-        _loadGamepad(1);
       }
     } else {
       this.orbitControls.enabled && this.orbitControls.update();
       this.setCamera(this.camera);
+    }
+
+    const _computePose = () => {
+      if (this.rigMatrixEnabled) {
+        localMatrix.copy(this.rigMatrix)
+          .premultiply(localMatrix2.getInverse(this.matrix))
+          .toArray(xrState.poseMatrix);
+      } else {
+        localMatrix.fromArray(xrState.leftViewMatrix)
+          .getInverse(localMatrix)
+          .premultiply(localMatrix2.getInverse(this.matrix))
+          .toArray(xrState.poseMatrix);
+      }
+    };
+    _computePose();
+
+    if (realSession) {
+      const inputSources = Array.from(realSession.inputSources);
+      const gamepads = navigator.getGamepads();
+
+      const _scaleMatrixPQS = (srcMatrixArray, p, q, s) => {
+        localMatrix.fromArray(srcMatrixArray)
+          .decompose(localVector, localQuaternion, localVector2);
+        localVector.divideScalar(this.scale);
+        p && localVector.toArray(p);
+        q && localQuaternion.toArray(q);
+        s && localVector2.toArray(s);
+      };
+      const _loadGamepad = i => {
+        const inputSource = inputSources[i];
+        if (inputSource) {
+          const xrGamepad = xrState.gamepads[inputSource.handedness === 'right' ? 1 : 0];
+
+          let pose, gamepad;
+          if ((pose = frame.getPose(inputSource.targetRaySpace, this.referenceSpace)) && (gamepad = inputSource.gamepad || gamepads[i])) {
+            _scaleMatrixPQS(pose.transform.matrix, xrGamepad.position, xrGamepad.orientation);
+            
+            for (let j = 0; j < gamepad.buttons.length; j++) {
+              const button = gamepad.buttons[j];
+              const xrButton = xrGamepad.buttons[j];
+              xrButton.pressed[0] = button.pressed;
+              xrButton.touched[0] = button.touched;
+              xrButton.value[0] = button.value;
+            }
+            
+            for (let j = 0; j < gamepad.axes.length; j++) {
+              xrGamepad.axes[j] = gamepad.axes[j];
+            }
+            
+            xrGamepad.connected[0] = 1;
+          } else {
+            xrGamepad.connected[0] = 0;
+          }
+        }
+      };
+      _loadGamepad(0);
+      _loadGamepad(1);
+    } else {
+      const {rig, rigPackage} = this;
+      if (rig || rigPackage) {
+        localMatrix.fromArray(this.xrState.poseMatrix)
+          .decompose(localVector, localQuaternion, localVector2);
+        localVector.multiplyScalar(this.scale);
+        // if (rig) {
+          const handOffsetScale = rig.height/1.5;
+          new THREE.Vector3().copy(localVector).add(localVector2.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
+            .toArray(xrState.gamepads[1].position);
+          localQuaternion.toArray(xrState.gamepads[1].orientation);
+          new THREE.Vector3().copy(localVector).add(localVector2.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
+            .toArray(xrState.gamepads[0].position);
+          localQuaternion.toArray(xrState.gamepads[0].orientation);
+
+          xrState.gamepads[0].connected[0] = 1;
+          xrState.gamepads[1].connected[0] = 1;
+        // }
+
+        HANDS.forEach((handedness, i) => {
+          const grabuse = this.grabuses[handedness];
+          const gamepad = xrState.gamepads[i];
+          const button = gamepad.buttons[0];
+          if (grabuse) {
+            button.touched[0] = 1;
+            button.pressed[0] = 1;
+            button.value[0] = 1;
+          } else {
+            button.touched[0] = 0;
+            button.pressed[0] = 0;
+            button.value[0] = 0;
+          }
+        });
+      }
     }
 
     const _computeDerivedGamepadsData = () => {
@@ -1169,20 +1219,6 @@ export class XRPackageEngine extends XRNode {
     };
     _computeDerivedGamepadsData();
 
-    const _computePose = () => {
-      if (this.rigMatrixEnabled) {
-        localMatrix.copy(this.rigMatrix)
-          .premultiply(localMatrix2.getInverse(this.matrix))
-          .toArray(this.xrState.poseMatrix);
-      } else {
-        localMatrix.fromArray(xrState.leftViewMatrix)
-          .getInverse(localMatrix)
-          .premultiply(localMatrix2.getInverse(this.matrix))
-          .toArray(this.xrState.poseMatrix);
-      }
-    };
-    _computePose();
-
     {
       const {rig, rigPackage} = this;
       if (rig || rigPackage) {
@@ -1192,30 +1228,23 @@ export class XRPackageEngine extends XRNode {
         if (rig) {
           rig.inputs.hmd.position.copy(localVector);
           rig.inputs.hmd.quaternion.copy(localQuaternion);
-          if (this.realSession) {
-            localMatrix2.getInverse(this.matrix);
-            localMatrix
-              .compose(localVector.fromArray(xrState.gamepads[1].position), localQuaternion.fromArray(xrState.gamepads[1].orientation), localVector2.set(1, 1, 1))
-              .premultiply(localMatrix2)
-              .decompose(rig.inputs.leftGamepad.position, rig.inputs.leftGamepad.quaternion, localVector2);
-            rig.inputs.leftGamepad.position.multiplyScalar(this.scale);
-            localMatrix
-              .compose(localVector.fromArray(xrState.gamepads[0].position), localQuaternion.fromArray(xrState.gamepads[0].orientation), localVector2.set(1, 1, 1))
-              .premultiply(localMatrix2)
-              .decompose(rig.inputs.rightGamepad.position, rig.inputs.rightGamepad.quaternion, localVector2);
-            rig.inputs.rightGamepad.position.multiplyScalar(this.scale);
+          localMatrix2.getInverse(this.matrix);
+          localMatrix
+            .compose(localVector.fromArray(xrState.gamepads[1].position), localQuaternion.fromArray(xrState.gamepads[1].orientation), localVector2.set(1, 1, 1))
+            .premultiply(localMatrix2)
+            .decompose(rig.inputs.leftGamepad.position, rig.inputs.leftGamepad.quaternion, localVector2);
+          rig.inputs.leftGamepad.position.multiplyScalar(this.scale);
+          localMatrix
+            .compose(localVector.fromArray(xrState.gamepads[0].position), localQuaternion.fromArray(xrState.gamepads[0].orientation), localVector2.set(1, 1, 1))
+            .premultiply(localMatrix2)
+            .decompose(rig.inputs.rightGamepad.position, rig.inputs.rightGamepad.quaternion, localVector2);
+          rig.inputs.rightGamepad.position.multiplyScalar(this.scale);
 
-            rig.inputs.leftGamepad.pointer = xrState.gamepads[1].buttons[0].value;
-            rig.inputs.leftGamepad.grip = xrState.gamepads[1].buttons[1].value;
-            rig.inputs.rightGamepad.pointer = xrState.gamepads[0].buttons[0].value;
-            rig.inputs.rightGamepad.grip = xrState.gamepads[0].buttons[1].value;
-          } else {
-            const handOffsetScale = rig.height/1.5;
-            rig.inputs.leftGamepad.position.copy(localVector).add(localVector2.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion));
-            rig.inputs.leftGamepad.quaternion.copy(localQuaternion);
-            rig.inputs.rightGamepad.position.copy(localVector).add(localVector2.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion));
-            rig.inputs.rightGamepad.quaternion.copy(localQuaternion);
-          }
+          rig.inputs.leftGamepad.pointer = xrState.gamepads[1].buttons[0].value;
+          rig.inputs.leftGamepad.grip = xrState.gamepads[1].buttons[1].value;
+          rig.inputs.rightGamepad.pointer = xrState.gamepads[0].buttons[0].value;
+          rig.inputs.rightGamepad.grip = xrState.gamepads[0].buttons[1].value;
+
 
           HANDS.forEach(handedness => {
             const grabuse = this.grabuses[handedness];
@@ -1436,6 +1465,23 @@ export class XRPackageEngine extends XRNode {
       },
     }));
   }
+  dispatchXrEvent(pak, type, data, onresponse) {
+    this.recurseChildren(p => {
+      if (p !== pak) {
+        p.context.iframe && p.context.iframe.contentWindow &&
+          p.context.iframe.contentWindow.navigator.xr.dispatchEvent(new MessageEvent('event', {
+            data: {
+              package: pak,
+              type,
+              data,
+              respond(response) {
+                onresponse && onresponse(response);
+              },
+            },
+          }));
+      }
+    });
+  }
   grabdown(handedness) {
     if (this.rig && !this.grabs[handedness]) {
       const input = this.rig.inputs[_oppositeHand(handedness) + 'Gamepad'];
@@ -1582,7 +1628,6 @@ export class XRPackageEngine extends XRNode {
         if (hash) {
           const p = await XRPackage.download(hash);
           p.id = id;
-          p.hash = hash;
           p.setMatrix(localMatrix.fromArray(matrix));
           this.add(p, 'importScene');
         } else {
@@ -1757,22 +1802,6 @@ export class XRPackage extends XRNode {
         } else {
           schema = {};
         }
-        let events;
-        if (xrDetails.events !== undefined && typeof xrDetails.events === 'object' && !Array.isArray(xrDetails.events) && Object.keys(xrDetails.events).every(k => {
-          const spec = xrDetails.events[k];
-          return spec && spec.type === 'string';
-        })) {
-          events = Object.keys(xrDetails.events).map(name => {
-            const spec = xrDetails.events[name];
-            const {type} = spec;
-            return {
-              name,
-              type,
-            };
-          });
-        } else {
-          events = [];
-        }
 
         const loader = xrTypeLoaders[xrType];
         if (loader) {
@@ -1780,7 +1809,6 @@ export class XRPackage extends XRNode {
           this.type = xrType;
           this.main = startUrl;
           this.schema = schema;
-          this.events = events;
           this.details = xrDetails;
 
           loader(this)
@@ -1878,18 +1906,6 @@ export class XRPackage extends XRNode {
     this.schema[key] = value;
     this.context.iframe && this.context.iframe.contentWindow.xrpackage.setSchema(key, value);
   }
-  sendEvent(name, value) {
-    if (this.events.some(e => e.name === name)) {
-      this.context.iframe && this.context.iframe.contentWindow.xrpackage.sendEvent(name, value);
-    }
-  }
-  /* async reload() {
-    const {parent} = this;
-    if (parent) {
-      parent.remove(this, 'reload');
-      await parent.add(this, 'reload');
-    }
-  } */
   getManifestJson() {
     const manifestJsonFile = this.files.find(file => new URL(file.url).pathname === '/manifest.json');
     if (manifestJsonFile) {
@@ -2307,7 +2323,9 @@ export class XRPackage extends XRNode {
     if (res.ok) {
       const arrayBuffer = await res.arrayBuffer();
       const uint8Array = new Uint8Array(arrayBuffer);
-      return new XRPackage(uint8Array);
+      const p = new XRPackage(uint8Array);
+      p.hash = hash;
+      return p;
     } else {
       if (res.status === 404) {
         return null;
