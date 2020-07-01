@@ -1124,9 +1124,6 @@ export class XRPackageEngine extends XRNode {
     if (realSession) {
       const pose = frame.getViewerPose(this.referenceSpace);
       if (pose) {
-        const inputSources = Array.from(realSession.inputSources);
-        const gamepads = navigator.getGamepads();
-
         const _scaleMatrixArray = (srcMatrixArray, dstMatrixArray) => {
           localMatrix.fromArray(srcMatrixArray)
             .decompose(localVector, localQuaternion, localVector2);
@@ -1154,40 +1151,92 @@ export class XRPackageEngine extends XRNode {
           xrState.rightProjectionMatrix.set(views[1].projectionMatrix);
         };
         _loadHmd();
-
-        const _loadGamepad = i => {
-          const inputSource = inputSources[i];
-          if (inputSource) {
-            const xrGamepad = xrState.gamepads[inputSource.handedness === 'right' ? 1 : 0];
-
-            let pose, gamepad;
-            if ((pose = frame.getPose(inputSource.targetRaySpace, this.referenceSpace)) && (gamepad = inputSource.gamepad || gamepads[i])) {
-              _scaleMatrixPQS(pose.transform.matrix, xrGamepad.position, xrGamepad.orientation);
-              
-              for (let j = 0; j < gamepad.buttons.length; j++) {
-                const button = gamepad.buttons[j];
-                const xrButton = xrGamepad.buttons[j];
-                xrButton.pressed[0] = button.pressed;
-                xrButton.touched[0] = button.touched;
-                xrButton.value[0] = button.value;
-              }
-              
-              for (let j = 0; j < gamepad.axes.length; j++) {
-                xrGamepad.axes[j] = gamepad.axes[j];
-              }
-              
-              xrGamepad.connected[0] = 1;
-            } else {
-              xrGamepad.connected[0] = 0;
-            }
-          }
-        };
-        _loadGamepad(0);
-        _loadGamepad(1);
       }
     } else {
       this.orbitControls.enabled && this.orbitControls.update();
       this.setCamera(this.camera);
+    }
+
+    const _computePose = () => {
+      if (this.rigMatrixEnabled) {
+        localMatrix.copy(this.rigMatrix)
+          .premultiply(localMatrix2.getInverse(this.matrix))
+          .toArray(this.xrState.poseMatrix);
+      } else {
+        localMatrix.fromArray(xrState.leftViewMatrix)
+          .getInverse(localMatrix)
+          .premultiply(localMatrix2.getInverse(this.matrix))
+          .toArray(this.xrState.poseMatrix);
+      }
+    };
+    _computePose();
+
+    if (realSession) {
+      const inputSources = Array.from(realSession.inputSources);
+      const gamepads = navigator.getGamepads();
+      const _loadGamepad = i => {
+        const inputSource = inputSources[i];
+        if (inputSource) {
+          const xrGamepad = xrState.gamepads[inputSource.handedness === 'right' ? 1 : 0];
+
+          let pose, gamepad;
+          if ((pose = frame.getPose(inputSource.targetRaySpace, this.referenceSpace)) && (gamepad = inputSource.gamepad || gamepads[i])) {
+            _scaleMatrixPQS(pose.transform.matrix, xrGamepad.position, xrGamepad.orientation);
+            
+            for (let j = 0; j < gamepad.buttons.length; j++) {
+              const button = gamepad.buttons[j];
+              const xrButton = xrGamepad.buttons[j];
+              xrButton.pressed[0] = button.pressed;
+              xrButton.touched[0] = button.touched;
+              xrButton.value[0] = button.value;
+            }
+            
+            for (let j = 0; j < gamepad.axes.length; j++) {
+              xrGamepad.axes[j] = gamepad.axes[j];
+            }
+            
+            xrGamepad.connected[0] = 1;
+          } else {
+            xrGamepad.connected[0] = 0;
+          }
+        }
+      };
+      _loadGamepad(0);
+      _loadGamepad(1);
+    } else {
+      const {rig, rigPackage} = this;
+      if (rig || rigPackage) {
+        localMatrix.fromArray(this.xrState.poseMatrix)
+          .decompose(localVector, localQuaternion, localVector2);
+        localVector.multiplyScalar(this.scale);
+        // if (rig) {
+          const handOffsetScale = rig.height/1.5;
+          new THREE.Vector3().copy(localVector).add(localVector2.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
+            .toArray(xrState.gamepads[1].position);
+          localQuaternion.toArray(xrState.gamepads[1].orientation);
+          new THREE.Vector3().copy(localVector).add(localVector2.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
+            .toArray(xrState.gamepads[0].position);
+          localQuaternion.toArray(xrState.gamepads[0].orientation);
+
+          xrState.gamepads[0].connected[0] = 1;
+          xrState.gamepads[1].connected[0] = 1;
+        // }
+
+        HANDS.forEach((handedness, i) => {
+          const grabuse = this.grabuses[handedness];
+          const gamepad = xrState.gamepads[i];
+          const button = gamepad.buttons[0];
+          if (grabuse) {
+            button.touched[0] = 1;
+            button.pressed[0] = 1;
+            button.value[0] = 1;
+          } else {
+            button.touched[0] = 0;
+            button.pressed[0] = 0;
+            button.value[0] = 0;
+          }
+        });
+      }
     }
 
     const _computeDerivedGamepadsData = () => {
@@ -1209,20 +1258,6 @@ export class XRPackageEngine extends XRNode {
     };
     _computeDerivedGamepadsData();
 
-    const _computePose = () => {
-      if (this.rigMatrixEnabled) {
-        localMatrix.copy(this.rigMatrix)
-          .premultiply(localMatrix2.getInverse(this.matrix))
-          .toArray(this.xrState.poseMatrix);
-      } else {
-        localMatrix.fromArray(xrState.leftViewMatrix)
-          .getInverse(localMatrix)
-          .premultiply(localMatrix2.getInverse(this.matrix))
-          .toArray(this.xrState.poseMatrix);
-      }
-    };
-    _computePose();
-
     {
       const {rig, rigPackage} = this;
       if (rig || rigPackage) {
@@ -1232,7 +1267,7 @@ export class XRPackageEngine extends XRNode {
         if (rig) {
           rig.inputs.hmd.position.copy(localVector);
           rig.inputs.hmd.quaternion.copy(localQuaternion);
-          if (this.realSession) {
+          // if (this.realSession) {
             localMatrix2.getInverse(this.matrix);
             localMatrix
               .compose(localVector.fromArray(xrState.gamepads[1].position), localQuaternion.fromArray(xrState.gamepads[1].orientation), localVector2.set(1, 1, 1))
@@ -1249,13 +1284,13 @@ export class XRPackageEngine extends XRNode {
             rig.inputs.leftGamepad.grip = xrState.gamepads[1].buttons[1].value;
             rig.inputs.rightGamepad.pointer = xrState.gamepads[0].buttons[0].value;
             rig.inputs.rightGamepad.grip = xrState.gamepads[0].buttons[1].value;
-          } else {
+          /* } else {
             const handOffsetScale = rig.height/1.5;
             rig.inputs.leftGamepad.position.copy(localVector).add(localVector2.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion));
             rig.inputs.leftGamepad.quaternion.copy(localQuaternion);
             rig.inputs.rightGamepad.position.copy(localVector).add(localVector2.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion));
             rig.inputs.rightGamepad.quaternion.copy(localQuaternion);
-          }
+          } */
 
           HANDS.forEach(handedness => {
             const grabuse = this.grabuses[handedness];
