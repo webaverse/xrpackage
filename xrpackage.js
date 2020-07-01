@@ -1093,14 +1093,6 @@ export class XRPackageEngine extends XRNode {
           localMatrix.compose(localVector, localQuaternion, localVector2)
             .toArray(dstMatrixArray);
         };
-        const _scaleMatrixPQS = (srcMatrixArray, p, q, s) => {
-          localMatrix.fromArray(srcMatrixArray)
-            .decompose(localVector, localQuaternion, localVector2);
-          localVector.divideScalar(this.scale);
-          p && localVector.toArray(p);
-          q && localQuaternion.toArray(q);
-          s && localVector2.toArray(s);
-        };
         const _loadHmd = () => {
           const {views} = pose;
 
@@ -1136,6 +1128,15 @@ export class XRPackageEngine extends XRNode {
     if (realSession) {
       const inputSources = Array.from(realSession.inputSources);
       const gamepads = navigator.getGamepads();
+
+      const _scaleMatrixPQS = (srcMatrixArray, p, q, s) => {
+        localMatrix.fromArray(srcMatrixArray)
+          .decompose(localVector, localQuaternion, localVector2);
+        localVector.divideScalar(this.scale);
+        p && localVector.toArray(p);
+        q && localQuaternion.toArray(q);
+        s && localVector2.toArray(s);
+      };
       const _loadGamepad = i => {
         const inputSource = inputSources[i];
         if (inputSource) {
