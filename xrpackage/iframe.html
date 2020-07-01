@@ -152,6 +152,9 @@ class XRPackageManager extends EventTarget {
   /* get packages() {
     return this._engine.packages.slice();
   } */
+  get engine() {
+    return this._engine;
+  }
   get package() {
     return this._package;
   }
