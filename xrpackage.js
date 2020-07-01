@@ -1115,12 +1115,12 @@ export class XRPackageEngine extends XRNode {
       if (this.rigMatrixEnabled) {
         localMatrix.copy(this.rigMatrix)
           .premultiply(localMatrix2.getInverse(this.matrix))
-          .toArray(this.xrState.poseMatrix);
+          .toArray(xrState.poseMatrix);
       } else {
         localMatrix.fromArray(xrState.leftViewMatrix)
           .getInverse(localMatrix)
           .premultiply(localMatrix2.getInverse(this.matrix))
-          .toArray(this.xrState.poseMatrix);
+          .toArray(xrState.poseMatrix);
       }
     };
     _computePose();
