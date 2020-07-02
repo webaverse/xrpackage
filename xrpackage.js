@@ -2223,11 +2223,13 @@ export class XRPackage extends XRNode {
     }
   }
   setMatrix(m) {
-    this.matrix.copy(m);
-    this.matrixWorldNeedsUpdate = true;
-    this.dispatchEvent(new MessageEvent('matrixupdate', {
-      data: this.matrix,
-    }));
+    if (this.details.transform !== false) {
+      this.matrix.copy(m);
+      this.matrixWorldNeedsUpdate = true;
+      this.dispatchEvent(new MessageEvent('matrixupdate', {
+        data: this.matrix,
+      }));
+    }
   }
   updateMatrixWorld(force = false) {
     if (this.matrixWorldNeedsUpdate || force) {
