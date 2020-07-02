@@ -662,10 +662,6 @@ export class XRPackageEngine extends XRNode {
     const container = new THREE.Object3D();
     scene.add(container);
     this.container = container;
-    
-    const rigContainer = new THREE.Object3D();
-    scene.add(rigContainer);
-    this.rigContainer = rigContainer;
 
     const orbitControls = new OrbitControls(camera, canvas, document);
     orbitControls.screenSpacePanning = true;
@@ -1287,9 +1283,6 @@ export class XRPackageEngine extends XRNode {
             if (grab) {
               const input = rig.inputs[_oppositeHand(handedness) + 'Gamepad'];
               localVector.copy(input.position);
-              if (grab.type !== 'vrm@0.0.1') { // because vrm is in rigContainer
-                localVector.divideScalar(this.scale);
-              }
               grab.setMatrix(localMatrix.compose(localVector, input.quaternion, input.scale));
             }
           });
@@ -1449,16 +1442,6 @@ export class XRPackageEngine extends XRNode {
   }
   setScale(scale) {
     this.scale = scale;
-
-    /* const scaleFactor = 1/scale;
-    this.matrix.decompose(localVector, localQuaternion, localVector2);
-    localVector2.set(scale, scale, scale);
-    this.matrix.compose(localVector, localQuaternion, localVector2);
-    this.matrixWorldNeedsUpdate = true; */
-
-    // scale = userHeight / rigHeight;
-    // scaleFactor = rigHeight / userHeight;
-    // this.rigContainer.scale.set(scaleFactor, scaleFactor, scaleFactor);
   }
   setRigMatrix(rigMatrix) {
     if (rigMatrix) {
@@ -1601,7 +1584,7 @@ export class XRPackageEngine extends XRNode {
         // debug: !newModel,
       });
       this.rig.setMicrophoneMediaStream = _setMicrophoneMediaStream(this.rig.setMicrophoneMediaStream);
-      this.rigContainer.add(this.rig.model);
+      this.container.add(this.rig.model);
 
       const heightFactor = _getHeightFactor(this.rig.height);
       this.setScale(1/heightFactor);
@@ -1623,7 +1606,7 @@ export class XRPackageEngine extends XRNode {
       visemes: true,
       debug: true,
     });
-    this.rigContainer.add(this.rig.model);
+    this.container.add(this.rig.model);
   }
   reset() {
     const ps = this.children.slice();
