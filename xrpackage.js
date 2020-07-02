@@ -1166,7 +1166,7 @@ export class XRPackageEngine extends XRNode {
       if (rig || rigPackage) {
         localMatrix.fromArray(this.xrState.poseMatrix)
           .decompose(localVector, localQuaternion, localVector2);
-        const handOffsetScale = rig.height/1.5;
+        const handOffsetScale = rig ? rig.height/1.5 : 1;
         new THREE.Vector3().copy(localVector).add(localVector2.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
           .toArray(xrState.gamepads[1].position);
         localQuaternion.toArray(xrState.gamepads[1].orientation);
