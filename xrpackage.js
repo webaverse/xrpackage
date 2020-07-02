@@ -1110,17 +1110,11 @@ export class XRPackageEngine extends XRNode {
       if (this.rigMatrixEnabled) {
         localMatrix.copy(this.rigMatrix)
           .premultiply(localMatrix2.getInverse(this.matrix))
-          .decompose(localVector, localQuaternion, localVector2)
-        // localVector.divideScalar(this.scale);
-        localMatrix.compose(localVector, localQuaternion, localVector2)
           .toArray(xrState.poseMatrix);
       } else {
         localMatrix.fromArray(xrState.leftViewMatrix)
           .getInverse(localMatrix)
           .premultiply(localMatrix2.getInverse(this.matrix))
-          .decompose(localVector, localQuaternion, localVector2);
-        // localVector.divideScalar(this.scale);
-        localMatrix.compose(localVector, localQuaternion, localVector2)
           .toArray(xrState.poseMatrix);
       }
     };
@@ -1421,18 +1415,6 @@ export class XRPackageEngine extends XRNode {
 
     this.xrState.rightViewMatrix.set(this.xrState.leftViewMatrix);
     this.xrState.rightProjectionMatrix.set(this.xrState.leftProjectionMatrix);
-    
-    /* localMatrix.fromArray(this.xrState.leftViewMatrix)
-      .decompose(localVector, localQuaternion, localVector2);
-    localVector.divideScalar(this.scale);
-    localMatrix.compose(localVector, localQuaternion, localVector2)
-      .toArray(this.xrState.leftViewMatrix);
-
-    localMatrix.fromArray(this.xrState.rightViewMatrix)
-      .decompose(localVector, localQuaternion, localVector2);
-    localVector.divideScalar(this.scale);
-    localMatrix.compose(localVector, localQuaternion, localVector2)
-      .toArray(this.xrState.rightViewMatrix); */
   }
   setScale(scale) {
     this.scale = scale;
