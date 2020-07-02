@@ -1079,7 +1079,7 @@ export class XRPackageEngine extends XRNode {
   tick(timestamp = performance.now(), frame = null) {
     this.renderer.clear(true, true, true);
 
-    // update pose
+    // update hmd
     const {realSession, xrState} = this;
     if (realSession) {
       const pose = frame.getViewerPose(this.referenceSpace);
@@ -1107,17 +1107,36 @@ export class XRPackageEngine extends XRNode {
     } else {
       this.orbitControls.enabled && this.orbitControls.update();
       this.setCamera(this.camera);
+
+      localMatrix.fromArray(this.xrState.leftViewMatrix)
+        .decompose(localVector, localQuaternion, localVector2);
+      localVector.divideScalar(this.scale);
+      localMatrix.compose(localVector, localQuaternion, localVector2)
+        .toArray(this.xrState.leftViewMatrix);
+
+      localMatrix.fromArray(this.xrState.rightViewMatrix)
+        .decompose(localVector, localQuaternion, localVector2);
+      localVector.divideScalar(this.scale);
+      localMatrix.compose(localVector, localQuaternion, localVector2)
+        .toArray(this.xrState.rightViewMatrix);
     }
 
+    // update pose
     const _computePose = () => {
       if (this.rigMatrixEnabled) {
         localMatrix.copy(this.rigMatrix)
           .premultiply(localMatrix2.getInverse(this.matrix))
+          .decompose(localVector, localQuaternion, localVector2)
+        localVector.divideScalar(this.scale);
+        localMatrix.compose(localVector, localQuaternion, localVector2)
           .toArray(xrState.poseMatrix);
       } else {
         localMatrix.fromArray(xrState.leftViewMatrix)
           .getInverse(localMatrix)
           .premultiply(localMatrix2.getInverse(this.matrix))
+          .decompose(localVector, localQuaternion, localVector2);
+        // localVector.divideScalar(this.scale);
+        localMatrix.compose(localVector, localQuaternion, localVector2)
           .toArray(xrState.poseMatrix);
       }
     };
@@ -1169,7 +1188,7 @@ export class XRPackageEngine extends XRNode {
       if (rig || rigPackage) {
         localMatrix.fromArray(this.xrState.poseMatrix)
           .decompose(localVector, localQuaternion, localVector2);
-        localVector.multiplyScalar(this.scale);
+        // localVector.multiplyScalar(this.scale);
         // if (rig) {
           const handOffsetScale = rig.height/1.5;
           new THREE.Vector3().copy(localVector).add(localVector2.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
@@ -1224,7 +1243,7 @@ export class XRPackageEngine extends XRNode {
       if (rig || rigPackage) {
         localMatrix.fromArray(this.xrState.poseMatrix)
           .decompose(localVector, localQuaternion, localVector2);
-        localVector.multiplyScalar(this.scale);
+        // localVector.multiplyScalar(this.scale);
         if (rig) {
           rig.inputs.hmd.position.copy(localVector);
           rig.inputs.hmd.quaternion.copy(localQuaternion);
@@ -1233,12 +1252,12 @@ export class XRPackageEngine extends XRNode {
             .compose(localVector.fromArray(xrState.gamepads[1].position), localQuaternion.fromArray(xrState.gamepads[1].orientation), localVector2.set(1, 1, 1))
             .premultiply(localMatrix2)
             .decompose(rig.inputs.leftGamepad.position, rig.inputs.leftGamepad.quaternion, localVector2);
-          rig.inputs.leftGamepad.position.multiplyScalar(this.scale);
+          // rig.inputs.leftGamepad.position.multiplyScalar(this.scale);
           localMatrix
             .compose(localVector.fromArray(xrState.gamepads[0].position), localQuaternion.fromArray(xrState.gamepads[0].orientation), localVector2.set(1, 1, 1))
             .premultiply(localMatrix2)
             .decompose(rig.inputs.rightGamepad.position, rig.inputs.rightGamepad.quaternion, localVector2);
-          rig.inputs.rightGamepad.position.multiplyScalar(this.scale);
+          // rig.inputs.rightGamepad.position.multiplyScalar(this.scale);
 
           rig.inputs.leftGamepad.pointer = xrState.gamepads[1].buttons[0].value;
           rig.inputs.leftGamepad.grip = xrState.gamepads[1].buttons[1].value;
@@ -1431,13 +1450,15 @@ export class XRPackageEngine extends XRNode {
   setScale(scale) {
     this.scale = scale;
 
+    /* const scaleFactor = 1/scale;
     this.matrix.decompose(localVector, localQuaternion, localVector2);
     localVector2.set(scale, scale, scale);
     this.matrix.compose(localVector, localQuaternion, localVector2);
-    this.matrixWorldNeedsUpdate = true;
+    this.matrixWorldNeedsUpdate = true; */
 
-    const scaleFactor = 1/scale;
-    this.rigContainer.scale.set(scaleFactor, scaleFactor, scaleFactor);
+    // scale = userHeight / rigHeight;
+    // scaleFactor = rigHeight / userHeight;
+    // this.rigContainer.scale.set(scaleFactor, scaleFactor, scaleFactor);
   }
   setRigMatrix(rigMatrix) {
     if (rigMatrix) {
