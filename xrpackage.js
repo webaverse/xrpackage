@@ -418,7 +418,7 @@ const xrTypeAdders = {
     this.container.add(p.context.object);
   },
   'vrm@0.0.1': async function(p) {
-    this.rigContainer.add(p.context.object);
+    this.container.add(p.context.object);
   },
   'vox@0.0.1': async function(p) {
     this.container.add(p.context.object);
@@ -662,10 +662,6 @@ export class XRPackageEngine extends XRNode {
     const container = new THREE.Object3D();
     scene.add(container);
     this.container = container;
-    
-    const rigContainer = new THREE.Object3D();
-    scene.add(rigContainer);
-    this.rigContainer = rigContainer;
 
     const orbitControls = new OrbitControls(camera, canvas, document);
     orbitControls.screenSpacePanning = true;
@@ -1079,7 +1075,7 @@ export class XRPackageEngine extends XRNode {
   tick(timestamp = performance.now(), frame = null) {
     this.renderer.clear(true, true, true);
 
-    // update pose
+    // update hmd
     const {realSession, xrState} = this;
     if (realSession) {
       const pose = frame.getViewerPose(this.referenceSpace);
@@ -1109,6 +1105,7 @@ export class XRPackageEngine extends XRNode {
       this.setCamera(this.camera);
     }
 
+    // update pose
     const _computePose = () => {
       if (this.rigMatrixEnabled) {
         localMatrix.copy(this.rigMatrix)
@@ -1169,19 +1166,16 @@ export class XRPackageEngine extends XRNode {
       if (rig || rigPackage) {
         localMatrix.fromArray(this.xrState.poseMatrix)
           .decompose(localVector, localQuaternion, localVector2);
-        localVector.multiplyScalar(this.scale);
-        // if (rig) {
-          const handOffsetScale = rig.height/1.5;
-          new THREE.Vector3().copy(localVector).add(localVector2.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
-            .toArray(xrState.gamepads[1].position);
-          localQuaternion.toArray(xrState.gamepads[1].orientation);
-          new THREE.Vector3().copy(localVector).add(localVector2.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
-            .toArray(xrState.gamepads[0].position);
-          localQuaternion.toArray(xrState.gamepads[0].orientation);
+        const handOffsetScale = rig ? rig.height/1.5 : 1;
+        new THREE.Vector3().copy(localVector).add(localVector2.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
+          .toArray(xrState.gamepads[1].position);
+        localQuaternion.toArray(xrState.gamepads[1].orientation);
+        new THREE.Vector3().copy(localVector).add(localVector2.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
+          .toArray(xrState.gamepads[0].position);
+        localQuaternion.toArray(xrState.gamepads[0].orientation);
 
-          xrState.gamepads[0].connected[0] = 1;
-          xrState.gamepads[1].connected[0] = 1;
-        // }
+        xrState.gamepads[0].connected[0] = 1;
+        xrState.gamepads[1].connected[0] = 1;
 
         HANDS.forEach((handedness, i) => {
           const grabuse = this.grabuses[handedness];
@@ -1224,7 +1218,6 @@ export class XRPackageEngine extends XRNode {
       if (rig || rigPackage) {
         localMatrix.fromArray(this.xrState.poseMatrix)
           .decompose(localVector, localQuaternion, localVector2);
-        localVector.multiplyScalar(this.scale);
         if (rig) {
           rig.inputs.hmd.position.copy(localVector);
           rig.inputs.hmd.quaternion.copy(localQuaternion);
@@ -1233,18 +1226,15 @@ export class XRPackageEngine extends XRNode {
             .compose(localVector.fromArray(xrState.gamepads[1].position), localQuaternion.fromArray(xrState.gamepads[1].orientation), localVector2.set(1, 1, 1))
             .premultiply(localMatrix2)
             .decompose(rig.inputs.leftGamepad.position, rig.inputs.leftGamepad.quaternion, localVector2);
-          rig.inputs.leftGamepad.position.multiplyScalar(this.scale);
           localMatrix
             .compose(localVector.fromArray(xrState.gamepads[0].position), localQuaternion.fromArray(xrState.gamepads[0].orientation), localVector2.set(1, 1, 1))
             .premultiply(localMatrix2)
             .decompose(rig.inputs.rightGamepad.position, rig.inputs.rightGamepad.quaternion, localVector2);
-          rig.inputs.rightGamepad.position.multiplyScalar(this.scale);
 
           rig.inputs.leftGamepad.pointer = xrState.gamepads[1].buttons[0].value;
           rig.inputs.leftGamepad.grip = xrState.gamepads[1].buttons[1].value;
           rig.inputs.rightGamepad.pointer = xrState.gamepads[0].buttons[0].value;
           rig.inputs.rightGamepad.grip = xrState.gamepads[0].buttons[1].value;
-
 
           HANDS.forEach(handedness => {
             const grabuse = this.grabuses[handedness];
@@ -1269,9 +1259,6 @@ export class XRPackageEngine extends XRNode {
             if (grab) {
               const input = rig.inputs[_oppositeHand(handedness) + 'Gamepad'];
               localVector.copy(input.position);
-              if (grab.type !== 'vrm@0.0.1') { // because vrm is in rigContainer
-                localVector.divideScalar(this.scale);
-              }
               grab.setMatrix(localMatrix.compose(localVector, input.quaternion, input.scale));
             }
           });
@@ -1431,14 +1418,6 @@ export class XRPackageEngine extends XRNode {
   }
   setScale(scale) {
     this.scale = scale;
-
-    this.matrix.decompose(localVector, localQuaternion, localVector2);
-    localVector2.set(scale, scale, scale);
-    this.matrix.compose(localVector, localQuaternion, localVector2);
-    this.matrixWorldNeedsUpdate = true;
-
-    const scaleFactor = 1/scale;
-    this.rigContainer.scale.set(scaleFactor, scaleFactor, scaleFactor);
   }
   setRigMatrix(rigMatrix) {
     if (rigMatrix) {
@@ -1581,7 +1560,7 @@ export class XRPackageEngine extends XRNode {
         // debug: !newModel,
       });
       this.rig.setMicrophoneMediaStream = _setMicrophoneMediaStream(this.rig.setMicrophoneMediaStream);
-      this.rigContainer.add(this.rig.model);
+      this.container.add(this.rig.model);
 
       const heightFactor = _getHeightFactor(this.rig.height);
       this.setScale(1/heightFactor);
@@ -1603,7 +1582,7 @@ export class XRPackageEngine extends XRNode {
       visemes: true,
       debug: true,
     });
-    this.rigContainer.add(this.rig.model);
+    this.container.add(this.rig.model);
   }
   reset() {
     const ps = this.children.slice();
@@ -2203,11 +2182,13 @@ export class XRPackage extends XRNode {
     }
   }
   setMatrix(m) {
-    this.matrix.copy(m);
-    this.matrixWorldNeedsUpdate = true;
-    this.dispatchEvent(new MessageEvent('matrixupdate', {
-      data: this.matrix,
-    }));
+    if (this.details.transform !== false) {
+      this.matrix.copy(m);
+      this.matrixWorldNeedsUpdate = true;
+      this.dispatchEvent(new MessageEvent('matrixupdate', {
+        data: this.matrix,
+      }));
+    }
   }
   updateMatrixWorld(force = false) {
     if (this.matrixWorldNeedsUpdate || force) {
