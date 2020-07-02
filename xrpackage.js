@@ -418,7 +418,7 @@ const xrTypeAdders = {
     this.container.add(p.context.object);
   },
   'vrm@0.0.1': async function(p) {
-    this.rigContainer.add(p.context.object);
+    this.container.add(p.context.object);
   },
   'vox@0.0.1': async function(p) {
     this.container.add(p.context.object);
