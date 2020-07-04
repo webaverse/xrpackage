@@ -1571,7 +1571,7 @@ export class XRPackageEngine extends XRNode {
   }
   defaultAvatar() {
     if (this.rig) {
-      this.model.parent.remove(this.rig.model);
+      this.rig.model.parent.remove(this.rig.model);
       this.rig.destroy();
       this.rig = null;
     }
