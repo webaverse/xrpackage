@@ -356,7 +356,7 @@ class ShoulderPoser
 		}
 
 		getProneFactor() {
-      return 1 - Math.min(Math.max((this.vrTransforms.head.position.y - this.rig.height*0.3)/(this.rig.height*0.3), 0), 1);
+          return 1 - Math.min(Math.max((this.vrTransforms.head.position.y - this.vrTransforms.floorHeight - this.rig.height*0.3)/(this.rig.height*0.3), 0), 1);
 		}
 
 		/* detectHandsBehindHead(targetRotation)
