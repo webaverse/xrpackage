@@ -1096,6 +1096,10 @@ class Avatar {
     }
   }
 
+  setFloorHeight(floorHeight) {
+    this.poseManager.vrTransforms.floorHeight = floorHeight;
+  }
+
   destroy() {
     this.setMicrophoneMediaStream(null);
   }
