@@ -24465,7 +24465,7 @@ function WebGLRenderer( parameters ) {
 
 	initGLContext();
 
-	this.attributes = attributes;
+	this.geometries = geometries;
 
 	// xr
 
