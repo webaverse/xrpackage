@@ -24465,6 +24465,8 @@ function WebGLRenderer( parameters ) {
 
 	initGLContext();
 
+	this.attributes = attributes;
+
 	// xr
 
 	var xr = new WebXRManager( _this, _gl );
