@@ -217,7 +217,7 @@ If you want to develop a copy of `xrpackage` locally, serve it from a server, an
 
 https://github.com/webaverse/xrpackage/blob/master/sw.js#L1
 
-Then you should be able to `import 127.0.0.1:8080` or wherever you are serving `xrpackage` from.
+Then you should be able to `import 127.0.0.1:8080/xrpackage.js` or wherever you are serving `xrpackage` from.
 
 ## Tips:
 
