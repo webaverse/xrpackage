@@ -210,6 +210,22 @@ const _makeXrState = () => {
       result.set(Float32Array.from([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]));
       return result;
     })(),
+    gripPosition: _makeTypedArray(Float32Array, 3),
+    gripOrientation: (() => {
+      const result = _makeTypedArray(Float32Array, 4);
+      result[3] = 1;
+      return result;
+    })(),
+    /* direction: (() => { // derived
+      const result = _makeTypedArray(Float32Array, 4);
+      result[2] = -1;
+      return result;
+    })(), */
+    gripTransformMatrix: (() => { // derived
+      const result = _makeTypedArray(Float32Array, 16);
+      result.set(Float32Array.from([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]));
+      return result;
+    })(),
     buttons: (() => {
       const result = Array(10);
       for (let i = 0; i < result.length; i++) {
@@ -1137,9 +1153,14 @@ export class XRPackageEngine extends XRNode {
         if (inputSource) {
           const xrGamepad = xrState.gamepads[inputSource.handedness === 'right' ? 1 : 0];
 
-          let pose, gamepad;
-          if ((pose = frame.getPose(inputSource.targetRaySpace, this.referenceSpace)) && (gamepad = inputSource.gamepad || gamepads[i])) {
-            _scaleMatrixPQS(pose.transform.matrix, xrGamepad.position, xrGamepad.orientation);
+          let targetRayPose, gripPose, gamepad;
+          if (
+            (targetRayPose = frame.getPose(inputSource.targetRaySpace, this.referenceSpace)) &&
+            (gripPose = frame.getPose(inputSource.gripSpace, this.referenceSpace)) &&
+            (gamepad = inputSource.gamepad || gamepads[i])
+          ) {
+            _scaleMatrixPQS(targetRayPose.transform.matrix, xrGamepad.position, xrGamepad.orientation);
+            _scaleMatrixPQS(gripPose.transform.matrix, xrGamepad.gripPosition, xrGamepad.gripOrientation);
             
             for (let j = 0; j < gamepad.buttons.length; j++) {
               const button = gamepad.buttons[j];
@@ -1167,17 +1188,19 @@ export class XRPackageEngine extends XRNode {
         localMatrix.fromArray(this.xrState.poseMatrix)
           .decompose(localVector, localQuaternion, localVector2);
         const handOffsetScale = rig ? rig.height/1.5 : 1;
-        new THREE.Vector3().copy(localVector).add(localVector2.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
-          .toArray(xrState.gamepads[1].position);
-        localQuaternion.toArray(xrState.gamepads[1].orientation);
-        new THREE.Vector3().copy(localVector).add(localVector2.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
-          .toArray(xrState.gamepads[0].position);
-        localQuaternion.toArray(xrState.gamepads[0].orientation);
 
-        xrState.gamepads[0].connected[0] = 1;
-        xrState.gamepads[1].connected[0] = 1;
+        for (let i = 0; i < HANDS.length; i++) {
+          const handedness = HANDS[i];
 
-        HANDS.forEach((handedness, i) => {
+          const handOffset = i === 0 ? rightHandOffset : leftHandOffset;
+          localVector.clone()
+            .add(localVector2.copy(handOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
+            .toArray(xrState.gamepads[i].position);
+          localQuaternion.toArray(xrState.gamepads[i].orientation);
+          xrState.gamepads[i].gripPosition.set(xrState.gamepads[i].position);
+          xrState.gamepads[i].gripOrientation.set(xrState.gamepads[i].orientation);
+          xrState.gamepads[i].connected[0] = 1;
+
           const grabuse = this.grabuses[handedness];
           const gamepad = xrState.gamepads[i];
           const button = gamepad.buttons[0];
