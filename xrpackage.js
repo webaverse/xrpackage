@@ -216,7 +216,7 @@ const _makeXrState = () => {
       result[3] = 1;
       return result;
     })(),
-    /* direction: (() => { // derived
+    /* gripDirection: (() => { // derived
       const result = _makeTypedArray(Float32Array, 4);
       result[2] = -1;
       return result;
