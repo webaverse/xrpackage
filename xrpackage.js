@@ -1193,8 +1193,8 @@ export class XRPackageEngine extends XRNode {
           const handedness = HANDS[i];
 
           const handOffset = i === 0 ? rightHandOffset : leftHandOffset;
-          localVector.clone()
-            .add(localVector2.copy(handOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
+          localVector2.copy(localVector)
+            .add(localVector3.copy(handOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
             .toArray(xrState.gamepads[i].position);
           localQuaternion.toArray(xrState.gamepads[i].orientation);
           xrState.gamepads[i].gripPosition.set(xrState.gamepads[i].position);
