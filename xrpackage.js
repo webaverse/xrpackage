@@ -1218,7 +1218,8 @@ export class XRPackageEngine extends XRNode {
     }
 
     const _computeDerivedGamepadsData = () => {
-      const _deriveGamepadData = gamepad => {
+      for (let i = 0; i < xrState.gamepads.length; i++) {
+        const gamepad = xrState.gamepads[i];
         localQuaternion.fromArray(gamepad.orientation);
         /* localVector
           .set(0, 0, -1)
@@ -1229,9 +1230,6 @@ export class XRPackageEngine extends XRNode {
         localMatrix
           .compose(localVector, localQuaternion, localVector2)
           .toArray(gamepad.transformMatrix);
-      };
-      for (let i = 0; i < xrState.gamepads.length; i++) {
-        _deriveGamepadData(xrState.gamepads[i]);
       }
     };
     _computeDerivedGamepadsData();
