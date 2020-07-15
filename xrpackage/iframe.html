@@ -149,6 +149,12 @@ class XRPackageManager extends EventTarget {
       this.session.xrFramebuffer = xrfb;
     }
   }
+  dispatchGamepadEvent(index, eventType) {
+    this.session.dispatchEvent(new XR.XRInputSourceEvent(eventType, {
+      frame: this.session._frame,
+      inputSource: this.session._inputSources[index],
+    }));
+  }
   /* get packages() {
     return this._engine.packages.slice();
   } */

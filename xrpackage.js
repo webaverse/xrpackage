@@ -221,6 +221,13 @@ const _makeXrState = () => {
       }
       return result;
     })(),
+    lastTriggers: (() => {
+      const result = Array(10);
+      for (let i = 0; i < result.length; i++) {
+        result[i] = _makeTypedArray(Uint32Array, 1);
+      }
+      return result;
+    })(),
     axes: _makeTypedArray(Float32Array, 10),
   });
   result.gamepads = (() => {
@@ -1195,7 +1202,8 @@ export class XRPackageEngine extends XRNode {
     }
 
     const _computeDerivedGamepadsData = () => {
-      const _deriveGamepadData = gamepad => {
+      for (let i = 0; i < xrState.gamepads.length; i++) {
+        const gamepad = xrState.gamepads[i];
         localQuaternion.fromArray(gamepad.orientation);
         localVector
           .set(0, 0, -1)
@@ -1206,9 +1214,21 @@ export class XRPackageEngine extends XRNode {
         localMatrix
           .compose(localVector, localQuaternion, localVector2)
           .toArray(gamepad.transformMatrix);
-      };
-      for (let i = 0; i < xrState.gamepads.length; i++) {
-        _deriveGamepadData(xrState.gamepads[i]);
+
+        if (gamepad.buttons[0].pressed[0] > 0 && gamepad.lastTriggers[0] === 0) {
+          for (const pkg of this.children) {
+            if (pkg.context.iframe && pkg.context.iframe.contentWindow && pkg.context.iframe.contentWindow.xrpackage) {
+              pkg.context.iframe.contentWindow.xrpackage.dispatchGamepadEvent(i, 'selectstart');
+              pkg.context.iframe.contentWindow.xrpackage.dispatchGamepadEvent(i, 'select');
+            }
+          }
+        } else if (gamepad.lastTriggers[0] > 0 && gamepad.buttons[0].pressed[0] === 0) {
+          for (const pkg of this.children) {
+            pkg.context.iframe && pkg.context.iframe.contentWindow && pkg.context.iframe.contentWindow.xrpackage &&
+              pkg.context.iframe.contentWindow.xrpackage.dispatchGamepadEvent(new MessageEvent('selectend'));
+          }
+        }
+        gamepad.lastTriggers[0] = gamepad.buttons[0].pressed[0];
       }
     };
     _computeDerivedGamepadsData();
