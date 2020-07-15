@@ -211,6 +211,14 @@ This will download the given package id locally.
 
 The [frontend site for XRPackage](https://github.com/webaverse/xrpackage-site)
 
+## Debugging locally
+
+If you want to develop a copy of `xrpackage` locally, serve it from a server, and make sure to set the `sw.js` to local development mode:
+
+https://github.com/webaverse/xrpackage/blob/master/sw.js#L1
+
+Then you should be able to `import 127.0.0.1:8080` or wherever you are serving `xrpackage` from.
+
 ## Tips:
 
 ### Building packages
