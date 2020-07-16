@@ -19,6 +19,7 @@ $ cat manifest.json
 ```
 
 `xr_type` can currently be:
+
 - `webxr-site@0.0.1`
 - `gltf@0.0.1`
 - `vrm@0.0.1`
@@ -217,7 +218,18 @@ If you want to develop a copy of `xrpackage` locally, serve it from a server, an
 
 https://github.com/webaverse/xrpackage/blob/master/sw.js#L1
 
-Then you should be able to `import 127.0.0.1:8080/xrpackage.js` or wherever you are serving `xrpackage` from.
+Then you should be able to `import 127.0.0.1:3000/xrpackage.js` or wherever you are serving `xrpackage` from. Note you can run `node ./server.js` in the root folder to locally serve this repo.
+
+A quick way to iterate and test this repo against live xr packages is to serve xrpackage.org's [front end](https://github.com/webaverse/xrpackage-site) locally as well (you can copy this repo's `server.js` over, but if you do **make sure to change the port number so they don't overlap**) and change all of references to `xrpackage.js` in _that_ repo to your locally served `xrpackage.js` per above.
+For example, in `run.js` you'll want to change line 2 from:
+`import {XRPackageEngine, XRPackage} from 'https://static.xrpackage.org/xrpackage.js';`
+to:
+`import { XRPackageEngine, XRPackage } from "http://127.0.0.1:3000/xrpackage.js";`
+(Or whatever your local server / port number is).
+
+Make sure to change the references to `xrpackage.js` across the entire repo, and especially don't miss **`run.js`, `edit.js`, `run.html` and `volume.js`**.
+
+Also note that you'll want to clear all caches when you serve `xrpackage-site`, probably run it in incognito (cache-less) mode and refresh several times if you run into errors. Please make sure you do so before filing any issues.
 
 ## Tips:
 
