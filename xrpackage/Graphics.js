@@ -139,7 +139,7 @@ for (const k in WebGLRenderingContext.prototype) {
       } else if (k === 'texImage2D' || k === 'texSubImage2D') {
         ProxiedWebGLRenderingContext.prototype[k] = function(a, b, c, d, e, f, g, h, i) {
           this.setProxyState();
-          if (i instanceof Float32Array) {
+          if (c === this.canvas.proxyContext.RGBA && h === this.canvas.proxyContext.FLOAT) {
             c = this.canvas.proxyContext.RGBA32F;
             return this.canvas.proxyContext[k].call(this.canvas.proxyContext, a, b, c, d, e, f, g, h, i);
           } else {
