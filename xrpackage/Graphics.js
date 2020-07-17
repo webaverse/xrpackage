@@ -148,11 +148,8 @@ for (const k in WebGLRenderingContext.prototype) {
         };
       } else {
         ProxiedWebGLRenderingContext.prototype[k] = function() {
-          // console.log('set proxy state 1', k, window.location.href);
           this.setProxyState();
-          const result = this.canvas.proxyContext[k].apply(this.canvas.proxyContext, arguments);
-          // console.log('set proxy state 2', k);
-          return result;
+          return this.canvas.proxyContext[k].apply(this.canvas.proxyContext, arguments);
         };
       }
     }
