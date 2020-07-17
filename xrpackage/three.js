@@ -24468,6 +24468,8 @@
 
 		initGLContext();
 
+		this.geometries = geometries;
+
 		// xr
 
 		var xr = new WebXRManager( _this, _gl );
