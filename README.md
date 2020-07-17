@@ -227,7 +227,7 @@ to:
 `import { XRPackageEngine, XRPackage } from "http://127.0.0.1:3000/xrpackage.js";`
 (Or whatever your local server / port number is).
 
-Make sure to change the references to `xrpackage.js` across the entire repo, and especially don't miss **`run.js`, `edit.js`, `run.html` and `volume.js`**.
+Make sure to change the references to `xrpackage.js` across the repo in any files you're loading: https://github.com/webaverse/xrpackage-site/search?q=static.xrpackage.org%2Fxrpackage.js
 
 Also note that you'll want to clear all caches when you serve `xrpackage-site`, probably run it in incognito (cache-less) mode and refresh several times if you run into errors. Please make sure you do so before filing any issues.
 
