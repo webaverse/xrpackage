@@ -1,5 +1,9 @@
 # xrpackage
 
+<p align="center">
+  <img src="./assets/logo.png" width="250px" height="250px">
+</p>
+
 XRPackage turns 3D apps into a file you can load anywhere.
 
 It uses standards like WebXR, GLTF, and WebBundle to package an app into a `.wbn` file. It provides a runtime to load multiple `.wbn` applications at once into a shared composited world. Finally, XRPackage provides a package registry distributed on IPFS / Ethereum, to easily share your XRPackage applications. The registry follows the ERC1155 standard so packages can be traded on OpenSea.
