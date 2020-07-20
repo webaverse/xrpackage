@@ -1755,7 +1755,7 @@ self.addEventListener('fetch', event => {
   const u = new URL(request.url);
   let {pathname} = u;
 
-  const match = pathname.match(/^\/xrpackage\/storage\/(.+)$/);
+  const match = pathname.match(/^\/xrpackage\/storage\/(.*)$/);
   if (match) {
     const key = match[1];
 
@@ -1764,16 +1764,23 @@ self.addEventListener('fetch', event => {
         .then(client => {
             if (client && client.type === 'window' && client.frameType === 'top-level') {
                 if (request.method === 'GET') {
-                    return localforage.getItem(request.url)
-                        .then(v => v ? new Response(v) : new Response(null, {
-                            status: 404,
-                        }));
-                } else if (request.method === 'PUT') {
+                    if (key) {
+                        return localforage.getItem(key)
+                            .then(v => v ? new Response(v) : new Response(null, {
+                                status: 404,
+                            }));
+                    } else {
+                        return localforage.keys()
+                            .then(v => v ? new Response(JSON.stringify(v)) : new Response(null, {
+                                status: 404,
+                            }));
+                    }
+                } else if (request.method === 'PUT' && key) {
                     return request.arrayBuffer()
-                        .then(ab => localforage.setItem(request.url, ab))
+                        .then(ab => localforage.setItem(key, ab))
                         .then(() => new Response());
-                } else if (request.method === 'DELETE') {
-                    return localforage.removeItem(request.url)
+                } else if (request.method === 'DELETE' && key) {
+                    return localforage.removeItem(key)
                         .then(() => new Response());
                 } else {
                     return new Response('bad request', {
