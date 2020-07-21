@@ -216,6 +216,12 @@ This will download the given package id locally.
 
 The [frontend site for XRPackage](https://github.com/webaverse/xrpackage-site)
 
+## Testing
+
+Tests are in the [`./tests`](./tests) directory, using [AVA](https://github.com/avajs/ava).
+
+Running `npm run test` in the root directory will automatically run all the tests in the [`./tests`](./tests) directory and output the results in the terminal.
+
 ## Debugging locally
 
 If you want to develop a copy of `xrpackage` locally, serve it from a server, and make sure to set the `sw.js` to local development mode:
