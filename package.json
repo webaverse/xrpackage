@@ -4,7 +4,7 @@
   "description": "",
   "main": "xrpackage.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "ava --verbose",
     "lint": "eslint --fix --ext .js,.jsx ."
   },
   "repository": {
@@ -21,6 +21,7 @@
     "last 1 chrome version"
   ],
   "devDependencies": {
+    "ava": "^3.10.1",
     "eslint": "^7.2.0",
     "eslint-config-semistandard": "^15.0.0"
   },
