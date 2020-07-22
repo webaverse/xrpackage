@@ -230,6 +230,26 @@ const _makeXrState = () => {
     }
     return result;
   })();
+  const _makeHand = () => {
+    const result = Array(24);
+    for (let i = 0; i < result.length; i++) {
+      result[i] = {
+        position: _makeTypedArray(Float32Array, 3),
+        orientation: _makeTypedArray(Float32Array, 4),
+        transformMatrix: _makeTypedArray(Float32Array, 16),
+        radius: _makeTypedArray(Float32Array, 1),
+        visible: _makeTypedArray(Uint32Array, 1),
+      };
+    }
+    return result;
+  };
+  result.hands = (() => {
+    const result = Array(2);
+    for (let i = 0; i < result.length; i++) {
+      result[i] = _makeHand();
+    }
+    return result;
+  })();
 
   return result;
 };
