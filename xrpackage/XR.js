@@ -443,6 +443,9 @@ class XRWebGLLayer {
 }
 
 const _applyXrOffsetToPose = (pose, xrOffsetMatrix, inverse, premultiply, inverse2) => {
+  /* if (!pose._realViewMatrix) {
+    debugger;
+  } */
   localMatrix.fromArray(pose._realViewMatrix);
   const inverseXrOffsetMatrix = inverse ? localMatrix2.getInverse(xrOffsetMatrix) : xrOffsetMatrix;
   if (premultiply) {
@@ -474,6 +477,9 @@ class XRFrame {
     return this.getViewerPose.apply(this, arguments);
   } */
   getPose(sourceSpace, destinationSpace) {
+    /* if (!sourceSpace._pose || !this.session.xrOffsetMatrix) {
+      debugger;
+    } */
     _applyXrOffsetToPose(sourceSpace._pose, this.session.xrOffsetMatrix, true, true, false);
     return sourceSpace._pose;
   }
