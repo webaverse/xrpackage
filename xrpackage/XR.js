@@ -582,6 +582,7 @@ class XRInputSource {
   constructor(handedness, targetRayMode, session) {
     this.session = session; // non-standard
     this.xrStateGamepad = this.session.xrState.gamepads[handedness === 'right' ? 1 : 0]; // non-standard
+    this.xrStateHand = this.session.xrState.hands[handedness === 'right' ? 1 : 0];
 
     this.handedness = handedness;
     this.targetRayMode = targetRayMode;
@@ -605,6 +606,7 @@ class XRInputSource {
     this._inputPose._localViewMatrix = Float32Array.from([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]); */
     
     this.gamepad = new Gamepad(handedness === 'right' ? 1 : 0, 'WebXR Gamepad', handedness, this.xrStateGamepad, false);
+    this.hand = new XRHand(session, this.xrStateHand);
     this.profiles = ['webxr'];
   }
   get connected() {
