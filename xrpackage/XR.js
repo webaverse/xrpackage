@@ -477,6 +477,14 @@ class XRFrame {
     _applyXrOffsetToPose(sourceSpace._pose, this.session.xrOffsetMatrix, true, true, false);
     return sourceSpace._pose;
   }
+  getJointPose(sourceSpace, destinationSpace) {
+    if (sourceSpace._pose._xrHand[sourceSpace._pose._index].visible[0]) {
+      _applyXrOffsetToPose(sourceSpace._pose, this.session.xrOffsetMatrix, true, true, false);
+      return sourceSpace._pose;
+    } else {
+      return null;
+    }
+  }
   /* getInputPose(inputSource, coordinateSystem) { // non-standard
     _applyXrOffsetToPose(inputSource._inputPose, this.session.xrOffsetMatrix, true, true);
     inputSource._inputPose.targetRay.transformMatrix.set(inputSource._inputPose._localViewMatrix);
