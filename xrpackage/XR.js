@@ -97,61 +97,6 @@ class Gamepad {
     this._xrGamepad.connected[0] = connected ? 1 : 0;
   }
 }
-class XRJointPose extends XRPose {
-  constructor(session, xrHand, index) {
-    super(session);
-
-    this._xrHand = xrHand;
-    this._index = index;
-  }
-  get radius() {
-    return this._xrHand[index].radius[0];
-  }
-}
-class XRJointSpace {
-  constructor(session, xrHand, index) {
-    this._pose = new XRJointPose(session, xrHand, index);
-    this._pose.transform.position._buffer = this.xrHand[index].position;
-    this._pose.transform.orientation._buffer = this.xrHand[index].orientation;
-    this._pose._realViewMatrix = this.xrHand[index].transformMatrix;
-    this._pose._localViewMatrix = this._pose.transform.inverse.matrix;
-  }
-}
-class XRHand extends Array {
-  constructor(session, xrHand) {
-    super(24);
-
-    for (let i = 0; i < this.length; i++) {
-      this[i] = new XRJointSpace(session, xrHand, index);
-    }
-    // this._xrHand = xrHand;
-  }
-  static WRIST = 0;
-  static THUMB_METACARPAL = 1;
-  static THUMB_PHALANX_PROXIMAL = 2;
-  static THUMB_PHALANX_DISTAL = 3;
-  static THUMB_PHALANX_TIP = 4;
-  static INDEX_METACARPAL = 5;
-  static INDEX_PHALANX_PROXIMAL = 6;
-  static INDEX_PHALANX_INTERMEDIATE = 7;
-  static INDEX_PHALANX_DISTAL = 8;
-  static INDEX_PHALANX_TIP = 9;
-  static MIDDLE_METACARPAL = 10;
-  static MIDDLE_PHALANX_PROXIMAL = 11;
-  static MIDDLE_PHALANX_INTERMEDIATE = 12;
-  static MIDDLE_PHALANX_DISTAL = 13;
-  static MIDDLE_PHALANX_TIP = 14;
-  static RING_METACARPAL = 15;
-  static RING_PHALANX_PROXIMAL = 16;
-  static RING_PHALANX_INTERMEDIATE = 17;
-  static RING_PHALANX_DISTAL = 18;
-  static RING_PHALANX_TIP = 19;
-  static LITTLE_METACARPAL = 20;
-  static LITTLE_PHALANX_PROXIMAL = 21;
-  static LITTLE_PHALANX_INTERMEDIATE = 22;
-  static LITTLE_PHALANX_DISTAL = 23;
-  static LITTLE_PHALANX_TIP = 24;
-}
 
 class XR extends EventTarget {
   constructor(/*window*/) {
@@ -592,6 +537,63 @@ class XRViewerPose extends XRPose {
   } */
 }
 
+class XRJointPose extends XRPose {
+  constructor(session, xrHand, index) {
+    super(session);
+
+    this._xrHand = xrHand;
+    this._index = index;
+  }
+  get radius() {
+    return this._xrHand[index].radius[0];
+  }
+}
+
+class XRJointSpace {
+  constructor(session, xrHand, index) {
+    this._pose = new XRJointPose(session, xrHand, index);
+    this._pose.transform.position._buffer = xrHand[index].position;
+    this._pose.transform.orientation._buffer = xrHand[index].orientation;
+    this._pose._realViewMatrix = xrHand[index].transformMatrix;
+    this._pose._localViewMatrix = this._pose.transform.inverse.matrix;
+  }
+}
+class XRHand extends Array {
+  constructor(session, xrHand) {
+    super(24);
+
+    for (let i = 0; i < this.length; i++) {
+      this[i] = new XRJointSpace(session, xrHand, i);
+    }
+    // this._xrHand = xrHand;
+  }
+  static WRIST = 0;
+  static THUMB_METACARPAL = 1;
+  static THUMB_PHALANX_PROXIMAL = 2;
+  static THUMB_PHALANX_DISTAL = 3;
+  static THUMB_PHALANX_TIP = 4;
+  static INDEX_METACARPAL = 5;
+  static INDEX_PHALANX_PROXIMAL = 6;
+  static INDEX_PHALANX_INTERMEDIATE = 7;
+  static INDEX_PHALANX_DISTAL = 8;
+  static INDEX_PHALANX_TIP = 9;
+  static MIDDLE_METACARPAL = 10;
+  static MIDDLE_PHALANX_PROXIMAL = 11;
+  static MIDDLE_PHALANX_INTERMEDIATE = 12;
+  static MIDDLE_PHALANX_DISTAL = 13;
+  static MIDDLE_PHALANX_TIP = 14;
+  static RING_METACARPAL = 15;
+  static RING_PHALANX_PROXIMAL = 16;
+  static RING_PHALANX_INTERMEDIATE = 17;
+  static RING_PHALANX_DISTAL = 18;
+  static RING_PHALANX_TIP = 19;
+  static LITTLE_METACARPAL = 20;
+  static LITTLE_PHALANX_PROXIMAL = 21;
+  static LITTLE_PHALANX_INTERMEDIATE = 22;
+  static LITTLE_PHALANX_DISTAL = 23;
+  static LITTLE_PHALANX_TIP = 24;
+}
+
 class XRInputSource {
   constructor(handedness, targetRayMode, session) {
     this.session = session; // non-standard
@@ -891,6 +893,8 @@ export {
   XRViewport,
   XRPose,
   XRViewerPose,
+  XRJointPose,
+  XRJointSpace,
   XRInputSource,
   DOMPoint,
   // XRRay,
