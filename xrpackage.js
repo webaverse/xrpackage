@@ -1144,15 +1144,13 @@ export class XRPackageEngine extends XRNode {
       const inputSources = Array.from(realSession.inputSources);
       const gamepads = navigator.getGamepads();
 
-      const _scaleMatrixPQMatrix = (srcMatrixArray, p, q, dstMatrixArray) => {
+      const _scaleMatrixPQ = (srcMatrixArray, p, q) => {
         localMatrix.fromArray(srcMatrixArray)
           .decompose(localVector, localQuaternion, localVector2);
         localVector.divideScalar(this.scale);
         /*p && */localVector.toArray(p);
         /*q && */localQuaternion.toArray(q);
         // s && localVector2.toArray(s);
-        localMatrix.compose(localVector, localQuaternion, localVector2)
-          .toArray(dstMatrixArray);
       };
       const _loadGamepad = i => {
         const inputSource = inputSources[i];
@@ -1164,7 +1162,7 @@ export class XRPackageEngine extends XRNode {
             (pose = frame.getPose(inputSource.targetRaySpace, this.referenceSpace)) &&
             (gamepad = inputSource.gamepad || gamepads[i])
           ) {
-            _scaleMatrixPQMatrix(pose.transform.matrix, xrGamepad.position, xrGamepad.orientation, gamepad.transformMatrix);
+            _scaleMatrixPQ(pose.transform.matrix, xrGamepad.position, xrGamepad.orientation);
             
             for (let j = 0; j < gamepad.buttons.length; j++) {
               const button = gamepad.buttons[j];
@@ -1191,7 +1189,7 @@ export class XRPackageEngine extends XRNode {
 
               const jointPose = frame.getJointPose(joint, this.referenceSpace);
               if (jointPose) {
-                _scaleMatrixPQMatrix(jointPose.transform.matrix, xrHandJoint.position, xrHandJoint.orientation, xrHandJoint.transformMatrix);
+                _scaleMatrixPQ(jointPose.transform.matrix, xrHandJoint.position, xrHandJoint.orientation);
                 xrHandJoint.radius[0] = jointPose.radius;
                 xrHandJoint.visible[0] = 1;
               } else {
@@ -1247,11 +1245,11 @@ export class XRPackageEngine extends XRNode {
           .set(0, 0, -1)
           .applyQuaternion(localQuaternion.fromArray(gamepad.orientation))
           .toArray(gamepad.direction);
-        /* localVector.fromArray(gamepad.position);
+        localVector.fromArray(gamepad.position);
         localVector2.set(1, 1, 1);
         localMatrix
           .compose(localVector, localQuaternion, localVector2)
-          .toArray(gamepad.transformMatrix); */
+          .toArray(gamepad.transformMatrix);
       }
     };
     _computeDerivedGamepadsData();
