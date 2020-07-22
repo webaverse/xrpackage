@@ -1182,6 +1182,27 @@ export class XRPackageEngine extends XRNode {
           } else {
             xrGamepad.connected[0] = 0;
           }
+
+          const xrHand = xrState.hands[inputSource.handedness === 'right' ? 1 : 0];
+          if (inputSource.hand) {
+            for (let i = 0; i < inputSource.hand.length; i++) {
+              const joint = inputSource.hand[i];
+              const xrHandJoint = xrHand[i];
+
+              const jointPose = frame.getJointPose(joint, this.referenceSpace);
+              if (jointPose) {
+                _scaleMatrixPQMatrix(jointPose.transform.matrix, xrHandJoint.position, xrHandJoint.orientation, xrHandJoint.transformMatrix);
+                xrHandJoint.radius[0] = jointPose.radius;
+                xrHandJoint.visible[0] = 1;
+              } else {
+                xrHandJoint.visible[0] = 0;
+              }
+            }
+          } else {
+            for (let i = 0; i < xrHand.length; i++) {
+              xrHand[i].visible[0] = 0;
+            }
+          }
         }
       };
       _loadGamepad(0);
