@@ -1,43 +1,26 @@
 const test  = require('ava');
-const fetch = require('node-fetch');
+const withPage = require('./utils/_withPage');
+const withStaticServer = require('./utils/_withStaticServer');
 
-const REQUEST_URL = 'https://users.exokit.org/';
-const TEST_PACKAGE_HASH = 'QmSKqHaXQv9WxzVYWSKKuvG13G7DFbpFhfDaeEPtYoSVcq';
 
-test('wear model as avatar', async t => {
-    try {
+let server;
+test.before(() => (server = withStaticServer()));
 
-        const dummyUser = {
-            "name":'nonides-estrara',
-            "avatarHash":'',
-            "inventory":[]
-        }
-    
-        const clearUserReq = await fetch(`${REQUEST_URL}${dummyUser.name}`, {
-            method: 'PUT',
-            body: JSON.stringify(dummyUser),
-        });
-        const clearedRes = await clearUserReq.json();
-        if(!clearedRes.ok) {
-            t.fail('failed to clear user object');
-        }
 
-        dummyUser.avatarHash = TEST_PACKAGE_HASH;
-        const wearAvatarReq = await fetch(`${REQUEST_URL}${dummyUser.name}`, {
-            method: 'PUT',
-            body: JSON.stringify(dummyUser)
-        });
-        const userRes = await wearAvatarReq.json();
+test('wear package as avatar function', withPage, async (t, page) => {
+    await page.goto(process.env.STATIC_URL, { waitFor: 'load' });
+    const response = await page.evaluate(pageFunction, `${process.env.STATIC_URL}/assets/avatar.wbn`);
+    t.true(response);
 
-        if(userRes.ok) {
-            t.pass();
-        }
-        else {
-            t.fail('avatarHash does not match test hash');
-        }
+})
 
-    } catch (err) {
-        t.fail(err);
-    }
-});
+const pageFunction = async path => {
+    const file = await fetch(path).then(res => res.arrayBuffer());
+    const p = new XRPackage(file);
+    const engine = new XRPackageEngine();
+    await engine.wearAvatar(p);
+    return engine.rig !== null;
+}
+
+test.after(() => server.close());
 
