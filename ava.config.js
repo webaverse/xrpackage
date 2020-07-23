@@ -2,6 +2,6 @@ export default {
     failFast: false,
     verbose: true,
     environmentVariables: {
-        STATIC_URL: "http://localhost:3000",
+        STATIC_URL: "http://localhost:3000/tests/static",
     },
 }

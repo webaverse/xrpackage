@@ -8,6 +8,6 @@ module.exports = () => {
     res.set('Access-Control-Allow-Origin', '*');
     next();
   });
-  app.use(express.static(path.join(__dirname, '../', 'static')));
+  app.use(express.static(path.join(__dirname, '../', '../')));
   return app.listen(port, () => console.log('Tests static server listening on port ' + port));
 }
