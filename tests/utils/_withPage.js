@@ -2,7 +2,6 @@ const puppeteer = require('puppeteer');
 
 module.exports = async (t, run) => {
   const browser = await puppeteer.launch({
-    userDataDir: './data',
     headless: true,
     args: ['--no-sandbox'],
   });
