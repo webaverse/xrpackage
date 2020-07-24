@@ -22,7 +22,7 @@ module.exports = async (t, run) => {
   await addXRPackageScript(page, t.context.port);
 
   try {
-    await page.goto(t.context.staticUrl, { waitFor: 'load' });
+    await page.goto(t.context.staticUrl, { waitFor: 'networkidle0' });
     await run(t, page);
   } finally {
     await page.close();
