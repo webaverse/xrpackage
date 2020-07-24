@@ -4,7 +4,7 @@
   "description": "",
   "main": "xrpackage.js",
   "scripts": {
-    "test": "ava",
+    "test": "ava -T 20s",
     "lint": "eslint --fix --ext .js,.jsx ."
   },
   "repository": {

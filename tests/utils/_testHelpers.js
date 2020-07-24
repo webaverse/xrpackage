@@ -6,7 +6,7 @@ const addXRPackageScript = async (page, port) => {
   await page.addScriptTag({
     type: 'module',
     content: `
-      import { XRPackage, XRPackageEngine } from' "http://localhost:${port}/xrpackage.js";
+      import { XRPackage, XRPackageEngine } from "http://localhost:${port}/xrpackage.js";
       window.XRPackage = XRPackage;
       window.XRPackageEngine = XRPackageEngine;
     `,

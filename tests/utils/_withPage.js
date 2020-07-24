@@ -11,10 +11,9 @@ module.exports = async (t, run) => {
   const page = await browser.newPage();
   page.on('console', consoleObj => console.log(consoleObj.text()));
 
-  await page.goto(t.context.staticUrl, { waitFor: 'load' });
-  await addXRPackageScript(page, t.context.port);
-
   try {
+    await page.goto(t.context.staticUrl, { waitFor: 'load' });
+    await addXRPackageScript(page, t.context.port);
     await run(t, page);
   } finally {
     await page.close();
