@@ -5,8 +5,9 @@ const withPage = require('./utils/_withPage');
 const { testBeforeHook, testAfterHook } = require('./utils/_testHelpers');
 
 test.before(testBeforeHook);
+test.after.always(testAfterHook);
 
-test('wear package as avatar function', withPage, async (t, page) => {
+test.serial('wear package as avatar function', withPage, async (t, page) => {
     const response = await page.evaluate(pageFunction, `${t.context.staticUrl}/assets/avatar.wbn`);
     t.true(response);
 })
@@ -19,5 +20,3 @@ const pageFunction = async path => {
     await engine.wearAvatar(p);
     return engine.rig !== null;
 }
-
-test.after(testAfterHook);
