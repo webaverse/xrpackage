@@ -1,14 +1,14 @@
 const puppeteer = require('puppeteer');
 
 const addXRPackageScript = async (page, port) => {
-  await page.addScriptTag({
-    type: 'module',
-    content: `
-      import { XRPackage, XRPackageEngine } from "http://localhost:${port}/xrpackage.js";
-      window.XRPackage = XRPackage;
-      window.XRPackageEngine = XRPackageEngine;
-    `,
-  });
+  await page.evaluateOnNewDocument(`
+    window.onload = () => {
+      const script = document.createElement('script');
+      script.type = 'module';
+      script.innerText = 'import { XRPackage, XRPackageEngine } from "http://localhost:${port}/xrpackage.js"; window.XRPackage = XRPackage; window.XRPackageEngine = XRPackageEngine;';
+      document.head.appendChild(script);
+    };
+  `);
 };
 
 module.exports = async (t, run) => {
@@ -18,11 +18,11 @@ module.exports = async (t, run) => {
     args: ['--no-sandbox'],
   });
   const page = await browser.newPage();
-  page.on('console', consoleObj => console.log(consoleObj.text()));
+  page.on('console', consoleObj => console.log(`page log: ${consoleObj.text()}`));
+  await addXRPackageScript(page, t.context.port);
 
   try {
     await page.goto(t.context.staticUrl, { waitFor: 'load' });
-    await addXRPackageScript(page, t.context.port);
     await run(t, page);
   } finally {
     await page.close();
