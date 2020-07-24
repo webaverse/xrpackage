@@ -1,4 +1,3 @@
-/* global XRPackage */
 const test = require('ava');
 
 const withPage = require('./utils/_withPage');
@@ -18,7 +17,7 @@ test('load screenshot of unbaked xrpk', withPage, async (t, page) => {
 
 const pageFunction = async path => {
   const file = await fetch(path).then(res => res.arrayBuffer());
-  const p = new XRPackage(file);
+  const p = new window.XRPackage(file);
   await p.waitForLoad();
   const screenshot = await p.getScreenshotImage();
   return screenshot ? screenshot.outerHTML : null;
