@@ -1,3 +1,4 @@
+/* global XRPackage, XRPackageEngine */
 const test = require('ava');
 
 const withPage = require('./utils/_withPage');
