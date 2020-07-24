@@ -2,20 +2,17 @@
 const test = require('ava');
 
 const withPage = require('./utils/_withPage');
-const withStaticServer = require('./utils/_withStaticServer');
+const { testBeforeHook, testAfterHook } = require('./utils/_testHelpers');
 
-let server;
-test.before(() => (server = withStaticServer()));
+test.before(testBeforeHook);
 
 test('load screenshot of baked xrpk', withPage, async (t, page) => {
-  await page.goto(process.env.STATIC_URL, { waitFor: 'load' });
-  const response = await page.evaluate(pageFunction, `${process.env.STATIC_URL}/assets/baked-xrpk.wbn`);
+  const response = await page.evaluate(pageFunction, `${t.context.staticUrl}/assets/baked-xrpk.wbn`);
   t.true(response && response.startsWith('<img src="blob:http://localhost:'));
 });
 
 test('load screenshot of unbaked xrpk', withPage, async (t, page) => {
-  await page.goto(process.env.STATIC_URL, { waitFor: 'load' });
-  const response = await page.evaluate(pageFunction, `${process.env.STATIC_URL}/assets/unbaked-xrpk.wbn`);
+  const response = await page.evaluate(pageFunction, `${t.context.staticUrl}/assets/unbaked-xrpk.wbn`);
   t.falsy(response);
 });
 
@@ -27,4 +24,4 @@ const pageFunction = async path => {
   return screenshot ? screenshot.outerHTML : null;
 }
 
-test.after(() => server.close());
+test.after(testAfterHook);

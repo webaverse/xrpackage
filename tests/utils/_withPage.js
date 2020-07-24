@@ -1,5 +1,7 @@
 const puppeteer = require('puppeteer');
 
+const { addXRPackageScript } = require('./_testHelpers');
+
 module.exports = async (t, run) => {
   const browser = await puppeteer.launch({
     headless: true,
@@ -8,6 +10,9 @@ module.exports = async (t, run) => {
   });
   const page = await browser.newPage();
   page.on('console', consoleObj => console.log(consoleObj.text()));
+
+  await page.goto(t.context.staticUrl, { waitFor: 'load' });
+  await addXRPackageScript(page, t.context.port);
 
   try {
     await run(t, page);
