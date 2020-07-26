@@ -250,6 +250,10 @@ The XRPackage uses [Service Workers](https://developer.mozilla.org/en-US/docs/We
 importScripts("https://static.xrpackage.org/sw.js");
 ```
 
+### Secure origins
+
+Service workers only work on secure origins. If you are running a local server, make sure chrome considers it secure, such as `https://` or `localhost`. Note that local routes like `192.168.0.2` are generally _not_ considered secure.
+
 ### Running in Brave
 
 You may run into issues on Brave where it'll block XRPackage from running any Three.js code due to it's cross-origin fingerprint blocking. You will need to either serve all the XRPackage code from the same origin, or tell users to click the `Brave Shield` and allow fingerprinting for your website.
