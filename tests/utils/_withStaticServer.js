@@ -13,9 +13,9 @@ module.exports = () => {
   app.use('/', express.static(path.join(__dirname, '../', '../')));
 
   // Choose a random, free port
-  app.get(`/tests/static/`, (req, res) => {
+  app.get('/tests/static/', (req, res) => {
     const url = `${req.protocol}://${req.get('host')}/xrpackage.js`;
-    res.render(`index`, {url: url});
-  })
+    res.render('index', {url: url});
+  });
   return server;
-}
+};

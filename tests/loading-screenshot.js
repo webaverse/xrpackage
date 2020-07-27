@@ -2,7 +2,7 @@
 const test = require('ava');
 
 const withPage = require('./utils/_withPage');
-const { testBeforeHook, testAfterHook } = require('./utils/_testHelpers');
+const {testBeforeHook, testAfterHook} = require('./utils/_testHelpers');
 
 test.before(testBeforeHook);
 test.after.always(testAfterHook);
@@ -23,4 +23,4 @@ const pageFunction = async path => {
   await p.waitForLoad();
   const screenshot = await p.getScreenshotImage();
   return screenshot ? screenshot.outerHTML : null;
-}
+};
