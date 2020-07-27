@@ -11,7 +11,7 @@ module.exports = async (t, run) => {
 
   try {
     // Wait for no more network requests for at least 500ms before passing onto main test
-    await page.goto(t.context.staticUrl, { waitFor: 'networkidle0' });
+    await page.goto(t.context.staticUrl, { waitUntil: 'networkidle0' });
     await run(t, page);
   } finally {
     await page.close();
