@@ -216,11 +216,26 @@ This will download the given package id locally.
 
 The [frontend site for XRPackage](https://github.com/webaverse/xrpackage-site)
 
-## Testing
+## Testing XRPackage
 
 Tests are in the [`./tests`](./tests) directory, using [AVA](https://github.com/avajs/ava).
 
 Running `npm run test` in the root directory will automatically run all the tests in the [`./tests`](./tests) directory and output the results in the terminal.
+
+Helper functions are available in [`./tests/utils`](./tests/utils). If your test requires a browser (Puppeteer), you'll need to use `_withPageAndStaticServer.js` to create a page and setup a temporary express server for the test suite. For example, a test can look like:
+
+```js
+const test = require("ava");
+
+const withPageAndStaticServer = require('./utils/_withPageAndStaticServer');
+
+test('your test', withPageAndStaticServer, async (t, page) => {
+  // Your test logic, using `t.context.staticUrl`
+  t.pass();
+});
+```
+
+Note that `withPageAndStaticServer` sets the test's context `t.context.staticUrl` to be the base URL for the static server, e.g. `localhost:64880` who's root is [`./tests/static`](./tests/static).
 
 ## Debugging locally
 
