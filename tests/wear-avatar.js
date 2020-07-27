@@ -1,13 +1,9 @@
 /* global XRPackage, XRPackageEngine */
 const test = require('ava');
 
-const withPage = require('./utils/_withPage');
-const {testBeforeHook, testAfterHook} = require('./utils/_testHelpers');
+const withPageAndStaticServer = require('./utils/_withPageAndStaticServer');
 
-test.before(testBeforeHook);
-test.after.always(testAfterHook);
-
-test.serial('wear package as avatar function', withPage, async (t, page) => {
+test('wear package as avatar function', withPageAndStaticServer, async (t, page) => {
   const response = await page.evaluate(pageFunction, `${t.context.staticUrl}/assets/avatar.wbn`);
   t.true(response);
 });
