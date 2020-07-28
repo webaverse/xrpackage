@@ -13,6 +13,10 @@ test('dynamically generate glb xrpk', withPageAndStaticServer, async (t, page) =
   await performTest(t, page, 'assets/camera.glb');
 });
 
+test('dynamically generate vrm xrpk', withPageAndStaticServer, async (t, page) => {
+  await performTest(t, page, 'assets/waft.vrm');
+});
+
 const performTest = async (t, page, assetPath) => {
   const blobString = await page.evaluate(pageFunction, `${t.context.staticUrl}/${assetPath}`);
   const buf = Buffer.from(JSON.parse(blobString).data);
