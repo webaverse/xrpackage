@@ -5,15 +5,15 @@ const path = require('path');
 
 const withPageAndStaticServer = require('./utils/_withPageAndStaticServer');
 
-test('dynamically generate WebXR xrpk', withPageAndStaticServer, async (t, page) => {
+test('compile xrpk from html', withPageAndStaticServer, async (t, page) => {
   await performTest(t, page, 'assets/webxr-template.html');
 });
 
-test('dynamically generate glb xrpk', withPageAndStaticServer, async (t, page) => {
+test('compile xrpk from glb', withPageAndStaticServer, async (t, page) => {
   await performTest(t, page, 'assets/camera.glb');
 });
 
-test('dynamically generate vrm xrpk', withPageAndStaticServer, async (t, page) => {
+test('compile xrpk from vrm', withPageAndStaticServer, async (t, page) => {
   await performTest(t, page, 'assets/waft.vrm');
 });
 
