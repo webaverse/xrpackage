@@ -7,18 +7,18 @@ const fs = require('fs');
 const withPageAndStaticServer = require('./utils/_withPageAndStaticServer');
 
 test('compile xrpk from html', withPageAndStaticServer, async (t, page) => {
-  await performTest(t, page, 'assets/webxr-template.html');
+  await performTest(t, page, 'assets/webxr-template.html', 'text/html');
 });
 
 test('compile xrpk from glb', withPageAndStaticServer, async (t, page) => {
-  await performTest(t, page, 'assets/camera.glb');
+  await performTest(t, page, 'assets/camera.glb', 'application/octet-stream');
 });
 
 test('compile xrpk from vrm', withPageAndStaticServer, async (t, page) => {
-  await performTest(t, page, 'assets/waft.vrm');
+  await performTest(t, page, 'assets/waft.vrm', 'application/octet-stream');
 });
 
-const performTest = async (t, page, assetPath) => {
+const performTest = async (t, page, assetPath, mime) => {
   const blobString = await page.evaluate(pageFunction, `${t.context.staticUrl}/${assetPath}`);
   const buf = Buffer.from(JSON.parse(blobString).data);
   const bundle = new wbn.Bundle(buf);
@@ -34,8 +34,11 @@ const performTest = async (t, page, assetPath) => {
   const assetUrl = bundle.urls.find(u => path.basename(u) === filename);
   t.truthy(assetUrl);
 
+  const assetResponse = bundle.getResponse(assetUrl);
+  t.is(assetResponse.headers['content-type'], mime);
+
   const actualAssetBody = fs.readFileSync(path.join(__dirname, 'static', assetPath));
-  const assetBody = bundle.getResponse(assetUrl).body;
+  const assetBody = assetResponse.body;
 
   // Ensure first chunk of files are equal. Don't check entire file because they're probably too large!
   t.deepEqual(
