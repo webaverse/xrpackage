@@ -2,6 +2,7 @@
 const test = require('ava');
 const wbn = require('wbn');
 const path = require('path');
+const fs = require('fs');
 
 const withPageAndStaticServer = require('./utils/_withPageAndStaticServer');
 
@@ -30,8 +31,17 @@ const performTest = async (t, page, assetPath) => {
   const manifestBody = bundle.getResponse(manifestUrl).body.toString('utf-8');
   t.is(JSON.parse(manifestBody).start_url, filename);
 
-  const htmlUrl = bundle.urls.find(u => path.basename(u) === filename);
-  t.truthy(htmlUrl);
+  const assetUrl = bundle.urls.find(u => path.basename(u) === filename);
+  t.truthy(assetUrl);
+
+  const actualAssetBody = fs.readFileSync(path.join(__dirname, 'static', assetPath));
+  const assetBody = bundle.getResponse(assetUrl).body;
+
+  // Ensure first chunk of files are equal. Don't check entire file because they're probably too large!
+  t.deepEqual(
+    assetBody.slice(0, 100000),
+    actualAssetBody.slice(0, 100000),
+  );
 };
 
 const pageFunction = async path => {
