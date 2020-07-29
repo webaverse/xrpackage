@@ -235,7 +235,7 @@ test('your test', withPageAndStaticServer, async (t, page) => {
 });
 ```
 
-Note that `withPageAndStaticServer` sets the test's context `t.context.staticUrl` to be the base URL for the static server, e.g. `localhost:64880` who's root is [`./tests/static`](./tests/static).
+Note that `withPageAndStaticServer` sets the test's context `t.context.staticUrl` to be the base URL for the static server, e.g. `localhost:64880` whose root is [`./tests/static`](./tests/static).
 
 ## Debugging locally
 
