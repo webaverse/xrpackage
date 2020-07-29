@@ -1901,10 +1901,18 @@ export class XRPackage extends XRNode {
     return mainFile.response.body;
   }
   addFile(pathname, data = '', type = 'application/octet-stream') {
-    let bundle = new wbn.Bundle(this.data);
-    const builder = _cloneBundle(bundle, {
-      except: ['/' + pathname],
-    });
+    let bundle;
+    let builder;
+
+    if (this.data.byteLength) {
+      bundle = new wbn.Bundle(this.data);
+      builder = _cloneBundle(bundle, {
+        except: ['/' + pathname],
+      });
+    } else {
+      builder = new wbn.BundleBuilder(primaryUrl + '/manifest.json');
+    }
+
     builder.addExchange(primaryUrl + '/' + pathname, 200, {
       'Content-Type': type,
     }, data);
