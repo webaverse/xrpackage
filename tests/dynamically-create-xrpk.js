@@ -37,7 +37,7 @@ test('create webxr xrpk', withPageAndStaticServer, async (t, page) => {
 
 const pageFunction = async (manifest, indexHtml) => {
   const xrpk = new XRPackage();
-  xrpk.addFile('manifest.json', JSON.stringify(manifest), 'text/html');
+  xrpk.addFile('manifest.json', JSON.stringify(manifest), 'application/json');
   xrpk.addFile('index.html', indexHtml, 'text/html');
 
   xrpk.addFile('unwantedFile.html', indexHtml, 'text/html');
