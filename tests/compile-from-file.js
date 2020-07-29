@@ -20,7 +20,7 @@ test('compile xrpk from vrm', withPageAndStaticServer, async (t, page) => {
 
 const performTest = async (t, page, assetPath, mime) => {
   const blobString = await page.evaluate(pageFunction, `${t.context.staticUrl}/${assetPath}`);
-  const buf = Buffer.from(JSON.parse(blobString).data);
+  const buf = Buffer.from(blobString, 'base64');
   const bundle = new wbn.Bundle(buf);
   t.is(bundle.urls.length, 2);
 
@@ -51,8 +51,15 @@ const pageFunction = async path => {
   const blob = await fetch(path).then(res => res.blob());
   blob.name = path.split('/').pop();
 
-  const xrpk = await XRPackage.compileFromFile(blob);
+  const uint8Array = await XRPackage.compileFromFile(blob);
+  const uint8ArrayToBase64 = async uint8Array => new Promise(resolve => {
+    const blob = new Blob([uint8Array]);
+    const reader = new FileReader();
+    reader.onload = event => resolve(event.target.result.replace(/data:.*base64,/, ''));
+    reader.readAsDataURL(blob);
+  });
 
   // Puppeteer only supports passing serializable data to/from Node
-  return JSON.stringify(xrpk);
+  const base64 = await uint8ArrayToBase64(uint8Array);
+  return base64;
 };
