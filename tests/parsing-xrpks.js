@@ -18,7 +18,11 @@ test('parse vrm@0.0.1 package', withPageAndStaticServer, async (t, page) => {
   t.true(response);
 });
 
-test.todo('parse vox@0.0.1 package');
+test.only('parse vox@0.0.1 package', withPageAndStaticServer, async (t, page) => {
+  // Source .vox: https://github.com/mikelovesrobots/mmmm/blob/master/vox/alien_bot1.vox
+  const response = await page.evaluate(pageFunction, `${t.context.staticUrl}/assets/alien_bot1_vox.wbn`);
+  t.true(response);
+});
 
 // Only if we're keeping the world concept in XRPackage
 test.todo('parse xrpackage-scene@0.0.1 package');
