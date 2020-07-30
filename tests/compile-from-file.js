@@ -7,7 +7,7 @@ const fs = require('fs');
 const withPageAndStaticServer = require('./utils/_withPageAndStaticServer');
 
 test('compile xrpk from html', withPageAndStaticServer, async (t, page) => {
-  await performTest(t, page, 'assets/webxr-template.html', 'text/html');
+  await performTest(t, page, 'assets/webxr-cube.html', 'text/html');
 });
 
 test('compile xrpk from glb', withPageAndStaticServer, async (t, page) => {

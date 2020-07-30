@@ -13,7 +13,7 @@ const manifest = {
 };
 
 test('create webxr xrpk', withPageAndStaticServer, async (t, page) => {
-  const indexHtml = fs.readFileSync(path.join(__dirname, 'static', 'assets', 'webxr-template.html'), 'utf-8');
+  const indexHtml = fs.readFileSync(path.join(__dirname, 'static', 'assets', 'webxr-cube.html'), 'utf-8');
   const blobString = await page.evaluate(pageFunction, manifest, indexHtml);
   const buf = Buffer.from(blobString, 'base64');
   const bundle = new wbn.Bundle(buf);
