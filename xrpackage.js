@@ -1153,16 +1153,15 @@ export class XRPackageEngine extends XRNode {
         /*q && */localQuaternion.toArray(q);
         // s && localVector2.toArray(s);
       };
-      const _loadGamepad = i => {
+      const _loadInputSource = i => {
         const inputSource = inputSources[i];
         if (inputSource) {
-          const xrGamepad = xrState.gamepads[inputSource.handedness === 'right' ? 1 : 0];
-
-          let pose, gamepad;
+          let gamepad, pose, hand;
           if (
-            (pose = frame.getPose(inputSource.targetRaySpace, this.referenceSpace)) &&
-            (gamepad = inputSource.gamepad || gamepads[i])
+            (gamepad = inputSource.gamepad || gamepads[i]) &&
+            (pose = frame.getPose(inputSource.targetRaySpace, this.referenceSpace))
           ) {
+            const xrGamepad = xrState.gamepads[inputSource.handedness === 'right' ? 1 : 0];
             _scaleMatrixPQ(pose.transform.matrix, xrGamepad.position, xrGamepad.orientation);
             
             for (let j = 0; j < gamepad.buttons.length; j++) {
@@ -1178,12 +1177,10 @@ export class XRPackageEngine extends XRNode {
             }
             
             xrGamepad.connected[0] = 1;
-          } else {
-            xrGamepad.connected[0] = 0;
-          }
-
-          const xrHand = xrState.hands[inputSource.handedness === 'right' ? 1 : 0];
-          if (inputSource.hand) {
+          } else if (
+            (hand = inputSource.hand)
+          ) {
+            const xrHand = xrState.hands[inputSource.handedness === 'right' ? 1 : 0];
             for (let i = 0; i < inputSource.hand.length; i++) {
               const joint = inputSource.hand[i];
               const xrHandJoint = xrHand[i];
@@ -1197,14 +1194,18 @@ export class XRPackageEngine extends XRNode {
                 xrHandJoint.visible[0] = 0;
               }
             }
-            xrHand.visible[0] = 1;
-          } else {
-            xrHand.visible[0] = 0;
           }
         }
       };
-      _loadGamepad(0);
-      _loadGamepad(1);
+      for (let i = 0; i < xrState.gamepads.length; i++) {
+        xrState.gamepads[i].visible[0] = 0;
+      }
+      for (let i = 0; i < xrState.hands.length; i++) {
+        xrState.hands[i].visible[0] = 0;
+      }
+      for (let i = 0; i < inputSources.length; i++) {
+        _loadInputSource(i);
+      }
     } else {
       const {rig, rigPackage} = this;
       if (rig || rigPackage) {

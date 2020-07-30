@@ -178,10 +178,13 @@ class XRSession extends EventTarget {
     this._frame = new XRFrame(this);
     this._referenceSpace = new XRBoundedReferenceSpace(this);
     this._gamepadInputSources = [
-      new XRInputSource('left', 'tracked-pointer', this),
-      new XRInputSource('right', 'tracked-pointer', this),
+      new XRInputSource('left', 'tracked-pointer', 'gamepad', this),
+      new XRInputSource('right', 'tracked-pointer', 'gamepad', this),
     ];
-    this._inputSources = this._gamepadInputSources;
+    this._handInputSources = [
+      new XRInputSource('left', 'gaze', 'hand', this),
+      new XRInputSource('right', 'gaze', 'hand', this),
+    ];
     this._lastPresseds = [false, false];
     this._rafs = [];
     this._layers = [];
@@ -201,7 +204,16 @@ class XRSession extends EventTarget {
     return this.requestReferenceSpace.apply(this, arguments);
   } */
   get inputSources() {
-    return this._inputSources.filter(inputSource => inputSource.connected);
+    const inputSources = [];
+    for (let i = 0; i < this._gamepadInputSources.length; i++) {
+      const inputSource = this._gamepadInputSources[i];
+      inputSource.connected && inputSources.push(inputSource);
+    }
+    for (let i = 0; i < this._handInputSources.length; i++) {
+      const inputSource = this._handInputSources[i];
+      inputSource.connected && inputSources.push(inputSource);
+    }
+    return inputSources;
   }
   requestAnimationFrame(fn) {
     // console.log('request animation frame', window.location.href);
@@ -602,7 +614,7 @@ class XRHand {
 }
 
 class XRInputSource {
-  constructor(handedness, targetRayMode, session) {
+  constructor(handedness, targetRayMode, type, session) {
     this.session = session; // non-standard
     this.xrStateGamepad = this.session.xrState.gamepads[handedness === 'right' ? 1 : 0]; // non-standard
     this.xrStateHand = this.session.xrState.hands[handedness === 'right' ? 1 : 0];
@@ -628,19 +640,28 @@ class XRInputSource {
     this._inputPose._realViewMatrix = this.xrStateGamepad.transformMatrix;
     this._inputPose._localViewMatrix = Float32Array.from([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]); */
     
-    this.gamepad = new Gamepad(handedness === 'right' ? 1 : 0, 'WebXR Gamepad', handedness, this.xrStateGamepad, false);
-    this._hand = new XRHand(session, this.xrStateHand);
+    this.gamepad = null;
+    this.hand = null;
     this.profiles = ['webxr'];
+
+    this._type = type;
+    switch (this._type) {
+      case 'gamepad': {
+        this.gamepad = new Gamepad(handedness === 'right' ? 1 : 0, 'WebXR Gamepad', handedness, this.xrStateGamepad, false);
+        break;
+      }
+      case 'hand': {
+        this.hand = new XRHand(session, this.xrStateHand);
+        break;
+      }
+    }
   }
   get connected() {
-    return this.xrStateGamepad.connected[0] !== 0;
-  }
-  set connected(connected) {
-    this.xrStateGamepad.connected[0] = connected ? 1 : 0;
-  }
-
-  get hand() {
-    return this.xrStateHand.visible[0] ? this._hand : null;
+    switch (this._type) {
+      case 'gamepad': return this.xrStateGamepad.connected[0] !== 0;
+      case 'hand': return this.xrStateHand.connected[0] !== 0;
+      default: return false;
+    }
   }
 }
 
