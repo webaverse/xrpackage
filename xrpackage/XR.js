@@ -558,14 +558,21 @@ class XRJointSpace {
     this._pose._localViewMatrix = this._pose.transform.inverse.matrix;
   }
 }
-class XRHand extends Array {
+class XRHand {
   constructor(session, xrHand) {
-    super(24);
-
-    for (let i = 0; i < this.length; i++) {
-      this[i] = new XRJointSpace(session, xrHand, i);
+    const joints = Array(25);
+    for (let i = 0; i < joints.length; i++) {
+      joints[i] = new XRJointSpace(session, xrHand, i);
     }
-    // this._xrHand = xrHand;
+    for (let i = 0; i < joints.length; i++) {
+      Object.defineProperty(this, i, {
+        get() {
+          return this._xrHand[i].visible[0] ? joints[i] : null;
+        },
+      });
+    }
+    this.length = joints.length;
+    this._xrHand = xrHand;
   }
   static WRIST = 0;
   static THUMB_METACARPAL = 1;
@@ -622,7 +629,7 @@ class XRInputSource {
     this._inputPose._localViewMatrix = Float32Array.from([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]); */
     
     this.gamepad = new Gamepad(handedness === 'right' ? 1 : 0, 'WebXR Gamepad', handedness, this.xrStateGamepad, false);
-    this.hand = new XRHand(session, this.xrStateHand);
+    this._hand = new XRHand(session, this.xrStateHand);
     this.profiles = ['webxr'];
   }
   get connected() {
@@ -630,6 +637,10 @@ class XRInputSource {
   }
   set connected(connected) {
     this.xrStateGamepad.connected[0] = connected ? 1 : 0;
+  }
+
+  get hand() {
+    return this.xrStateHand.visible[0] ? this._hand : null;
   }
 }
 
@@ -895,6 +906,7 @@ export {
   XRViewerPose,
   XRJointPose,
   XRJointSpace,
+  XRHand,
   XRInputSource,
   DOMPoint,
   // XRRay,

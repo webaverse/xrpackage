@@ -231,7 +231,7 @@ const _makeXrState = () => {
     return result;
   })();
   const _makeHand = () => {
-    const result = Array(24);
+    const result = Array(25);
     for (let i = 0; i < result.length; i++) {
       result[i] = {
         position: _makeTypedArray(Float32Array, 3),
@@ -241,6 +241,7 @@ const _makeXrState = () => {
         visible: _makeTypedArray(Uint32Array, 1),
       };
     }
+    result.visible = _makeTypedArray(Uint32Array, 1);
     return result;
   };
   result.hands = (() => {
@@ -1187,7 +1188,7 @@ export class XRPackageEngine extends XRNode {
               const joint = inputSource.hand[i];
               const xrHandJoint = xrHand[i];
 
-              const jointPose = frame.getJointPose(joint, this.referenceSpace);
+              const jointPose = joint && frame.getJointPose(joint, this.referenceSpace);
               if (jointPose) {
                 _scaleMatrixPQ(jointPose.transform.matrix, xrHandJoint.position, xrHandJoint.orientation);
                 xrHandJoint.radius[0] = jointPose.radius;
@@ -1196,10 +1197,9 @@ export class XRPackageEngine extends XRNode {
                 xrHandJoint.visible[0] = 0;
               }
             }
+            xrHand.visible[0] = 1;
           } else {
-            for (let i = 0; i < xrHand.length; i++) {
-              xrHand[i].visible[0] = 0;
-            }
+            xrHand.visible[0] = 0;
           }
         }
       };
