@@ -18,6 +18,11 @@ test('compile xrpk from vrm', withPageAndStaticServer, async (t, page) => {
   await performTest(t, page, 'assets/waft.vrm', 'application/octet-stream');
 });
 
+test('compile xrpk from vox', withPageAndStaticServer, async (t, page) => {
+  // Source .vox: https://github.com/mikelovesrobots/mmmm/blob/master/vox/alien_bot1.vox
+  await performTest(t, page, 'assets/alien_bot1.vox', 'application/octet-stream');
+});
+
 const performTest = async (t, page, assetPath, mime) => {
   const blobString = await page.evaluate(pageFunction, `${t.context.staticUrl}/${assetPath}`);
   const buf = Buffer.from(blobString, 'base64');
