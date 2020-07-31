@@ -1194,6 +1194,7 @@ export class XRPackageEngine extends XRNode {
                 xrHandJoint.visible[0] = 0;
               }
             }
+            xrHand.visible[0] = 1;
           }
         }
       };
