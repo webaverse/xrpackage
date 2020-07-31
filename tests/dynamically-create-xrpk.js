@@ -12,9 +12,17 @@ const manifest = {
   xr_type: 'webxr-site@0.0.1',
 };
 
-test('create webxr xrpk', withPageAndStaticServer, async (t, page) => {
+test('create webxr xrpk with manifest first', withPageAndStaticServer, async (t, page) => {
+  await performTest(t, page, true);
+});
+
+test('create webxr xrpk with manifest not first', withPageAndStaticServer, async (t, page) => {
+  await performTest(t, page, false);
+});
+
+const performTest = async (t, page, manifestFirst) => {
   const indexHtml = fs.readFileSync(path.join(__dirname, 'static', 'assets', 'webxr-cube.html'), 'utf-8');
-  const blobString = await page.evaluate(pageFunction, manifest, indexHtml);
+  const blobString = await page.evaluate(pageFunction, manifest, indexHtml, manifestFirst);
   const buf = Buffer.from(blobString, 'base64');
   const bundle = new wbn.Bundle(buf);
   t.is(bundle.urls.length, 2);
@@ -33,12 +41,18 @@ test('create webxr xrpk', withPageAndStaticServer, async (t, page) => {
 
   const assetBody = assetResponse.body.toString('utf-8');
   t.is(assetBody, indexHtml);
-});
+};
 
-const pageFunction = async (manifest, indexHtml) => {
+const pageFunction = async (manifest, indexHtml, manifestFirst) => {
   const xrpk = new XRPackage();
-  xrpk.addFile('manifest.json', JSON.stringify(manifest), 'application/json');
-  xrpk.addFile('index.html', indexHtml, 'text/html');
+
+  if (manifestFirst) {
+    xrpk.addFile('manifest.json', JSON.stringify(manifest), 'application/json');
+    xrpk.addFile('index.html', indexHtml, 'text/html');
+  } else {
+    xrpk.addFile('index.html', indexHtml, 'text/html');
+    xrpk.addFile('manifest.json', JSON.stringify(manifest), 'application/json');
+  }
 
   xrpk.addFile('unwantedFile.html', indexHtml, 'text/html');
   xrpk.removeFile('unwantedFile.html');
