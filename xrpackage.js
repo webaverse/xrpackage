@@ -1911,6 +1911,17 @@ export class XRPackage extends XRNode {
       });
     } else {
       builder = new wbn.BundleBuilder(primaryUrl + '/manifest.json');
+
+      // If the package is empty and we're not adding a manifest, add a default
+      // manifest automatically, so the primary URL for the wbn does exist
+      if (pathname !== 'manifest.json') {
+        const defaultManifest = {};
+        this.addFile('manifest.json', JSON.stringify(defaultManifest), 'application/json');
+        console.warn('XRPackage auto-created empty manifest.json for empty package', defaultManifest);
+
+        bundle = new wbn.Bundle(this.data);
+        builder = _cloneBundle(bundle);
+      }
     }
 
     builder.addExchange(primaryUrl + '/' + pathname, 200, {
