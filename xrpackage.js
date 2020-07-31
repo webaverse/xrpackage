@@ -1241,18 +1241,25 @@ export class XRPackageEngine extends XRNode {
       }
     }
 
+    const _computeGamepad = gamepad => {
+      localVector
+        .set(0, 0, -1)
+        .applyQuaternion(localQuaternion.fromArray(gamepad.orientation))
+        .toArray(gamepad.direction);
+      localVector.fromArray(gamepad.position);
+      localVector2.set(1, 1, 1);
+      localMatrix
+        .compose(localVector, localQuaternion, localVector2)
+        .toArray(gamepad.transformMatrix);
+    };
     const _computeDerivedGamepadsData = () => {
-      for (let i = 0; i < xrState.gamepads.length; i++) {
-        const gamepad = xrState.gamepads[i];
-        localVector
-          .set(0, 0, -1)
-          .applyQuaternion(localQuaternion.fromArray(gamepad.orientation))
-          .toArray(gamepad.direction);
-        localVector.fromArray(gamepad.position);
-        localVector2.set(1, 1, 1);
-        localMatrix
-          .compose(localVector, localQuaternion, localVector2)
-          .toArray(gamepad.transformMatrix);
+      for (const gamepad of xrState.gamepads) {
+        _computeGamepad(gamepad);
+      }
+      for (const hand of xrState.hands) {
+        for (const joint of hand) {
+          _computeGamepad(joint);
+        }
       }
     };
     _computeDerivedGamepadsData();
