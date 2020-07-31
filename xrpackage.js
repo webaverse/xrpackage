@@ -1200,7 +1200,7 @@ export class XRPackageEngine extends XRNode {
         }
       };
       for (let i = 0; i < xrState.gamepads.length; i++) {
-        xrState.gamepads[i].visible[0] = 0;
+        xrState.gamepads[i].connected[0] = 0;
       }
       for (let i = 0; i < xrState.hands.length; i++) {
         xrState.hands[i].visible[0] = 0;
