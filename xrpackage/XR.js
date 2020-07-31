@@ -659,7 +659,7 @@ class XRInputSource {
   get connected() {
     switch (this._type) {
       case 'gamepad': return this.xrStateGamepad.connected[0] !== 0;
-      case 'hand': return this.xrStateHand.connected[0] !== 0;
+      case 'hand': return this.xrStateHand.visible[0] !== 0;
       default: return false;
     }
   }
