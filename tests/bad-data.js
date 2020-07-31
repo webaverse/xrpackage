@@ -24,12 +24,20 @@ test('compiling unknown file type', withPageAndStaticServer, async (t, page) => 
 });
 
 test('parsing wbn with no manifest', withPageAndStaticServer, async (t, page) => {
-  const result = await page.evaluate(async path => {
+  await performManifestTest(t, page, `${t.context.staticUrl}/assets/no-manifest.wbn`, 'no manifest.json in pack');
+});
+
+test('parsing wbn with empty manifest', withPageAndStaticServer, async (t, page) => {
+  await performManifestTest(t, page, `${t.context.staticUrl}/assets/empty-manifest.wbn`, 'could not find xr_type and start_url in manifest.json');
+});
+
+const performManifestTest = async (t, page, path, expectedError) => {
+  const result = await page.evaluate(async (path, expectedError) => {
     try {
       const uint8Array = await fetch(path).then(res => res.arrayBuffer());
       await new XRPackage(uint8Array);
     } catch (err) {
-      if (err.message === 'no manifest.json in pack') {
+      if (err.message === expectedError) {
         return true;
       } else {
         console.error('Unexpected error', err.message);
@@ -37,7 +45,7 @@ test('parsing wbn with no manifest', withPageAndStaticServer, async (t, page) =>
     }
 
     return false;
-  }, `${t.context.staticUrl}/assets/no-manifest.wbn`);
+  }, path, expectedError);
 
   t.true(result);
-});
+};
