@@ -31,6 +31,10 @@ test('parsing wbn with empty manifest', withPageAndStaticServer, async (t, page)
   await performManifestTest(t, page, `${t.context.staticUrl}/assets/empty-manifest.wbn`, 'could not find xr_type and start_url in manifest.json');
 });
 
+test('parsing wbn with non JSON manifest', withPageAndStaticServer, async (t, page) => {
+  await performManifestTest(t, page, `${t.context.staticUrl}/assets/non-json-manifest.wbn`, 'Unexpected token N in JSON at position 0');
+});
+
 const performManifestTest = async (t, page, path, expectedError) => {
   const result = await page.evaluate(async (path, expectedError) => {
     try {
