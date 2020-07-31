@@ -192,8 +192,7 @@ const _makeXrState = () => {
   result.leftFov.set(Float32Array.from([45, 45, 45, 45]));
   result.rightFov = _makeTypedArray(Float32Array, 4);
   result.rightFov.set(result.leftFov);
-  const _makeGamepad = () => ({
-    connected: _makeTypedArray(Uint32Array, 1),
+  const _makePose = () => ({
     position: _makeTypedArray(Float32Array, 3),
     orientation: (() => {
       const result = _makeTypedArray(Float32Array, 4);
@@ -210,7 +209,10 @@ const _makeXrState = () => {
       result.set(Float32Array.from([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]));
       return result;
     })(),
-    buttons: (() => {
+  });
+  const _makeGamepad = () => {
+    const pose = _makePose();
+    pose.buttons = (() => {
       const result = Array(10);
       for (let i = 0; i < result.length; i++) {
         result[i] = {
@@ -220,9 +222,11 @@ const _makeXrState = () => {
         };
       }
       return result;
-    })(),
-    axes: _makeTypedArray(Float32Array, 10),
-  });
+    })();
+    pose.axes = _makeTypedArray(Float32Array, 10);
+    pose.connected  =_makeTypedArray(Uint32Array, 1);
+    return pose;
+  };
   result.gamepads = (() => {
     const result = Array(2);
     for (let i = 0; i < result.length; i++) {
@@ -233,13 +237,10 @@ const _makeXrState = () => {
   const _makeHand = () => {
     const result = Array(25);
     for (let i = 0; i < result.length; i++) {
-      result[i] = {
-        position: _makeTypedArray(Float32Array, 3),
-        orientation: _makeTypedArray(Float32Array, 4),
-        transformMatrix: _makeTypedArray(Float32Array, 16),
-        radius: _makeTypedArray(Float32Array, 1),
-        visible: _makeTypedArray(Uint32Array, 1),
-      };
+      const pose = _makePose();
+      pose.radius = _makeTypedArray(Float32Array, 1);
+      pose.visible = _makeTypedArray(Uint32Array, 1);
+      result[i] = pose;
     }
     result.visible = _makeTypedArray(Uint32Array, 1);
     return result;
