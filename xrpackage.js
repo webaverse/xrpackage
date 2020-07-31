@@ -1971,9 +1971,11 @@ export class XRPackage extends XRNode {
     if (/\.gltf$/.test(file.name)) {
       return await _createFile(file, 'gltf@0.0.1', 'model/gltf+json');
     } else if (/\.glb$/.test(file.name)) {
-      return await _createFile(file, 'gltf@0.0.1', 'application/octet-stream')
+      return await _createFile(file, 'gltf@0.0.1', 'application/octet-stream');
     } else if (/\.vrm$/.test(file.name)) {
       return await _createFile(file, 'vrm@0.0.1', 'application/octet-stream');
+    } else if (/\.vox$/.test(file.name)) {
+      return await _createFile(file, 'vox@0.0.1', 'application/octet-stream');
     } else if (/\.html$/.test(file.name)) {
       return await _createFile(file, 'webxr-site@0.0.1', 'text/html');
     } else if (/\.wbn$/.test(file.name)) {
