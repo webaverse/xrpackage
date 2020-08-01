@@ -956,8 +956,6 @@ class Avatar {
       hmd: this.poseManager.vrTransforms.head,
 			leftGamepad: this.poseManager.vrTransforms.leftHand,
 			rightGamepad: this.poseManager.vrTransforms.rightHand,
-      leftFingers: this.poseManager.vrTransforms.leftFingers,
-      rightFingers: this.poseManager.vrTransforms.rightFingers,
 		};
     this.inputs.hmd.scaleFactor = 1;
     this.lastModelScaleFactor = 1;
