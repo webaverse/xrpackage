@@ -1280,6 +1280,11 @@ class Avatar {
     }
 
     if (this.debugMeshes) {
+      this.outputs.leftHand.quaternion.multiply(rightRotation); // center
+      this.outputs.leftHand.updateMatrixWorld();
+      this.outputs.rightHand.quaternion.multiply(leftRotation); // center
+      this.outputs.rightHand.updateMatrixWorld();
+
       for (const k in this.debugMeshes.attributes) {
         const attribute = this.debugMeshes.attributes[k];
         if (attribute.visible) {
