@@ -1,5 +1,6 @@
 import THREE from '../three.module.js';
 import './vrarmik/three-vrm.js';
+import {BufferGeometryUtils} from 'https://static.xrpackage.org/BufferGeometryUtils.js';
 import {fixSkeletonZForward} from './vrarmik/SkeletonUtils.js';
 import PoseManager from './vrarmik/PoseManager.js';
 import ShoulderTransforms from './vrarmik/ShoulderTransforms.js';
@@ -65,49 +66,95 @@ const cubeGeometry = new THREE.ConeBufferGeometry(0.05, 0.2, 3)
   .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(
     new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1)))
   );
-const cubeMaterials ={};
-const _getCubeMaterial = color => {
-  let material = cubeMaterials[color];
-  if (!material) {
-    material = new THREE.MeshPhongMaterial({
-      color,
-      flatShading: true,
-    });
-    cubeMaterials[color] = material;
+const cubeGeometryPositions = cubeGeometry.attributes.position.array;
+const numCubeGeometryPositions = cubeGeometryPositions.length;
+const _makeDebugMeshes = () => {
+  const geometries = [];
+  const _makeCubeMesh = (color) => {
+    color = new THREE.Color(color);
+
+    const geometry = cubeGeometry.clone();
+    const colors = new Float32Array(cubeGeometry.attributes.position.array.length);
+    for (let i = 0; i < colors.length; i += 3) {
+      color.toArray(colors, i);
+    }
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    const index = geometries.length;
+    geometries.push(geometry);
+    return index;
+  };
+  const attributes = {
+    eyes: _makeCubeMesh(0xFF0000),
+    head: _makeCubeMesh(0xFF8080),
+
+    chest: _makeCubeMesh(0xFFFF00),
+    leftShoulder: _makeCubeMesh(0x00FF00),
+    rightShoulder: _makeCubeMesh(0x008000),
+    leftUpperArm: _makeCubeMesh(0x00FFFF),
+    rightUpperArm: _makeCubeMesh(0x008080),
+    leftLowerArm: _makeCubeMesh(0x0000FF),
+    rightLowerArm: _makeCubeMesh(0x000080),
+    leftHand: _makeCubeMesh(0xFFFFFF),
+    rightHand: _makeCubeMesh(0x808080),
+
+    leftThumb2: _makeCubeMesh(0xFF0000),
+    leftThumb1: _makeCubeMesh(0xFF0000),
+    leftThumb0: _makeCubeMesh(0xFF0000),
+    leftIndexFinger3: _makeCubeMesh(0xFF0000),
+    leftIndexFinger2: _makeCubeMesh(0xFF0000),
+    leftIndexFinger1: _makeCubeMesh(0xFF0000),
+    leftMiddleFinger3: _makeCubeMesh(0xFF0000),
+    leftMiddleFinger2: _makeCubeMesh(0xFF0000),
+    leftMiddleFinger1: _makeCubeMesh(0xFF0000),
+    leftRingFinger3: _makeCubeMesh(0xFF0000),
+    leftRingFinger2: _makeCubeMesh(0xFF0000),
+    leftRingFinger1: _makeCubeMesh(0xFF0000),
+    leftLittleFinger3: _makeCubeMesh(0xFF0000),
+    leftLittleFinger2: _makeCubeMesh(0xFF0000),
+    leftLittleFinger1: _makeCubeMesh(0xFF0000),
+    rightThumb2: _makeCubeMesh(0xFF0000),
+    rightThumb1: _makeCubeMesh(0xFF0000),
+    rightThumb0: _makeCubeMesh(0xFF0000),
+    rightIndexFinger3: _makeCubeMesh(0xFF0000),
+    rightIndexFinger2: _makeCubeMesh(0xFF0000),
+    rightIndexFinger1: _makeCubeMesh(0xFF0000),
+    rightMiddleFinger3: _makeCubeMesh(0xFF0000),
+    rightMiddleFinger2: _makeCubeMesh(0xFF0000),
+    rightMiddleFinger1: _makeCubeMesh(0xFF0000),
+    rightRingFinger3: _makeCubeMesh(0xFF0000),
+    rightRingFinger2: _makeCubeMesh(0xFF0000),
+    rightRingFinger1: _makeCubeMesh(0xFF0000),
+    rightLittleFinger3: _makeCubeMesh(0xFF0000),
+    rightLittleFinger2: _makeCubeMesh(0xFF0000),
+    rightLittleFinger1: _makeCubeMesh(0xFF0000),
+
+    hips: _makeCubeMesh(0xFF0000),
+    leftUpperLeg: _makeCubeMesh(0xFFFF00),
+    rightUpperLeg: _makeCubeMesh(0x808000),
+    leftLowerLeg: _makeCubeMesh(0x00FF00),
+    rightLowerLeg: _makeCubeMesh(0x008000),
+    leftFoot: _makeCubeMesh(0xFFFFFF),
+    rightFoot: _makeCubeMesh(0x808080),
+  };
+  const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
+  for (const k in attributes) {
+    const index = attributes[k];
+    const attribute = new THREE.BufferAttribute(
+      new Float32Array(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset + index*numCubeGeometryPositions*Float32Array.BYTES_PER_ELEMENT, numCubeGeometryPositions),
+      3
+    );
+    attribute.visible = true;
+    attributes[k] = attribute;
   }
-  return material;
-}
-const _makeCubeMesh = (color = 0x0000FF) => {
-  const mesh = new THREE.Mesh(cubeGeometry, _getCubeMaterial(color));
+  const material = new THREE.MeshPhongMaterial({
+    flatShading: true,
+    vertexColors: true,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
-  /* if (color === 0x008000 || color === 0x808000) {
-    mesh.add(new THREE.AxesHelper());
-  } */
-  mesh.updateMatrixWorld = () => {};
+  mesh.attributes = attributes;
   return mesh;
 };
-const _makeDebugMeshes = () => ({
-  eyes: _makeCubeMesh(0xFF0000),
-  head: _makeCubeMesh(0xFF8080),
-
-  chest: _makeCubeMesh(0xFFFF00),
-  leftShoulder: _makeCubeMesh(0x00FF00),
-  rightShoulder: _makeCubeMesh(0x008000),
-  leftUpperArm: _makeCubeMesh(0x00FFFF),
-  rightUpperArm: _makeCubeMesh(0x008080),
-  leftLowerArm: _makeCubeMesh(0x0000FF),
-  rightLowerArm: _makeCubeMesh(0x000080),
-  leftHand: _makeCubeMesh(0xFFFFFF),
-  rightHand: _makeCubeMesh(0x808080),
-
-  hips: _makeCubeMesh(0xFF0000),
-  leftUpperLeg: _makeCubeMesh(0xFFFF00),
-  rightUpperLeg: _makeCubeMesh(0x808000),
-  leftLowerLeg: _makeCubeMesh(0x00FF00),
-  rightLowerLeg: _makeCubeMesh(0x008000),
-  leftFoot: _makeCubeMesh(0xFFFFFF),
-  rightFoot: _makeCubeMesh(0x808080),
-});
 
 const _getTailBones = skeleton => {
   const result = [];
@@ -415,9 +462,7 @@ class Avatar {
 
     if (options.debug) {
       const debugMeshes = _makeDebugMeshes();
-      for (const k in debugMeshes) {
-        this.model.add(debugMeshes[k]);
-      }
+      this.model.add(debugMeshes);
       this.debugMeshes = debugMeshes;
     } else {
       this.debugMeshes = null;
@@ -1043,11 +1088,17 @@ class Avatar {
     }
 
     if (this.debugMeshes) {
-      for (const k in this.debugMeshes) {
-        const mesh = this.debugMeshes[k];
-        const output = this.outputs[k];
-        mesh.matrixWorld.multiplyMatrices(this.model.matrixWorld, output.matrixWorld);
+      for (const k in this.debugMeshes.attributes) {
+        const attribute = this.debugMeshes.attributes[k];
+        if (attribute.visible) {
+          const output = this.outputs[k];
+          attribute.array.set(cubeGeometryPositions);
+          attribute.applyMatrix4(localMatrix.multiplyMatrices(this.model.matrixWorld, output.matrixWorld));
+        } else {
+          attribute.array.fill(0);
+        }
       }
+      this.debugMeshes.geometry.attributes.position.needsUpdate = true;
     }
 	}
 
@@ -1074,8 +1125,8 @@ class Avatar {
         o.matrixWorld.set(NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN);
       });
       if (this.debugMeshes) {
-        [this.debugMeshes.eyes, this.debugMeshes.head].forEach(mesh => {
-          mesh.visible = false;
+        [this.debugMeshes.attributes.eyes, this.debugMeshes.attributes.head].forEach(attribute => {
+          attribute.visible = false;
         });
       }
       this.decapitated = true;
@@ -1088,8 +1139,8 @@ class Avatar {
         o.matrixWorld.copy(o.savedMatrixWorld);
       });
       if (this.debugMeshes) {
-        [this.debugMeshes.eyes, this.debugMeshes.head].forEach(mesh => {
-          mesh.visible = true;
+        [this.debugMeshes.attributes.eyes, this.debugMeshes.attributes.head].forEach(attribute => {
+          attribute.visible = true;
         });
       }
       this.decapitated = false;
