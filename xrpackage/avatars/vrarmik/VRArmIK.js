@@ -21,6 +21,32 @@ const localQuaternion3 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
+const FINGER_SPECS = [
+  [2, 'thumb0'],
+  [3, 'thumb1'],
+  [4, 'thumb2'],
+
+  // [6, 'indexFinger0'],
+  [7, 'indexFinger1'],
+  [8, 'indexFinger2'],
+  [9, 'indexFinger3'],
+
+  // [11, 'middleFinger0'],
+  [12, 'middleFinger1'],
+  [13, 'middleFinger2'],
+  [14, 'middleFinger3'],
+
+  // [16, 'ringFinger0'],
+  [17, 'ringFinger1'],
+  [18, 'ringFinger2'],
+  [19, 'ringFinger3'],
+
+  // [21, 'littleFinger0'],
+  [22, 'littleFinger1'],
+  [23, 'littleFinger2'],
+  [24, 'littleFinger3'],
+];
+
 	class VRArmIK
 	{
 		constructor(arm, shoulder, shoulderPoser, target, left) {
@@ -126,9 +152,11 @@ const localMatrix = new THREE.Matrix4();
         .premultiply(Helpers.getWorldQuaternion(this.arm.hand.parent, localQuaternion3).inverse());
       Helpers.updateMatrixMatrixWorld(this.arm.hand);
 
-      this.arm.thumb0.quaternion.copy(this.target.fingers[2].quaternion);
-      this.arm.thumb1.quaternion.copy(this.target.fingers[3].quaternion);
-      this.arm.thumb2.quaternion.copy(this.target.fingers[4].quaternion);
+      for (const fingerSpec of FINGER_SPECS) {
+        const [index, key] = fingerSpec;
+        this.arm[key].quaternion.copy(this.target.fingers[index].quaternion);
+        Helpers.updateMatrixMatrixWorld(this.arm[key]);
+      }
 		}
 	}
 
