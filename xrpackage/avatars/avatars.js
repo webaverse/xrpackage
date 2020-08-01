@@ -106,12 +106,30 @@ const _makeDebugMeshes = () => ({
   leftIndexFinger3: _makeCubeMesh(0xFF0000),
   leftIndexFinger2: _makeCubeMesh(0xFF0000),
   leftIndexFinger1: _makeCubeMesh(0xFF0000),
+  leftMiddleFinger3: _makeCubeMesh(0xFF0000),
+  leftMiddleFinger2: _makeCubeMesh(0xFF0000),
+  leftMiddleFinger1: _makeCubeMesh(0xFF0000),
+  leftRingFinger3: _makeCubeMesh(0xFF0000),
+  leftRingFinger2: _makeCubeMesh(0xFF0000),
+  leftRingFinger1: _makeCubeMesh(0xFF0000),
+  leftLittleFinger3: _makeCubeMesh(0xFF0000),
+  leftLittleFinger2: _makeCubeMesh(0xFF0000),
+  leftLittleFinger1: _makeCubeMesh(0xFF0000),
   rightThumb2: _makeCubeMesh(0xFF0000),
   rightThumb1: _makeCubeMesh(0xFF0000),
   rightThumb0: _makeCubeMesh(0xFF0000),
   rightIndexFinger3: _makeCubeMesh(0xFF0000),
   rightIndexFinger2: _makeCubeMesh(0xFF0000),
   rightIndexFinger1: _makeCubeMesh(0xFF0000),
+  rightMiddleFinger3: _makeCubeMesh(0xFF0000),
+  rightMiddleFinger2: _makeCubeMesh(0xFF0000),
+  rightMiddleFinger1: _makeCubeMesh(0xFF0000),
+  rightRingFinger3: _makeCubeMesh(0xFF0000),
+  rightRingFinger2: _makeCubeMesh(0xFF0000),
+  rightRingFinger1: _makeCubeMesh(0xFF0000),
+  rightLittleFinger3: _makeCubeMesh(0xFF0000),
+  rightLittleFinger2: _makeCubeMesh(0xFF0000),
+  rightLittleFinger1: _makeCubeMesh(0xFF0000),
 
   hips: _makeCubeMesh(0xFF0000),
   leftUpperLeg: _makeCubeMesh(0xFFFF00),
@@ -455,6 +473,15 @@ class Avatar {
     const Left_indexFinger3 = _findFinger(Left_wrist, /index(?:finger)?3/i);
     const Left_indexFinger2 = Left_indexFinger3.parent;
     const Left_indexFinger1 = Left_indexFinger2.parent;
+    const Left_middleFinger3 = _findFinger(Left_wrist, /middle(?:finger)?3/i);
+    const Left_middleFinger2 = Left_middleFinger3.parent;
+    const Left_middleFinger1 = Left_middleFinger2.parent;
+    const Left_ringFinger3 = _findFinger(Left_wrist, /ring(?:finger)?3/i);
+    const Left_ringFinger2 = Left_middleFinger3.parent;
+    const Left_ringFinger1 = Left_middleFinger2.parent;
+    const Left_littleFinger3 = _findFinger(Left_wrist, /little(?:finger)?3/i);
+    const Left_littleFinger2 = Left_middleFinger3.parent;
+    const Left_littleFinger1 = Left_middleFinger2.parent;
 	  const Left_elbow = Left_wrist.parent;
 	  const Left_arm = Left_elbow.parent;
 	  const Right_shoulder = _findShoulder(tailBones, false);
@@ -465,6 +492,15 @@ class Avatar {
     const Right_indexFinger3 = _findFinger(Right_wrist, /index(?:finger)?3/i);
     const Right_indexFinger2 = Right_indexFinger3.parent;
     const Right_indexFinger1 = Right_indexFinger2.parent;
+    const Right_middleFinger3 = _findFinger(Right_wrist, /middle(?:finger)?3/i);
+    const Right_middleFinger2 = Left_middleFinger3.parent;
+    const Right_middleFinger1 = Left_middleFinger2.parent;
+    const Right_ringFinger3 = _findFinger(Right_wrist, /ring(?:finger)?3/i);
+    const Right_ringFinger2 = Left_middleFinger3.parent;
+    const Right_ringFinger1 = Left_middleFinger2.parent;
+    const Right_littleFinger3 = _findFinger(Right_wrist, /little(?:finger)?3/i);
+    const Right_littleFinger2 = Left_middleFinger3.parent;
+    const Right_littleFinger1 = Left_middleFinger2.parent;
 	  const Right_elbow = Right_wrist.parent;
 	  const Right_arm = Right_elbow.parent;
 	  const Left_ankle = _findFoot(tailBones, true);
@@ -492,6 +528,15 @@ class Avatar {
       Left_indexFinger3,
       Left_indexFinger2,
       Left_indexFinger1,
+      Left_middleFinger3,
+      Left_middleFinger2,
+      Left_middleFinger1,
+      Left_ringFinger3,
+      Left_ringFinger2,
+      Left_ringFinger1,
+      Left_littleFinger3,
+      Left_littleFinger2,
+      Left_littleFinger1,
 	    Left_leg,
 	    Left_knee,
 	    Left_ankle,
@@ -506,6 +551,15 @@ class Avatar {
       Right_indexFinger3,
       Right_indexFinger2,
       Right_indexFinger1,
+      Right_middleFinger3,
+      Right_middleFinger2,
+      Right_middleFinger1,
+      Right_ringFinger3,
+      Right_ringFinger2,
+      Right_ringFinger1,
+      Right_littleFinger3,
+      Right_littleFinger2,
+      Right_littleFinger1,
 	    Right_leg,
 	    Right_knee,
 	    Right_ankle,
@@ -831,6 +885,15 @@ class Avatar {
       leftIndexFinger1: _getOffset(modelBones.Right_indexFinger1),
       leftIndexFinger2: _getOffset(modelBones.Right_indexFinger2),
       leftIndexFinger3: _getOffset(modelBones.Right_indexFinger3),
+      leftMiddleFinger1: _getOffset(modelBones.Right_middleFinger1),
+      leftMiddleFinger2: _getOffset(modelBones.Right_middleFinger2),
+      leftMiddleFinger3: _getOffset(modelBones.Right_middleFinger3),
+      leftRingFinger1: _getOffset(modelBones.Right_ringFinger1),
+      leftRingFinger2: _getOffset(modelBones.Right_ringFinger2),
+      leftRingFinger3: _getOffset(modelBones.Right_ringFinger3),
+      leftLittleFinger1: _getOffset(modelBones.Right_littleFinger1),
+      leftLittleFinger2: _getOffset(modelBones.Right_littleFinger2),
+      leftLittleFinger3: _getOffset(modelBones.Right_littleFinger3),
 
       rightShoulder: _getOffset(modelBones.Left_shoulder),
       rightUpperArm: _getOffset(modelBones.Left_arm),
@@ -842,6 +905,15 @@ class Avatar {
       rightIndexFinger1: _getOffset(modelBones.Left_indexFinger1),
       rightIndexFinger2: _getOffset(modelBones.Left_indexFinger2),
       rightIndexFinger3: _getOffset(modelBones.Left_indexFinger3),
+      rightMiddleFinger1: _getOffset(modelBones.Left_middleFinger1),
+      rightMiddleFinger2: _getOffset(modelBones.Left_middleFinger2),
+      rightMiddleFinger3: _getOffset(modelBones.Left_middleFinger3),
+      rightRingFinger1: _getOffset(modelBones.Left_ringFinger1),
+      rightRingFinger2: _getOffset(modelBones.Left_ringFinger2),
+      rightRingFinger3: _getOffset(modelBones.Left_ringFinger3),
+      rightLittleFinger1: _getOffset(modelBones.Left_littleFinger1),
+      rightLittleFinger2: _getOffset(modelBones.Left_littleFinger2),
+      rightLittleFinger3: _getOffset(modelBones.Left_littleFinger3),
 
       leftUpperLeg: _getOffset(modelBones.Right_leg),
       leftLowerLeg: _getOffset(modelBones.Right_knee),
@@ -893,12 +965,30 @@ class Avatar {
       leftIndexFinger3: this.shoulderTransforms.leftArm.indexFinger3,
       leftIndexFinger2: this.shoulderTransforms.leftArm.indexFinger2,
       leftIndexFinger1: this.shoulderTransforms.leftArm.indexFinger1,
+      leftMiddleFinger3: this.shoulderTransforms.leftArm.middleFinger3,
+      leftMiddleFinger2: this.shoulderTransforms.leftArm.middleFinger2,
+      leftMiddleFinger1: this.shoulderTransforms.leftArm.middleFinger1,
+      leftRingFinger3: this.shoulderTransforms.leftArm.ringFinger3,
+      leftRingFinger2: this.shoulderTransforms.leftArm.ringFinger2,
+      leftRingFinger1: this.shoulderTransforms.leftArm.ringFinger1,
+      leftLittleFinger3: this.shoulderTransforms.leftArm.littleFinger3,
+      leftLittleFinger2: this.shoulderTransforms.leftArm.littleFinger2,
+      leftLittleFinger1: this.shoulderTransforms.leftArm.littleFinger1,
       rightThumb2: this.shoulderTransforms.rightArm.thumb2,
       rightThumb1: this.shoulderTransforms.rightArm.thumb1,
       rightThumb0: this.shoulderTransforms.rightArm.thumb0,
       rightIndexFinger3: this.shoulderTransforms.rightArm.indexFinger3,
       rightIndexFinger2: this.shoulderTransforms.rightArm.indexFinger2,
       rightIndexFinger1: this.shoulderTransforms.rightArm.indexFinger1,
+      rightMiddleFinger3: this.shoulderTransforms.rightArm.middleFinger3,
+      rightMiddleFinger2: this.shoulderTransforms.rightArm.middleFinger2,
+      rightMiddleFinger1: this.shoulderTransforms.rightArm.middleFinger1,
+      rightRingFinger3: this.shoulderTransforms.rightArm.ringFinger3,
+      rightRingFinger2: this.shoulderTransforms.rightArm.ringFinger2,
+      rightRingFinger1: this.shoulderTransforms.rightArm.ringFinger1,
+      rightLittleFinger3: this.shoulderTransforms.rightArm.littleFinger3,
+      rightLittleFinger2: this.shoulderTransforms.rightArm.littleFinger2,
+      rightLittleFinger1: this.shoulderTransforms.rightArm.littleFinger1,
 		};
 		this.modelBoneOutputs = {
 	    Hips: this.outputs.hips,
@@ -917,6 +1007,15 @@ class Avatar {
       Left_indexFinger3: this.outputs.leftIndexFinger3,
       Left_indexFinger2: this.outputs.leftIndexFinger2,
       Left_indexFinger1: this.outputs.leftIndexFinger1,
+      Left_middleFinger3: this.outputs.leftMiddleFinger3,
+      Left_middleFinger2: this.outputs.leftMiddleFinger2,
+      Left_middleFinger1: this.outputs.leftMiddleFinger1,
+      Left_ringFinger3: this.outputs.leftRingFinger3,
+      Left_ringFinger2: this.outputs.leftRingFinger2,
+      Left_ringFinger1: this.outputs.leftRingFinger1,
+      Left_littleFinger3: this.outputs.leftLittleFinger3,
+      Left_littleFinger2: this.outputs.leftLittleFinger2,
+      Left_littleFinger1: this.outputs.leftLittleFinger1,
 	    Left_leg: this.outputs.rightUpperLeg,
 	    Left_knee: this.outputs.rightLowerLeg,
 	    Left_ankle: this.outputs.rightFoot,
@@ -931,6 +1030,15 @@ class Avatar {
       Right_indexFinger3: this.outputs.rightIndexFinger3,
       Right_indexFinger2: this.outputs.rightIndexFinger2,
       Right_indexFinger1: this.outputs.rightIndexFinger1,
+      Right_middleFinger3: this.outputs.rightMiddleFinger3,
+      Right_middleFinger2: this.outputs.rightMiddleFinger2,
+      Right_middleFinger1: this.outputs.rightMiddleFinger1,
+      Right_ringFinger3: this.outputs.rightRingFinger3,
+      Right_ringFinger2: this.outputs.rightRingFinger2,
+      Right_ringFinger1: this.outputs.rightRingFinger1,
+      Right_littleFinger3: this.outputs.rightLittleFinger3,
+      Right_littleFinger2: this.outputs.rightLittleFinger2,
+      Right_littleFinger1: this.outputs.rightLittleFinger1,
 	    Right_leg: this.outputs.leftUpperLeg,
 	    Right_knee: this.outputs.leftLowerLeg,
 	    Right_ankle: this.outputs.leftFoot,
