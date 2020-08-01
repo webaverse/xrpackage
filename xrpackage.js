@@ -1284,8 +1284,18 @@ export class XRPackageEngine extends XRNode {
 
           rig.inputs.leftGamepad.pointer = xrState.gamepads[1].buttons[0].value;
           rig.inputs.leftGamepad.grip = xrState.gamepads[1].buttons[1].value;
+          if (xrState.hands[1].visible[0]) {
+            for (let i = 0; i < 25; i++) {
+              rig.inputs.leftGamepad.fingers[i].quaternion.fromArray(xrState.hands[1][i].orientation);
+            }
+          }
           rig.inputs.rightGamepad.pointer = xrState.gamepads[0].buttons[0].value;
           rig.inputs.rightGamepad.grip = xrState.gamepads[0].buttons[1].value;
+          if (xrState.hands[0].visible[0]) {
+            for (let i = 0; i < 25; i++) {
+              rig.inputs.rightGamepad.fingers[i].quaternion.fromArray(xrState.hands[0][i].orientation);
+            }
+          }
 
           HANDS.forEach(handedness => {
             const grabuse = this.grabuses[handedness];
