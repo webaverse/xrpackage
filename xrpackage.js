@@ -192,8 +192,7 @@ const _makeXrState = () => {
   result.leftFov.set(Float32Array.from([45, 45, 45, 45]));
   result.rightFov = _makeTypedArray(Float32Array, 4);
   result.rightFov.set(result.leftFov);
-  const _makeGamepad = () => ({
-    connected: _makeTypedArray(Uint32Array, 1),
+  const _makePose = () => ({
     position: _makeTypedArray(Float32Array, 3),
     orientation: (() => {
       const result = _makeTypedArray(Float32Array, 4);
@@ -210,7 +209,10 @@ const _makeXrState = () => {
       result.set(Float32Array.from([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]));
       return result;
     })(),
-    buttons: (() => {
+  });
+  const _makeGamepad = () => {
+    const pose = _makePose();
+    pose.buttons = (() => {
       const result = Array(10);
       for (let i = 0; i < result.length; i++) {
         result[i] = {
@@ -220,13 +222,33 @@ const _makeXrState = () => {
         };
       }
       return result;
-    })(),
-    axes: _makeTypedArray(Float32Array, 10),
-  });
+    })();
+    pose.axes = _makeTypedArray(Float32Array, 10);
+    pose.connected  =_makeTypedArray(Uint32Array, 1);
+    return pose;
+  };
   result.gamepads = (() => {
     const result = Array(2);
     for (let i = 0; i < result.length; i++) {
       result[i] = _makeGamepad();
+    }
+    return result;
+  })();
+  const _makeHand = () => {
+    const result = Array(25);
+    for (let i = 0; i < result.length; i++) {
+      const pose = _makePose();
+      pose.radius = _makeTypedArray(Float32Array, 1);
+      pose.visible = _makeTypedArray(Uint32Array, 1);
+      result[i] = pose;
+    }
+    result.visible = _makeTypedArray(Uint32Array, 1);
+    return result;
+  };
+  result.hands = (() => {
+    const result = Array(2);
+    for (let i = 0; i < result.length; i++) {
+      result[i] = _makeHand();
     }
     return result;
   })();
@@ -1124,22 +1146,24 @@ export class XRPackageEngine extends XRNode {
       const inputSources = Array.from(realSession.inputSources);
       const gamepads = navigator.getGamepads();
 
-      const _scaleMatrixPQS = (srcMatrixArray, p, q, s) => {
+      const _scaleMatrixPQ = (srcMatrixArray, p, q) => {
         localMatrix.fromArray(srcMatrixArray)
           .decompose(localVector, localQuaternion, localVector2);
         localVector.divideScalar(this.scale);
-        p && localVector.toArray(p);
-        q && localQuaternion.toArray(q);
-        s && localVector2.toArray(s);
+        /*p && */localVector.toArray(p);
+        /*q && */localQuaternion.toArray(q);
+        // s && localVector2.toArray(s);
       };
-      const _loadGamepad = i => {
+      const _loadInputSource = i => {
         const inputSource = inputSources[i];
         if (inputSource) {
-          const xrGamepad = xrState.gamepads[inputSource.handedness === 'right' ? 1 : 0];
-
-          let pose, gamepad;
-          if ((pose = frame.getPose(inputSource.targetRaySpace, this.referenceSpace)) && (gamepad = inputSource.gamepad || gamepads[i])) {
-            _scaleMatrixPQS(pose.transform.matrix, xrGamepad.position, xrGamepad.orientation);
+          let gamepad, pose, hand;
+          if (
+            (gamepad = inputSource.gamepad || gamepads[i]) &&
+            (pose = frame.getPose(inputSource.targetRaySpace, this.referenceSpace))
+          ) {
+            const xrGamepad = xrState.gamepads[inputSource.handedness === 'right' ? 1 : 0];
+            _scaleMatrixPQ(pose.transform.matrix, xrGamepad.position, xrGamepad.orientation);
             
             for (let j = 0; j < gamepad.buttons.length; j++) {
               const button = gamepad.buttons[j];
@@ -1154,13 +1178,36 @@ export class XRPackageEngine extends XRNode {
             }
             
             xrGamepad.connected[0] = 1;
-          } else {
-            xrGamepad.connected[0] = 0;
+          } else if (
+            (hand = inputSource.hand)
+          ) {
+            const xrHand = xrState.hands[inputSource.handedness === 'right' ? 1 : 0];
+            for (let i = 0; i < inputSource.hand.length; i++) {
+              const joint = inputSource.hand[i];
+              const xrHandJoint = xrHand[i];
+
+              const jointPose = joint && frame.getJointPose(joint, this.referenceSpace);
+              if (jointPose) {
+                _scaleMatrixPQ(jointPose.transform.matrix, xrHandJoint.position, xrHandJoint.orientation);
+                xrHandJoint.radius[0] = jointPose.radius;
+                xrHandJoint.visible[0] = 1;
+              } else {
+                xrHandJoint.visible[0] = 0;
+              }
+            }
+            xrHand.visible[0] = 1;
           }
         }
       };
-      _loadGamepad(0);
-      _loadGamepad(1);
+      for (let i = 0; i < xrState.gamepads.length; i++) {
+        xrState.gamepads[i].connected[0] = 0;
+      }
+      for (let i = 0; i < xrState.hands.length; i++) {
+        xrState.hands[i].visible[0] = 0;
+      }
+      for (let i = 0; i < inputSources.length; i++) {
+        _loadInputSource(i);
+      }
     } else {
       const {rig, rigPackage} = this;
       if (rig || rigPackage) {
@@ -1194,21 +1241,25 @@ export class XRPackageEngine extends XRNode {
       }
     }
 
+    const _computeGamepad = gamepad => {
+      localVector
+        .set(0, 0, -1)
+        .applyQuaternion(localQuaternion.fromArray(gamepad.orientation))
+        .toArray(gamepad.direction);
+      localVector.fromArray(gamepad.position);
+      localVector2.set(1, 1, 1);
+      localMatrix
+        .compose(localVector, localQuaternion, localVector2)
+        .toArray(gamepad.transformMatrix);
+    };
     const _computeDerivedGamepadsData = () => {
-      const _deriveGamepadData = gamepad => {
-        localQuaternion.fromArray(gamepad.orientation);
-        localVector
-          .set(0, 0, -1)
-          .applyQuaternion(localQuaternion)
-          .toArray(gamepad.direction);
-        localVector.fromArray(gamepad.position);
-        localVector2.set(1, 1, 1);
-        localMatrix
-          .compose(localVector, localQuaternion, localVector2)
-          .toArray(gamepad.transformMatrix);
-      };
-      for (let i = 0; i < xrState.gamepads.length; i++) {
-        _deriveGamepadData(xrState.gamepads[i]);
+      for (const gamepad of xrState.gamepads) {
+        _computeGamepad(gamepad);
+      }
+      for (const hand of xrState.hands) {
+        for (const joint of hand) {
+          _computeGamepad(joint);
+        }
       }
     };
     _computeDerivedGamepadsData();

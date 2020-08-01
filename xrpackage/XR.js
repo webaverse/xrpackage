@@ -178,10 +178,13 @@ class XRSession extends EventTarget {
     this._frame = new XRFrame(this);
     this._referenceSpace = new XRBoundedReferenceSpace(this);
     this._gamepadInputSources = [
-      new XRInputSource('left', 'tracked-pointer', this),
-      new XRInputSource('right', 'tracked-pointer', this),
+      new XRInputSource('left', 'tracked-pointer', 'gamepad', this),
+      new XRInputSource('right', 'tracked-pointer', 'gamepad', this),
     ];
-    this._inputSources = this._gamepadInputSources;
+    this._handInputSources = [
+      new XRInputSource('left', 'gaze', 'hand', this),
+      new XRInputSource('right', 'gaze', 'hand', this),
+    ];
     this._lastPresseds = [false, false];
     this._rafs = [];
     this._layers = [];
@@ -201,7 +204,16 @@ class XRSession extends EventTarget {
     return this.requestReferenceSpace.apply(this, arguments);
   } */
   get inputSources() {
-    return this._inputSources.filter(inputSource => inputSource.connected);
+    const inputSources = [];
+    for (let i = 0; i < this._gamepadInputSources.length; i++) {
+      const inputSource = this._gamepadInputSources[i];
+      inputSource.connected && inputSources.push(inputSource);
+    }
+    for (let i = 0; i < this._handInputSources.length; i++) {
+      const inputSource = this._handInputSources[i];
+      inputSource.connected && inputSources.push(inputSource);
+    }
+    return inputSources;
   }
   requestAnimationFrame(fn) {
     // console.log('request animation frame', window.location.href);
@@ -388,6 +400,9 @@ class XRWebGLLayer {
 }
 
 const _applyXrOffsetToPose = (pose, xrOffsetMatrix, inverse, premultiply, inverse2) => {
+  /* if (!pose._realViewMatrix) {
+    debugger;
+  } */
   localMatrix.fromArray(pose._realViewMatrix);
   const inverseXrOffsetMatrix = inverse ? localMatrix2.getInverse(xrOffsetMatrix) : xrOffsetMatrix;
   if (premultiply) {
@@ -419,8 +434,19 @@ class XRFrame {
     return this.getViewerPose.apply(this, arguments);
   } */
   getPose(sourceSpace, destinationSpace) {
+    /* if (!sourceSpace._pose || !this.session.xrOffsetMatrix) {
+      debugger;
+    } */
     _applyXrOffsetToPose(sourceSpace._pose, this.session.xrOffsetMatrix, true, true, false);
     return sourceSpace._pose;
+  }
+  getJointPose(sourceSpace, destinationSpace) {
+    if (sourceSpace._pose._xrHand[sourceSpace._pose._index].visible[0]) {
+      _applyXrOffsetToPose(sourceSpace._pose, this.session.xrOffsetMatrix, true, true, false);
+      return sourceSpace._pose;
+    } else {
+      return null;
+    }
   }
   /* getInputPose(inputSource, coordinateSystem) { // non-standard
     _applyXrOffsetToPose(inputSource._inputPose, this.session.xrOffsetMatrix, true, true);
@@ -523,10 +549,75 @@ class XRViewerPose extends XRPose {
   } */
 }
 
+class XRJointPose extends XRPose {
+  constructor(session, xrHand, index) {
+    super(session);
+
+    this._xrHand = xrHand;
+    this._index = index;
+  }
+  get radius() {
+    return this._xrHand[index].radius[0];
+  }
+}
+
+class XRJointSpace {
+  constructor(session, xrHand, index) {
+    this._pose = new XRJointPose(session, xrHand, index);
+    this._pose.transform.position._buffer = xrHand[index].position;
+    this._pose.transform.orientation._buffer = xrHand[index].orientation;
+    this._pose._realViewMatrix = xrHand[index].transformMatrix;
+    this._pose._localViewMatrix = this._pose.transform.inverse.matrix;
+  }
+}
+class XRHand {
+  constructor(session, xrHand) {
+    const joints = Array(25);
+    for (let i = 0; i < joints.length; i++) {
+      joints[i] = new XRJointSpace(session, xrHand, i);
+    }
+    for (let i = 0; i < joints.length; i++) {
+      Object.defineProperty(this, i, {
+        get() {
+          return this._xrHand[i].visible[0] ? joints[i] : null;
+        },
+      });
+    }
+    this.length = joints.length;
+    this._xrHand = xrHand;
+  }
+  static WRIST = 0;
+  static THUMB_METACARPAL = 1;
+  static THUMB_PHALANX_PROXIMAL = 2;
+  static THUMB_PHALANX_DISTAL = 3;
+  static THUMB_PHALANX_TIP = 4;
+  static INDEX_METACARPAL = 5;
+  static INDEX_PHALANX_PROXIMAL = 6;
+  static INDEX_PHALANX_INTERMEDIATE = 7;
+  static INDEX_PHALANX_DISTAL = 8;
+  static INDEX_PHALANX_TIP = 9;
+  static MIDDLE_METACARPAL = 10;
+  static MIDDLE_PHALANX_PROXIMAL = 11;
+  static MIDDLE_PHALANX_INTERMEDIATE = 12;
+  static MIDDLE_PHALANX_DISTAL = 13;
+  static MIDDLE_PHALANX_TIP = 14;
+  static RING_METACARPAL = 15;
+  static RING_PHALANX_PROXIMAL = 16;
+  static RING_PHALANX_INTERMEDIATE = 17;
+  static RING_PHALANX_DISTAL = 18;
+  static RING_PHALANX_TIP = 19;
+  static LITTLE_METACARPAL = 20;
+  static LITTLE_PHALANX_PROXIMAL = 21;
+  static LITTLE_PHALANX_INTERMEDIATE = 22;
+  static LITTLE_PHALANX_DISTAL = 23;
+  static LITTLE_PHALANX_TIP = 24;
+}
+
 class XRInputSource {
-  constructor(handedness, targetRayMode, session) {
+  constructor(handedness, targetRayMode, type, session) {
     this.session = session; // non-standard
     this.xrStateGamepad = this.session.xrState.gamepads[handedness === 'right' ? 1 : 0]; // non-standard
+    this.xrStateHand = this.session.xrState.hands[handedness === 'right' ? 1 : 0];
 
     this.handedness = handedness;
     this.targetRayMode = targetRayMode;
@@ -549,14 +640,28 @@ class XRInputSource {
     this._inputPose._realViewMatrix = this.xrStateGamepad.transformMatrix;
     this._inputPose._localViewMatrix = Float32Array.from([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]); */
     
-    this.gamepad = new Gamepad(handedness === 'right' ? 1 : 0, 'WebXR Gamepad', handedness, this.xrStateGamepad, false);
+    this.gamepad = null;
+    this.hand = null;
     this.profiles = ['webxr'];
+
+    this._type = type;
+    switch (this._type) {
+      case 'gamepad': {
+        this.gamepad = new Gamepad(handedness === 'right' ? 1 : 0, 'WebXR Gamepad', handedness, this.xrStateGamepad, false);
+        break;
+      }
+      case 'hand': {
+        this.hand = new XRHand(session, this.xrStateHand);
+        break;
+      }
+    }
   }
   get connected() {
-    return this.xrStateGamepad.connected[0] !== 0;
-  }
-  set connected(connected) {
-    this.xrStateGamepad.connected[0] = connected ? 1 : 0;
+    switch (this._type) {
+      case 'gamepad': return this.xrStateGamepad.connected[0] !== 0;
+      case 'hand': return this.xrStateHand.visible[0] !== 0;
+      default: return false;
+    }
   }
 }
 
@@ -820,6 +925,9 @@ export {
   XRViewport,
   XRPose,
   XRViewerPose,
+  XRJointPose,
+  XRJointSpace,
+  XRHand,
   XRInputSource,
   DOMPoint,
   // XRRay,
