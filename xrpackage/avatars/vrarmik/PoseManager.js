@@ -2,7 +2,7 @@ import VRTrackingReferences from './VRTrackingReferences.js';
 
 class PoseManager
 	{
-		constructor(rig) {
+		constructor() {
 			this.vrTransforms = new VRTrackingReferences();
 		  // this.OnCalibrateListener = null;
 

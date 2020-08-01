@@ -791,7 +791,7 @@ class Avatar {
 	  };
     const eyePosition = _getEyePosition();
 
-		this.poseManager = new PoseManager(this);
+		this.poseManager = new PoseManager();
 		this.shoulderTransforms = new ShoulderTransforms(this);
 		this.legsManager = new LegsManager(this);
 
