@@ -68,12 +68,19 @@ const cubeGeometry = new THREE.ConeBufferGeometry(0.05, 0.2, 3)
   );
 const cubeGeometryPositions = cubeGeometry.attributes.position.array;
 const numCubeGeometryPositions = cubeGeometryPositions.length;
+const srcCubeGeometries = {};
 const _makeDebugMeshes = () => {
   const geometries = [];
-  const _makeCubeMesh = (color) => {
+  const _makeCubeMesh = (color, scale = 1) => {
     color = new THREE.Color(color);
 
-    const geometry = cubeGeometry.clone();
+    let srcGeometry = srcCubeGeometries[scale];
+    if (!srcGeometry) {
+      srcGeometry = cubeGeometry.clone()
+        .applyMatrix4(localMatrix.makeScale(scale, scale, scale));
+      srcCubeGeometries[scale] = srcGeometry;
+    }
+    const geometry = srcGeometry.clone();
     const colors = new Float32Array(cubeGeometry.attributes.position.array.length);
     for (let i = 0; i < colors.length; i += 3) {
       color.toArray(colors, i);
@@ -81,8 +88,9 @@ const _makeDebugMeshes = () => {
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     const index = geometries.length;
     geometries.push(geometry);
-    return index;
+    return [index, srcGeometry];
   };
+  const fingerScale = 0.25;
   const attributes = {
     eyes: _makeCubeMesh(0xFF0000),
     head: _makeCubeMesh(0xFF8080),
@@ -97,36 +105,36 @@ const _makeDebugMeshes = () => {
     leftHand: _makeCubeMesh(0xFFFFFF),
     rightHand: _makeCubeMesh(0x808080),
 
-    leftThumb2: _makeCubeMesh(0xFF0000),
-    leftThumb1: _makeCubeMesh(0xFF0000),
-    leftThumb0: _makeCubeMesh(0xFF0000),
-    leftIndexFinger3: _makeCubeMesh(0xFF0000),
-    leftIndexFinger2: _makeCubeMesh(0xFF0000),
-    leftIndexFinger1: _makeCubeMesh(0xFF0000),
-    leftMiddleFinger3: _makeCubeMesh(0xFF0000),
-    leftMiddleFinger2: _makeCubeMesh(0xFF0000),
-    leftMiddleFinger1: _makeCubeMesh(0xFF0000),
-    leftRingFinger3: _makeCubeMesh(0xFF0000),
-    leftRingFinger2: _makeCubeMesh(0xFF0000),
-    leftRingFinger1: _makeCubeMesh(0xFF0000),
-    leftLittleFinger3: _makeCubeMesh(0xFF0000),
-    leftLittleFinger2: _makeCubeMesh(0xFF0000),
-    leftLittleFinger1: _makeCubeMesh(0xFF0000),
-    rightThumb2: _makeCubeMesh(0xFF0000),
-    rightThumb1: _makeCubeMesh(0xFF0000),
-    rightThumb0: _makeCubeMesh(0xFF0000),
-    rightIndexFinger3: _makeCubeMesh(0xFF0000),
-    rightIndexFinger2: _makeCubeMesh(0xFF0000),
-    rightIndexFinger1: _makeCubeMesh(0xFF0000),
-    rightMiddleFinger3: _makeCubeMesh(0xFF0000),
-    rightMiddleFinger2: _makeCubeMesh(0xFF0000),
-    rightMiddleFinger1: _makeCubeMesh(0xFF0000),
-    rightRingFinger3: _makeCubeMesh(0xFF0000),
-    rightRingFinger2: _makeCubeMesh(0xFF0000),
-    rightRingFinger1: _makeCubeMesh(0xFF0000),
-    rightLittleFinger3: _makeCubeMesh(0xFF0000),
-    rightLittleFinger2: _makeCubeMesh(0xFF0000),
-    rightLittleFinger1: _makeCubeMesh(0xFF0000),
+    leftThumb2: _makeCubeMesh(0xFF0000, fingerScale),
+    leftThumb1: _makeCubeMesh(0xFF0000, fingerScale),
+    leftThumb0: _makeCubeMesh(0xFF0000, fingerScale),
+    leftIndexFinger3: _makeCubeMesh(0xFF0000, fingerScale),
+    leftIndexFinger2: _makeCubeMesh(0xFF0000, fingerScale),
+    leftIndexFinger1: _makeCubeMesh(0xFF0000, fingerScale),
+    leftMiddleFinger3: _makeCubeMesh(0xFF0000, fingerScale),
+    leftMiddleFinger2: _makeCubeMesh(0xFF0000, fingerScale),
+    leftMiddleFinger1: _makeCubeMesh(0xFF0000, fingerScale),
+    leftRingFinger3: _makeCubeMesh(0xFF0000, fingerScale),
+    leftRingFinger2: _makeCubeMesh(0xFF0000, fingerScale),
+    leftRingFinger1: _makeCubeMesh(0xFF0000, fingerScale),
+    leftLittleFinger3: _makeCubeMesh(0xFF0000, fingerScale),
+    leftLittleFinger2: _makeCubeMesh(0xFF0000, fingerScale),
+    leftLittleFinger1: _makeCubeMesh(0xFF0000, fingerScale),
+    rightThumb2: _makeCubeMesh(0xFF0000, fingerScale),
+    rightThumb1: _makeCubeMesh(0xFF0000, fingerScale),
+    rightThumb0: _makeCubeMesh(0xFF0000, fingerScale),
+    rightIndexFinger3: _makeCubeMesh(0xFF0000, fingerScale),
+    rightIndexFinger2: _makeCubeMesh(0xFF0000, fingerScale),
+    rightIndexFinger1: _makeCubeMesh(0xFF0000, fingerScale),
+    rightMiddleFinger3: _makeCubeMesh(0xFF0000, fingerScale),
+    rightMiddleFinger2: _makeCubeMesh(0xFF0000, fingerScale),
+    rightMiddleFinger1: _makeCubeMesh(0xFF0000, fingerScale),
+    rightRingFinger3: _makeCubeMesh(0xFF0000, fingerScale),
+    rightRingFinger2: _makeCubeMesh(0xFF0000, fingerScale),
+    rightRingFinger1: _makeCubeMesh(0xFF0000, fingerScale),
+    rightLittleFinger3: _makeCubeMesh(0xFF0000, fingerScale),
+    rightLittleFinger2: _makeCubeMesh(0xFF0000, fingerScale),
+    rightLittleFinger1: _makeCubeMesh(0xFF0000, fingerScale),
 
     hips: _makeCubeMesh(0xFF0000),
     leftUpperLeg: _makeCubeMesh(0xFFFF00),
@@ -138,11 +146,12 @@ const _makeDebugMeshes = () => {
   };
   const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
   for (const k in attributes) {
-    const index = attributes[k];
+    const [index, srcGeometry] = attributes[k];
     const attribute = new THREE.BufferAttribute(
       new Float32Array(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset + index*numCubeGeometryPositions*Float32Array.BYTES_PER_ELEMENT, numCubeGeometryPositions),
       3
     );
+    attribute.srcGeometry = srcGeometry;
     attribute.visible = true;
     attributes[k] = attribute;
   }
@@ -1257,7 +1266,7 @@ class Avatar {
         const attribute = this.debugMeshes.attributes[k];
         if (attribute.visible) {
           const output = this.outputs[k];
-          attribute.array.set(cubeGeometryPositions);
+          attribute.array.set(attribute.srcGeometry.attributes.position.array);
           attribute.applyMatrix4(localMatrix.multiplyMatrices(this.model.matrixWorld, output.matrixWorld));
         } else {
           attribute.array.fill(0);
