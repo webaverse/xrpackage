@@ -103,9 +103,15 @@ const _makeDebugMeshes = () => ({
   leftThumb2: _makeCubeMesh(0xFF0000),
   leftThumb1: _makeCubeMesh(0xFF0000),
   leftThumb0: _makeCubeMesh(0xFF0000),
+  leftIndexFinger3: _makeCubeMesh(0xFF0000),
+  leftIndexFinger2: _makeCubeMesh(0xFF0000),
+  leftIndexFinger1: _makeCubeMesh(0xFF0000),
   rightThumb2: _makeCubeMesh(0xFF0000),
   rightThumb1: _makeCubeMesh(0xFF0000),
   rightThumb0: _makeCubeMesh(0xFF0000),
+  rightIndexFinger3: _makeCubeMesh(0xFF0000),
+  rightIndexFinger2: _makeCubeMesh(0xFF0000),
+  rightIndexFinger1: _makeCubeMesh(0xFF0000),
 
   hips: _makeCubeMesh(0xFF0000),
   leftUpperLeg: _makeCubeMesh(0xFFFF00),
@@ -446,6 +452,9 @@ class Avatar {
     const Left_thumb2 = _findFinger(Left_wrist, /thumb3_end/i) || _findFinger(Left_wrist, /thumb2/i);
     const Left_thumb1 = Left_thumb2.parent;
     const Left_thumb0 = Left_thumb1.parent;
+    const Left_indexFinger3 = _findFinger(Left_wrist, /index(?:finger)?3/i);
+    const Left_indexFinger2 = Left_indexFinger3.parent;
+    const Left_indexFinger1 = Left_indexFinger2.parent;
 	  const Left_elbow = Left_wrist.parent;
 	  const Left_arm = Left_elbow.parent;
 	  const Right_shoulder = _findShoulder(tailBones, false);
@@ -453,6 +462,9 @@ class Avatar {
     const Right_thumb2 = _findFinger(Right_wrist, /thumb3_end/i) || _findFinger(Right_wrist, /thumb2/i);
     const Right_thumb1 = Right_thumb2.parent;
     const Right_thumb0 = Right_thumb1.parent;
+    const Right_indexFinger3 = _findFinger(Right_wrist, /index(?:finger)?3/i);
+    const Right_indexFinger2 = Right_indexFinger3.parent;
+    const Right_indexFinger1 = Right_indexFinger2.parent;
 	  const Right_elbow = Right_wrist.parent;
 	  const Right_arm = Right_elbow.parent;
 	  const Left_ankle = _findFoot(tailBones, true);
@@ -477,6 +489,9 @@ class Avatar {
       Left_thumb2,
       Left_thumb1,
       Left_thumb0,
+      Left_indexFinger3,
+      Left_indexFinger2,
+      Left_indexFinger1,
 	    Left_leg,
 	    Left_knee,
 	    Left_ankle,
@@ -488,6 +503,9 @@ class Avatar {
       Right_thumb2,
       Right_thumb1,
       Right_thumb0,
+      Right_indexFinger3,
+      Right_indexFinger2,
+      Right_indexFinger1,
 	    Right_leg,
 	    Right_knee,
 	    Right_ankle,
@@ -810,6 +828,9 @@ class Avatar {
       leftThumb2: _getOffset(modelBones.Right_thumb2),
       leftThumb1: _getOffset(modelBones.Right_thumb1),
       leftThumb0: _getOffset(modelBones.Right_thumb0),
+      leftIndexFinger1: _getOffset(modelBones.Right_indexFinger1),
+      leftIndexFinger2: _getOffset(modelBones.Right_indexFinger2),
+      leftIndexFinger3: _getOffset(modelBones.Right_indexFinger3),
 
       rightShoulder: _getOffset(modelBones.Left_shoulder),
       rightUpperArm: _getOffset(modelBones.Left_arm),
@@ -818,6 +839,9 @@ class Avatar {
       rightThumb2: _getOffset(modelBones.Left_thumb2),
       rightThumb1: _getOffset(modelBones.Left_thumb1),
       rightThumb0: _getOffset(modelBones.Left_thumb0),
+      rightIndexFinger1: _getOffset(modelBones.Left_indexFinger1),
+      rightIndexFinger2: _getOffset(modelBones.Left_indexFinger2),
+      rightIndexFinger3: _getOffset(modelBones.Left_indexFinger3),
 
       leftUpperLeg: _getOffset(modelBones.Right_leg),
       leftLowerLeg: _getOffset(modelBones.Right_knee),
@@ -866,9 +890,15 @@ class Avatar {
       leftThumb2: this.shoulderTransforms.leftArm.thumb2,
       leftThumb1: this.shoulderTransforms.leftArm.thumb1,
       leftThumb0: this.shoulderTransforms.leftArm.thumb0,
+      leftIndexFinger3: this.shoulderTransforms.leftArm.indexFinger3,
+      leftIndexFinger2: this.shoulderTransforms.leftArm.indexFinger2,
+      leftIndexFinger1: this.shoulderTransforms.leftArm.indexFinger1,
       rightThumb2: this.shoulderTransforms.rightArm.thumb2,
       rightThumb1: this.shoulderTransforms.rightArm.thumb1,
       rightThumb0: this.shoulderTransforms.rightArm.thumb0,
+      rightIndexFinger3: this.shoulderTransforms.rightArm.indexFinger3,
+      rightIndexFinger2: this.shoulderTransforms.rightArm.indexFinger2,
+      rightIndexFinger1: this.shoulderTransforms.rightArm.indexFinger1,
 		};
 		this.modelBoneOutputs = {
 	    Hips: this.outputs.hips,
@@ -884,6 +914,9 @@ class Avatar {
       Left_thumb2: this.outputs.rightThumb2,
       Left_thumb1: this.outputs.rightThumb1,
       Left_thumb0: this.outputs.rightThumb0,
+      Left_indexFinger3: this.outputs.leftIndexFinger3,
+      Left_indexFinger2: this.outputs.leftIndexFinger2,
+      Left_indexFinger1: this.outputs.leftIndexFinger1,
 	    Left_leg: this.outputs.rightUpperLeg,
 	    Left_knee: this.outputs.rightLowerLeg,
 	    Left_ankle: this.outputs.rightFoot,
@@ -895,6 +928,9 @@ class Avatar {
       Right_thumb2: this.outputs.leftThumb2,
       Right_thumb1: this.outputs.leftThumb1,
       Right_thumb0: this.outputs.leftThumb0,
+      Right_indexFinger3: this.outputs.rightIndexFinger3,
+      Right_indexFinger2: this.outputs.rightIndexFinger2,
+      Right_indexFinger1: this.outputs.rightIndexFinger1,
 	    Right_leg: this.outputs.leftUpperLeg,
 	    Right_knee: this.outputs.leftLowerLeg,
 	    Right_ankle: this.outputs.leftFoot,
@@ -936,6 +972,9 @@ class Avatar {
     this.shoulderTransforms.leftArm.thumb2.position.copy(setups.leftThumb2);
     this.shoulderTransforms.leftArm.thumb1.position.copy(setups.leftThumb1);
     this.shoulderTransforms.leftArm.thumb0.position.copy(setups.leftThumb0);
+    this.shoulderTransforms.leftArm.indexFinger3.position.copy(setups.leftIndexFinger3);
+    this.shoulderTransforms.leftArm.indexFinger2.position.copy(setups.leftIndexFinger2);
+    this.shoulderTransforms.leftArm.indexFinger1.position.copy(setups.leftIndexFinger1);
 
     this.shoulderTransforms.rightShoulderAnchor.position.copy(setups.rightShoulder);
     this.shoulderTransforms.rightArm.upperArm.position.copy(setups.rightUpperArm);
@@ -944,6 +983,9 @@ class Avatar {
     this.shoulderTransforms.rightArm.thumb2.position.copy(setups.rightThumb2);
     this.shoulderTransforms.rightArm.thumb1.position.copy(setups.rightThumb1);
     this.shoulderTransforms.rightArm.thumb0.position.copy(setups.rightThumb0);
+    this.shoulderTransforms.rightArm.indexFinger3.position.copy(setups.rightIndexFinger3);
+    this.shoulderTransforms.rightArm.indexFinger2.position.copy(setups.rightIndexFinger2);
+    this.shoulderTransforms.rightArm.indexFinger1.position.copy(setups.rightIndexFinger1);
 
     this.legsManager.leftLeg.upperLeg.position.copy(setups.leftUpperLeg);
     this.legsManager.leftLeg.lowerLeg.position.copy(setups.leftLowerLeg);
