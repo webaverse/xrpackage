@@ -125,6 +125,10 @@ const localMatrix = new THREE.Matrix4();
         .multiply(this.left ? bankRightRotation : bankLeftRotation)
         .premultiply(Helpers.getWorldQuaternion(this.arm.hand.parent, localQuaternion3).inverse());
       Helpers.updateMatrixMatrixWorld(this.arm.hand);
+
+      this.arm.thumb0.quaternion.copy(this.target.fingers[2].quaternion);
+      this.arm.thumb1.quaternion.copy(this.target.fingers[3].quaternion);
+      this.arm.thumb2.quaternion.copy(this.target.fingers[4].quaternion);
 		}
 	}
 
