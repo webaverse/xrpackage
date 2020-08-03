@@ -1,3 +1,4 @@
+/* global XRPackage */
 const test = require('ava');
 
 const withPageAndStaticServer = require('./utils/_withPageAndStaticServer');
@@ -14,13 +15,17 @@ test('upload package programmatically', withPageAndStaticServer, async (t, page)
 });
 
 const downloadFunction = async (hash) => {
-  const p = await XRPackage.download(hash);
-  return p.hash === hash;
+  return window.safeEvaluate(async () => {
+    const p = await XRPackage.download(hash);
+    return p.hash === hash;
+  });
 };
 
 const uploadFunction = async (path) => {
-  const file = await fetch(path).then(res => res.arrayBuffer());
-  const p = new XRPackage(file);
-  const hash = await p.upload();
-  return hash === p.hash;
+  return window.safeEvaluate(async () => {
+    const file = await fetch(path).then(res => res.arrayBuffer());
+    const p = new XRPackage(file);
+    const hash = await p.upload();
+    return hash === p.hash;
+  });
 };

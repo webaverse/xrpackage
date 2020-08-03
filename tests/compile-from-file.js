@@ -53,18 +53,20 @@ const performTest = async (t, page, assetPath, mime) => {
 };
 
 const pageFunction = async path => {
-  const blob = await fetch(path).then(res => res.blob());
-  blob.name = path.split('/').pop();
+  return window.safeEvaluate(async () => {
+    const blob = await fetch(path).then(res => res.blob());
+    blob.name = path.split('/').pop();
 
-  const uint8Array = await XRPackage.compileFromFile(blob);
-  const uint8ArrayToBase64 = async uint8Array => new Promise(resolve => {
-    const blob = new Blob([uint8Array]);
-    const reader = new FileReader();
-    reader.onload = event => resolve(event.target.result.replace(/data:.*base64,/, ''));
-    reader.readAsDataURL(blob);
+    const uint8Array = await XRPackage.compileFromFile(blob);
+    const uint8ArrayToBase64 = async uint8Array => new Promise(resolve => {
+      const blob = new Blob([uint8Array]);
+      const reader = new FileReader();
+      reader.onload = event => resolve(event.target.result.replace(/data:.*base64,/, ''));
+      reader.readAsDataURL(blob);
+    });
+
+    // Puppeteer only supports passing serializable data to/from Node
+    const base64 = await uint8ArrayToBase64(uint8Array);
+    return base64;
   });
-
-  // Puppeteer only supports passing serializable data to/from Node
-  const base64 = await uint8ArrayToBase64(uint8Array);
-  return base64;
 };
