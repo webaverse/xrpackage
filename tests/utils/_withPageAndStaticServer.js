@@ -48,9 +48,9 @@ module.exports = async (t, run) => {
 
     // Expose safeEvaluate function to try...catch page functions for better stack traces
     await page.evaluate(() => {
-      window.safeEvaluate = async function(fn, ...args) {
+      window.safeEvaluate = async function(fn) {
         try {
-          return await fn(...args);
+          return await fn();
         } catch (err) {
           console.error(err.stack);
           return null;
