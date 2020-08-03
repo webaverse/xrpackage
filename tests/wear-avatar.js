@@ -9,10 +9,12 @@ test('wear package as avatar function', withPageAndStaticServer, async (t, page)
 });
 
 const pageFunction = async path => {
-  const file = await fetch(path).then(res => res.arrayBuffer());
-  const p = new XRPackage(file);
-  await p.waitForLoad();
-  const engine = new XRPackageEngine();
-  await engine.wearAvatar(p);
-  return engine.rig !== null;
+  return window.safeEvaluate(async () => {
+    const file = await fetch(path).then(res => res.arrayBuffer());
+    const p = new XRPackage(file);
+    await p.waitForLoad();
+    const engine = new XRPackageEngine();
+    await engine.wearAvatar(p);
+    return engine.rig !== null;
+  });
 };

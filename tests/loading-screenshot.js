@@ -14,9 +14,11 @@ test('load screenshot of unbaked xrpk', withPageAndStaticServer, async (t, page)
 });
 
 const pageFunction = async path => {
-  const file = await fetch(path).then(res => res.arrayBuffer());
-  const p = new XRPackage(file);
-  await p.waitForLoad();
-  const screenshot = await p.getScreenshotImage();
-  return screenshot ? screenshot.outerHTML : null;
+  return window.safeEvaluate(async () => {
+    const file = await fetch(path).then(res => res.arrayBuffer());
+    const p = new XRPackage(file);
+    await p.waitForLoad();
+    const screenshot = await p.getScreenshotImage();
+    return screenshot ? screenshot.outerHTML : null;
+  });
 };
