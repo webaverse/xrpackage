@@ -1,4 +1,4 @@
-/* global XRPackage */
+/* global XRPackage, XRPackageEngine */
 const test = require('ava');
 
 const withPageAndStaticServer = require('./utils/_withPageAndStaticServer');
@@ -33,6 +33,23 @@ test('parsing wbn with empty manifest', withPageAndStaticServer, async (t, page)
 
 test('parsing wbn with non JSON manifest', withPageAndStaticServer, async (t, page) => {
   await performManifestTest(t, page, `${t.context.staticUrl}/assets/non-json-manifest.wbn`, 'Unexpected token N in JSON at position 0');
+});
+
+test.skip('adding broken WebXR package to engine', withPageAndStaticServer, async (t, page) => {
+  const doesThrow = await page.evaluate(async path => {
+    const uint8Array = await fetch(path).then(res => res.arrayBuffer());
+    const p = await new XRPackage(uint8Array);
+    const pe = await new XRPackageEngine();
+    try {
+      await pe.add(p);
+      return false;
+    } catch (e) {
+      console.error('Caught error', e.stack);
+      return true;
+    }
+  }, `${t.context.staticUrl}/assets/broken-webxr-site.wbn`);
+
+  t.true(doesThrow);
 });
 
 const performManifestTest = async (t, page, path, expectedError) => {
