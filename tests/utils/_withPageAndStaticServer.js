@@ -34,9 +34,7 @@ module.exports = async (t, run) => {
     args: ['--no-sandbox'],
   });
   const page = await browser.newPage();
-  page.on('console', consoleObj => console.log('Page log:', consoleObj.text()));
-  page.on('pageerror', err => console.error('Page error: ', err.stack));
-  page.on('requestfailed', req => console.error('Request failed: ', req));
+  page.on('console', consoleObj => console.log(`Page log: "${consoleObj.text()}"`));
 
   const server = _newStaticServer();
   const port = server.address().port;
@@ -45,19 +43,6 @@ module.exports = async (t, run) => {
   try {
     // Wait for no more network requests for at least 500ms before passing onto main test
     await page.goto(t.context.staticUrl, {waitUntil: 'networkidle0'});
-
-    // Expose safeEvaluate function to try...catch page functions for better stack traces
-    await page.evaluate(() => {
-      window.safeEvaluate = async function(fn) {
-        try {
-          return await fn();
-        } catch (err) {
-          console.error(err.stack);
-          return null;
-        }
-      };
-    });
-
     await run(t, page);
   } finally {
     server.close();
