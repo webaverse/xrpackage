@@ -33,8 +33,19 @@ module.exports = async (t, run) => {
     devtools: true,
     args: ['--no-sandbox'],
   });
-  browser.process().stdout.pipe(process.stdout);
-  browser.process().stderr.pipe(process.stderr);
+
+  browser.process().stdout.on('data', d => {
+    if (d.includes(':CONSOLE')) {
+      console.log(d.toString());
+    }
+  });
+
+  browser.process().stderr.on('data', d => {
+    if (d.includes(':CONSOLE')) {
+      console.error(d.toString());
+    }
+  });
+
   const page = await browser.newPage();
   page.on('requestfailed', req => console.error('Request failed: ', req));
 
