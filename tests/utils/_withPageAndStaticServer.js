@@ -31,9 +31,10 @@ module.exports = async (t, run) => {
   const browser = await puppeteer.launch({
     headless: true,
     devtools: true,
-    dumpio: true,
     args: ['--no-sandbox'],
   });
+  browser.process().stdout.pipe(process.stdout);
+  browser.process().stderr.pipe(process.stderr);
   const page = await browser.newPage();
   page.on('requestfailed', req => console.error('Request failed: ', req));
 
