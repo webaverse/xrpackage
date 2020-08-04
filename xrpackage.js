@@ -456,13 +456,14 @@ const _setFramebufferMsRenderbuffer = (gl, xrfb, width, height, devicePixelRatio
     gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, xrfb);
 
     const colorRenderbuffer = gl.createRenderbuffer();
+    const samples = gl.getParameter(gl.MAX_SAMPLES);
     gl.bindRenderbuffer(gl.RENDERBUFFER, colorRenderbuffer);
-    gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.RGBA8, width * devicePixelRatio, height * devicePixelRatio);
+    gl.renderbufferStorageMultisample(gl.RENDERBUFFER, samples, gl.RGBA8, width * devicePixelRatio, height * devicePixelRatio);
     gl.framebufferRenderbuffer(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, colorRenderbuffer);
 
     const depthRenderbuffer = gl.createRenderbuffer();
     gl.bindRenderbuffer(gl.RENDERBUFFER, depthRenderbuffer);
-    gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.DEPTH32F_STENCIL8, width * devicePixelRatio, height * devicePixelRatio);
+    gl.renderbufferStorageMultisample(gl.RENDERBUFFER, samples, gl.DEPTH32F_STENCIL8, width * devicePixelRatio, height * devicePixelRatio);
     gl.framebufferRenderbuffer(gl.DRAW_FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, depthRenderbuffer);
 
     gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, oldDrawFbo);
