@@ -31,10 +31,11 @@ module.exports = async (t, run) => {
   const browser = await puppeteer.launch({
     headless: true,
     devtools: true,
+    dumpio: true,
     args: ['--no-sandbox'],
   });
   const page = await browser.newPage();
-  page.on('console', consoleObj => console.log(`Page log: "${consoleObj.text()}"`));
+  page.on('requestfailed', req => console.error('Request failed: ', req));
 
   const server = _newStaticServer();
   const port = server.address().port;
