@@ -35,21 +35,26 @@ test('parsing wbn with non JSON manifest', withPageAndStaticServer, async (t, pa
   await performManifestTest(t, page, `${t.context.staticUrl}/assets/non-json-manifest.wbn`, 'Unexpected token N in JSON at position 0');
 });
 
-test.skip('adding broken WebXR package to engine', withPageAndStaticServer, async (t, page) => {
-  const doesThrow = await page.evaluate(async path => {
+test('adding broken WebXR package to engine', withPageAndStaticServer, async (t, page) => {
+  const doesTimeOut = await page.evaluate(async path => {
     const uint8Array = await fetch(path).then(res => res.arrayBuffer());
     const p = await new XRPackage(uint8Array);
     const pe = await new XRPackageEngine();
+
     try {
-      await pe.add(p);
-      return false;
-    } catch (e) {
-      console.error('Caught error', e.stack);
-      return true;
+      await pe.add(p, {timeout: 2000});
+    } catch (err) {
+      if (err.message === 'Timed out whilst loading package') {
+        return true;
+      } else {
+        throw err;
+      }
     }
+
+    return false;
   }, `${t.context.staticUrl}/assets/broken-webxr-site.wbn`);
 
-  t.true(doesThrow);
+  t.true(doesTimeOut);
 });
 
 const performManifestTest = async (t, page, path, expectedError) => {
