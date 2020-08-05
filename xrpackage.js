@@ -26,6 +26,8 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localArray = Array(16);
 
+const PACKAGE_ADD_TIMEOUT = 30000;
+
 function makePromise() {
   let resolve, reject;
   const result = new Promise((a, b) => {
@@ -376,7 +378,7 @@ const xrTypeLoaders = {
   },
 };
 const xrTypeAdders = {
-  'webxr-site@0.0.1': async function(p) {
+  'webxr-site@0.0.1': async function(p, options) {
     await _loadPackageInSw(p);
 
     const iframe = document.createElement('iframe');
@@ -434,7 +436,18 @@ const xrTypeAdders = {
     const xrfb = this.realSession ? this.realSession.renderState.baseLayer.framebuffer : this.fakeXrFramebuffer;
     p.setXrFramebuffer(xrfb);
 
-    await p.context.requestPresentPromise;
+    if (options && options.timeout) {
+      const timeoutPromise = new Promise((resolve, reject) =>
+        setTimeout(() => reject(new Error('Timed out whilst loading package')), options.timeout),
+      );
+
+      await Promise.race([
+        p.context.requestPresentPromise,
+        timeoutPromise,
+      ]);
+    } else {
+      await p.context.requestPresentPromise;
+    }
   },
   'gltf@0.0.1': async function(p) {
     this.container.add(p.context.object);
@@ -527,7 +540,7 @@ class XRNode extends EventTarget {
   constructor() {
     super();
   }
-  async add(p, reason) {
+  async add(p, {reason, timeout = PACKAGE_ADD_TIMEOUT} = {}) {
     if (p.parent) {
       p.parent.remove(p, 'move');
     }
@@ -543,7 +556,7 @@ class XRNode extends EventTarget {
       },
     }));
 
-    await p.ensureRunStop();
+    await p.ensureRunStop({timeout});
   }
   remove(p, reason) {
     const index = this.children.indexOf(p);
@@ -1882,8 +1895,8 @@ export class XRPackage extends XRNode {
       });
     }
   }
-  async add(p, reason) {
-    await super.add(p, reason);
+  async add(p, {reason, timeout} = {}) {
+    await super.add(p, {reason, timeout});
 
     this.context.iframe && this.context.iframe.contentWindow && this.context.iframe.contentWindow.xrpackage &&
       this.context.iframe.contentWindow.xrpackage.dispatchEvent(new MessageEvent('packageadd', {
@@ -2205,7 +2218,7 @@ export class XRPackage extends XRNode {
       return null;
     }
   }
-  async ensureRunStop() {
+  async ensureRunStop(options) {
     await this.waitForLoad();
 
     const {runningEngine} = this;
@@ -2217,7 +2230,7 @@ export class XRPackage extends XRNode {
       const adder = xrTypeAdders[type];
       if (adder) {
         this.runningEngine = currentEngine;
-        await adder.call(currentEngine, this);
+        await adder.call(currentEngine, this, options);
         this.dispatchEvent(new MessageEvent('run'));
       } else {
         throw new Error(`unknown xr_type: ${type}`);
