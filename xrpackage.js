@@ -542,7 +542,7 @@ class XRNode extends EventTarget {
   }
   async add(p, {reason, timeout = PACKAGE_ADD_TIMEOUT} = {}) {
     if (p.parent) {
-      p.parent.remove(p, 'move');
+      p.parent.remove(p, {reason: 'move'});
     }
 
     p.parent = this;
@@ -558,7 +558,7 @@ class XRNode extends EventTarget {
 
     await p.ensureRunStop({timeout});
   }
-  remove(p, reason) {
+  remove(p, {reason} = {}) {
     const index = this.children.indexOf(p);
     if (index !== -1) {
       p.parent = null;
@@ -1651,7 +1651,7 @@ export class XRPackageEngine extends XRNode {
   reset() {
     const ps = this.children.slice();
     for (let i = 0; i < ps.length; i++) {
-      this.remove(ps[i], 'reset');
+      this.remove(ps[i], {reason: 'reset'});
     }
   }
   async importScene(uint8Array) {
@@ -1906,7 +1906,7 @@ export class XRPackage extends XRNode {
         },
       }));
   }
-  remove(p, reason) {
+  remove(p, {reason} = {}) {
     super.remove(p, reason);
 
     this.context.iframe && this.context.iframe.contentWindow && this.context.iframe.contentWindow.xrpackage &&
