@@ -1629,7 +1629,7 @@ export class XRPackageEngine extends XRNode {
       const heightFactor = _getHeightFactor(this.rig.height);
       this.setScale(1/heightFactor);
     } else {
-      await this.add(p, 'avatar');
+      await this.add(p, {reason: 'avatar'});
       this.rigPackage = p;
     }
   }
@@ -1672,7 +1672,7 @@ export class XRPackageEngine extends XRNode {
           const p = await XRPackage.download(hash);
           p.id = id;
           p.setMatrix(localMatrix.fromArray(matrix));
-          this.add(p, 'importScene');
+          this.add(p, {reason: 'importScene'});
         } else {
           const idUrl = primaryUrl + '/' + id + '.wbn';
           const file = p.files.find(f => f.url === idUrl);
@@ -1680,7 +1680,7 @@ export class XRPackageEngine extends XRNode {
             const p = new XRPackage(file.response.body);
             p.id = id;
             p.setMatrix(localMatrix.fromArray(matrix));
-            this.add(p, 'importScene');
+            this.add(p, {reason: 'importScene'});
           } else {
             console.warn('unknown file id', id);
           }
