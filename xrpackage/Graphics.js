@@ -250,6 +250,12 @@ ProxiedWebGLRenderingContext.prototype.getExtension = (_getExtension => function
     'OES_texture_float_linear',
     'OES_texture_float extension',
     'EXT_color_buffer_float',
+    'WEBGL_compressed_texture_astc',
+    'EXT_texture_compression_bptc',
+    'WEBGL_compressed_texture_etc1',
+    'WEBGL_compressed_texture_s3tc',
+    'WEBGL_compressed_texture_pvrtc',
+    'WEBKIT_WEBGL_compressed_texture_pvrtc',
   ].includes(name)) {
     return this.canvas.proxyContext.getExtension(name);
   } else if ([ // implicit in WebGL2
