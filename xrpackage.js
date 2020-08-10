@@ -1864,6 +1864,12 @@ export class XRPackage extends XRNode {
                   object: o,
                 },
               }));
+            })
+            .catch(e => {
+              this.loaded = false;
+              this.dispatchEvent(new MessageEvent('loadFail', {
+                data: {error: e},
+              }));
             });
         } else {
           throw new Error(`unknown xr_type: ${xrType}`);
@@ -1881,9 +1887,18 @@ export class XRPackage extends XRNode {
   async waitForLoad() {
     if (!this.loaded) {
       await new Promise((accept, reject) => {
-        this.addEventListener('load', e => {
+        const _loaded = e => {
+          this.removeEventListener('loadFail', _failed);
           accept();
-        }, {once: true});
+        };
+
+        const _failed = e => {
+          this.removeEventListener('load', _loaded);
+          reject(new Error(e.data.error));
+        };
+
+        this.addEventListener('load', _loaded, {once: true});
+        this.addEventListener('loadFail', _failed, {once: true});
       });
     }
   }

@@ -57,6 +57,26 @@ test('adding broken WebXR package to engine', withPageAndStaticServer, async (t,
   t.true(doesTimeOut);
 });
 
+test('compiling corrupted GLTF package', withPageAndStaticServer, async (t, page) => {
+  const doesTimeOut = await page.evaluate(async path => {
+    const blob = await fetch(path).then(res => res.blob());
+    blob.name = path.split('/').pop();
+
+    const uint8Array = await XRPackage.compileFromFile(blob);
+    const p = new XRPackage(uint8Array);
+
+    try {
+      await p.waitForLoad();
+    } catch (err) {
+      return true;
+    }
+
+    return false;
+  }, `${t.context.staticUrl}/assets/camera-corrupted.glb`);
+
+  t.true(doesTimeOut);
+});
+
 const performManifestTest = async (t, page, path, expectedError) => {
   const result = await page.evaluate(async (path, expectedError) => {
     try {
