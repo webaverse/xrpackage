@@ -437,14 +437,22 @@ const xrTypeAdders = {
     p.setXrFramebuffer(xrfb);
 
     if (options && options.timeout) {
-      const timeoutPromise = new Promise((resolve, reject) =>
-        setTimeout(() => reject(new Error('Timed out whilst loading package')), options.timeout),
-      );
+      const _timeoutPromise = async promise => {
+        return new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => reject(new Error('Timed out whilst loading package')), options.timeout);
 
-      await Promise.race([
-        p.context.requestPresentPromise,
-        timeoutPromise,
-      ]);
+          // Clear the timeout Promise on success/fail of the original promise to save memory
+          promise.then(res => {
+            clearTimeout(timeout);
+            resolve(res);
+          }, res => {
+            clearTimeout(timeout);
+            reject(res);
+          });
+        });
+      };
+
+      await _timeoutPromise(p.context.requestPresentPromise);
     } else {
       await p.context.requestPresentPromise;
     }
