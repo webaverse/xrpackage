@@ -42,7 +42,7 @@ module.exports = async (t, run) => {
   const page = await browser.newPage();
   page.on('console', consoleObj => console.log('Page log:', consoleObj.text()));
   page.on('pageerror', err => console.error('Page error: ', err.message, err.stack));
-  page.on('requestfailed', req => console.error('Request failed: ', req));
+  page.on('requestfailed', req => console.error('Request failed: ', req.method(), req.url(), req.response().status()));
 
   const server = _newStaticServer();
   const port = server.address().port;
