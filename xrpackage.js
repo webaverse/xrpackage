@@ -1867,7 +1867,7 @@ export class XRPackage extends XRNode {
             })
             .catch(e => {
               this.loaded = false;
-              this.dispatchEvent(new MessageEvent('loadFail', {
+              this.dispatchEvent(new MessageEvent('error', {
                 data: {error: e},
               }));
             });
@@ -1888,7 +1888,7 @@ export class XRPackage extends XRNode {
     if (!this.loaded) {
       await new Promise((accept, reject) => {
         const _loaded = e => {
-          this.removeEventListener('loadFail', _failed);
+          this.removeEventListener('error', _failed);
           accept();
         };
 
@@ -1898,7 +1898,7 @@ export class XRPackage extends XRNode {
         };
 
         this.addEventListener('load', _loaded, {once: true});
-        this.addEventListener('loadFail', _failed, {once: true});
+        this.addEventListener('error', _failed, {once: true});
       });
     }
   }
