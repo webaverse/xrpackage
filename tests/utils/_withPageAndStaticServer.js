@@ -28,15 +28,21 @@ const _newStaticServer = () => {
 };
 
 module.exports = async (t, run) => {
+  // Windows environment needs fewer flags
+  const args = process.platform === 'win32'
+    ? ['--no-sandbox']
+    : ['--no-sandbox', '--ignore-gpu-blacklist', '--ignore-gpu-blocklist', '--use-gl=desktop'];
+
   const browser = await puppeteer.launch({
-    headless: true,
+    headless: false, // Multisampled depth buffers with no GPU (headless chrome) is buggy
     devtools: true,
-    args: ['--no-sandbox'],
+    ignoreDefaultArgs: true,
+    args,
   });
   const page = await browser.newPage();
   page.on('console', consoleObj => console.log('Page log:', consoleObj.text()));
-  page.on('pageerror', err => console.error('Page error: ', err.stack));
-  page.on('requestfailed', req => console.error('Request failed: ', req));
+  page.on('pageerror', err => console.error('Page error: ', err.message, err.stack));
+  page.on('requestfailed', req => console.error('Request failed: ', req.method(), req.url(), req.response().status()));
 
   const server = _newStaticServer();
   const port = server.address().port;

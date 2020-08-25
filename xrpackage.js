@@ -26,6 +26,8 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localArray = Array(16);
 
+const PACKAGE_ADD_TIMEOUT = 30000;
+
 function makePromise() {
   let resolve, reject;
   const result = new Promise((a, b) => {
@@ -376,7 +378,7 @@ const xrTypeLoaders = {
   },
 };
 const xrTypeAdders = {
-  'webxr-site@0.0.1': async function(p) {
+  'webxr-site@0.0.1': async function(p, options) {
     await _loadPackageInSw(p);
 
     const iframe = document.createElement('iframe');
@@ -434,7 +436,26 @@ const xrTypeAdders = {
     const xrfb = this.realSession ? this.realSession.renderState.baseLayer.framebuffer : this.fakeXrFramebuffer;
     p.setXrFramebuffer(xrfb);
 
-    await p.context.requestPresentPromise;
+    if (options && options.timeout) {
+      const _timeoutPromise = async promise => {
+        return new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => reject(new Error('Timed out whilst loading package')), options.timeout);
+
+          // Clear the timeout Promise on success/fail of the original promise to save memory
+          promise.then(res => {
+            clearTimeout(timeout);
+            resolve(res);
+          }, res => {
+            clearTimeout(timeout);
+            reject(res);
+          });
+        });
+      };
+
+      await _timeoutPromise(p.context.requestPresentPromise);
+    } else {
+      await p.context.requestPresentPromise;
+    }
   },
   'gltf@0.0.1': async function(p) {
     this.container.add(p.context.object);
@@ -478,13 +499,14 @@ const _setFramebufferMsRenderbuffer = (gl, xrfb, width, height, devicePixelRatio
     gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, xrfb);
 
     const colorRenderbuffer = gl.createRenderbuffer();
+    const samples = gl.getParameter(gl.MAX_SAMPLES);
     gl.bindRenderbuffer(gl.RENDERBUFFER, colorRenderbuffer);
-    gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.RGBA8, width * devicePixelRatio, height * devicePixelRatio);
+    gl.renderbufferStorageMultisample(gl.RENDERBUFFER, samples, gl.RGBA8, width * devicePixelRatio, height * devicePixelRatio);
     gl.framebufferRenderbuffer(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, colorRenderbuffer);
 
     const depthRenderbuffer = gl.createRenderbuffer();
     gl.bindRenderbuffer(gl.RENDERBUFFER, depthRenderbuffer);
-    gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.DEPTH32F_STENCIL8, width * devicePixelRatio, height * devicePixelRatio);
+    gl.renderbufferStorageMultisample(gl.RENDERBUFFER, samples, gl.DEPTH32F_STENCIL8, width * devicePixelRatio, height * devicePixelRatio);
     gl.framebufferRenderbuffer(gl.DRAW_FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, depthRenderbuffer);
 
     gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, oldDrawFbo);
@@ -527,9 +549,9 @@ class XRNode extends EventTarget {
   constructor() {
     super();
   }
-  async add(p, reason) {
+  async add(p, {reason, timeout = PACKAGE_ADD_TIMEOUT} = {}) {
     if (p.parent) {
-      p.parent.remove(p, 'move');
+      p.parent.remove(p, {reason: 'move'});
     }
 
     p.parent = this;
@@ -543,9 +565,9 @@ class XRNode extends EventTarget {
       },
     }));
 
-    await p.ensureRunStop();
+    await p.ensureRunStop({timeout});
   }
-  remove(p, reason) {
+  remove(p, {reason} = {}) {
     const index = this.children.indexOf(p);
     if (index !== -1) {
       p.parent = null;
@@ -1616,7 +1638,7 @@ export class XRPackageEngine extends XRNode {
       const heightFactor = _getHeightFactor(this.rig.height);
       this.setScale(1/heightFactor);
     } else {
-      await this.add(p, 'avatar');
+      await this.add(p, {reason: 'avatar'});
       this.rigPackage = p;
     }
   }
@@ -1638,7 +1660,7 @@ export class XRPackageEngine extends XRNode {
   reset() {
     const ps = this.children.slice();
     for (let i = 0; i < ps.length; i++) {
-      this.remove(ps[i], 'reset');
+      this.remove(ps[i], {reason: 'reset'});
     }
   }
   async importScene(uint8Array) {
@@ -1659,7 +1681,7 @@ export class XRPackageEngine extends XRNode {
           const p = await XRPackage.download(hash);
           p.id = id;
           p.setMatrix(localMatrix.fromArray(matrix));
-          this.add(p, 'importScene');
+          this.add(p, {reason: 'importScene'});
         } else {
           const idUrl = primaryUrl + '/' + id + '.wbn';
           const file = p.files.find(f => f.url === idUrl);
@@ -1667,7 +1689,7 @@ export class XRPackageEngine extends XRNode {
             const p = new XRPackage(file.response.body);
             p.id = id;
             p.setMatrix(localMatrix.fromArray(matrix));
-            this.add(p, 'importScene');
+            this.add(p, {reason: 'importScene'});
           } else {
             console.warn('unknown file id', id);
           }
@@ -1850,6 +1872,12 @@ export class XRPackage extends XRNode {
                   object: o,
                 },
               }));
+            })
+            .catch(e => {
+              this.loaded = false;
+              this.dispatchEvent(new MessageEvent('error', {
+                data: {error: e},
+              }));
             });
         } else {
           throw new Error(`unknown xr_type: ${xrType}`);
@@ -1867,9 +1895,18 @@ export class XRPackage extends XRNode {
   async waitForLoad() {
     if (!this.loaded) {
       await new Promise((accept, reject) => {
-        this.addEventListener('load', e => {
+        const _loaded = e => {
+          this.removeEventListener('error', _failed);
           accept();
-        }, {once: true});
+        };
+
+        const _failed = e => {
+          this.removeEventListener('load', _loaded);
+          reject(new Error(e.data.error));
+        };
+
+        this.addEventListener('load', _loaded, {once: true});
+        this.addEventListener('error', _failed, {once: true});
       });
     }
   }
@@ -1882,8 +1919,8 @@ export class XRPackage extends XRNode {
       });
     }
   }
-  async add(p, reason) {
-    await super.add(p, reason);
+  async add(p, {reason, timeout} = {}) {
+    await super.add(p, {reason, timeout});
 
     this.context.iframe && this.context.iframe.contentWindow && this.context.iframe.contentWindow.xrpackage &&
       this.context.iframe.contentWindow.xrpackage.dispatchEvent(new MessageEvent('packageadd', {
@@ -1893,7 +1930,7 @@ export class XRPackage extends XRNode {
         },
       }));
   }
-  remove(p, reason) {
+  remove(p, {reason} = {}) {
     super.remove(p, reason);
 
     this.context.iframe && this.context.iframe.contentWindow && this.context.iframe.contentWindow.xrpackage &&
@@ -2205,7 +2242,7 @@ export class XRPackage extends XRNode {
       return null;
     }
   }
-  async ensureRunStop() {
+  async ensureRunStop(options) {
     await this.waitForLoad();
 
     const {runningEngine} = this;
@@ -2217,7 +2254,7 @@ export class XRPackage extends XRNode {
       const adder = xrTypeAdders[type];
       if (adder) {
         this.runningEngine = currentEngine;
-        await adder.call(currentEngine, this);
+        await adder.call(currentEngine, this, options);
         this.dispatchEvent(new MessageEvent('run'));
       } else {
         throw new Error(`unknown xr_type: ${type}`);
