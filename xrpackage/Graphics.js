@@ -258,11 +258,14 @@ ProxiedWebGLRenderingContext.prototype.getExtension = (_getExtension => function
     'WEBKIT_WEBGL_compressed_texture_pvrtc',
   ].includes(name)) {
     return this.canvas.proxyContext.getExtension(name);
+  } else if (name === 'WEBGL_depth_texture') {
+    return (hasWebGL2 && !isWebGL2) ? {
+      UNSIGNED_INT_24_8_WEBGL: this.canvas.proxyContext.UNSIGNED_INT_24_8,
+    } : this.canvas.proxyContext.getExtension(name);
   } else if ([ // implicit in WebGL2
     'OES_texture_float',
     'OES_texture_half_float',
     'OES_texture_half_float_linear',
-    'WEBGL_depth_texture',
     'OES_standard_derivatives',
     'OES_element_index_uint',
     'EXT_blend_minmax',
