@@ -7,6 +7,8 @@ import symbols from './xrpackage/symbols.js';
 import wbn from './xrpackage/wbn.js';
 import {GLTFLoader} from './xrpackage/GLTFLoader.js';
 import {VOXLoader} from './xrpackage/VOXLoader.js';
+import {FBXLoader} from './xrpackage/FBXLoader.js';
+import {GLTFExporter} from './GLTFExporter.js';
 import {OrbitControls} from './xrpackage/OrbitControls.js';
 import Avatar from './xrpackage/avatars/avatars.js';
 import utils from './xrpackage/utils.js';
@@ -1991,8 +1993,8 @@ export class XRPackage extends XRNode {
     this.files = files;
   }
   static async compileFromFile(file) {
-    const _createFile = async (file, xrType, mimeType) => {
-      const fileData = await new Promise((accept, reject) => {
+    const _createFile = async (file, xrType, mimeType, fileDataOverride) => {
+      const fileData = fileDataOverride || await new Promise((accept, reject) => {
         const reader = new FileReader();
         reader.onload = () => {
           accept(new Uint8Array(reader.result));
@@ -2029,6 +2031,24 @@ export class XRPackage extends XRNode {
       return await _createFile(file, 'vox@0.0.1', 'application/octet-stream');
     } else if (/\.html$/.test(file.name)) {
       return await _createFile(file, 'webxr-site@0.0.1', 'text/html');
+    } else if (/\.fbx$/.test(file.name)) {
+      const d = await new Promise((accept, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => accept(new Uint8Array(reader.result));
+        reader.onerror = reject;
+        reader.readAsArrayBuffer(file);
+      });
+
+      const b = new Blob([d], {type: 'application/octet-stream'});
+      const u = URL.createObjectURL(b);
+
+      const fbxLoad = u => new Promise(resolve => new FBXLoader().load(u, resolve));
+      const fbxScene = await fbxLoad(u);
+
+      const exportGltf = scene => new Promise(resolve => new GLTFExporter().parse(scene, resolve, { binary: true }));
+      const fileData = await exportGltf(fbxScene);
+
+      return await _createFile(file, 'gltf@0.0.1', 'application/octet-stream', new Uint8Array(fileData));
     } else if (/\.wbn$/.test(file.name)) {
       const arrayBuffer = await new Promise((accept, reject) => {
         const fr = new FileReader();
