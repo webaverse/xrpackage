@@ -29,7 +29,7 @@ $ cat manifest.json
 - `vrm@0.0.1`
 - `vox@0.0.1`
 
-See also the [examples](https://github.com/webaverse/xrpackage/tree/master/examples).
+See also the [examples](https://docs.webaverse.com/docs/create/examples).
 
 ## Asset packages
 
@@ -141,7 +141,7 @@ This will open up the `xrpackage.js` runtime in your browser and load the given 
 
 ## Run XRPackage programmatically
 
-See [run.html](https://github.com/webaverse/xrpackage/blob/master/run.html) for the full example.
+See [run.html](https://github.com/webaverse/xrpackage-site/blob/master/run.html) for the full example.
 
 ```
 import {XRPackageEngine, XRPackage} from 'https://static.xrpackage.org/xrpackage.js';
