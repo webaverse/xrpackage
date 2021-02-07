@@ -1952,10 +1952,29 @@ export class XRPackage extends XRNode {
     return mainFile.response.body;
   }
   addFile(pathname, data = '', type = 'application/octet-stream') {
-    let bundle = new wbn.Bundle(this.data);
-    const builder = _cloneBundle(bundle, {
-      except: ['/' + pathname],
-    });
+    let bundle;
+    let builder;
+
+    if (this.data.byteLength) {
+      bundle = new wbn.Bundle(this.data);
+      builder = _cloneBundle(bundle, {
+        except: ['/' + pathname],
+      });
+    } else {
+      builder = new wbn.BundleBuilder(primaryUrl + '/manifest.json');
+
+      // If the package is empty and we're not adding a manifest, add a default
+      // manifest automatically, so the primary URL for the wbn does exist
+      if (pathname !== 'manifest.json') {
+        const defaultManifest = {};
+        this.addFile('manifest.json', JSON.stringify(defaultManifest), 'application/json');
+        console.warn('XRPackage auto-created empty manifest.json for empty package', defaultManifest);
+
+        bundle = new wbn.Bundle(this.data);
+        builder = _cloneBundle(bundle);
+      }
+    }
+
     builder.addExchange(primaryUrl + '/' + pathname, 200, {
       'Content-Type': type,
     }, data);

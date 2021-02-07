@@ -1,15 +1,15 @@
-/* global XRPackage, XRPackageEngine */
+/* global XRPackage */
 const test = require('ava');
 
 const withPageAndStaticServer = require('./utils/_withPageAndStaticServer');
 
 test('get collision mesh of baked wbn - should exist', withPageAndStaticServer, async (t, page) => {
-  const response = await page.evaluate(pageFunction, `${t.context.staticUrl}/assets/baked-xrpk.wbn`);
+  const response = await page.evaluate(pageFunction, `${t.context.staticUrl}/assets/webxr-cube-baked.wbn`);
   t.true(response);
 });
 
 test('get collision mesh of unbaked wbn - should not exist', withPageAndStaticServer, async (t, page) => {
-  const response = await page.evaluate(pageFunction, `${t.context.staticUrl}/assets/unbaked-xrpk.wbn`);
+  const response = await page.evaluate(pageFunction, `${t.context.staticUrl}/assets/webxr-cube.wbn`);
   t.false(response);
 });
 
