@@ -1518,7 +1518,21 @@ export class XRPackageEngine extends XRNode {
       const inputPosition = localVector
         .copy(input.position)
         .divideScalar(this.scale);
-      const ps = this.children
+
+      const grabbables = [];
+      const getGrabbables = (p) => {
+        if (p.children.length > 0) {
+          p.recurseChildren(getGrabbables)
+        }
+        else if(!p.isAvatar) {
+          // console.log("Adding grabbable ", p.name)
+          grabbables.push(p)
+        }
+      }
+
+      this.recurseChildren(getGrabbables)
+
+      const ps = grabbables
         .sort((a, b) => {
           a.matrix.decompose(localVector2, localQuaternion, localVector4);
           b.matrix.decompose(localVector3, localQuaternion, localVector4);
@@ -2309,6 +2323,8 @@ export class XRPackage extends XRNode {
       }
       this.context.rig.setMicrophoneMediaStream = _setMicrophoneMediaStream(this.context.rig.setMicrophoneMediaStream);
     }
+
+    this.isAvatar = true
   }
   setPose(pose) {
     const [head, leftGamepad, rightGamepad] = pose;
